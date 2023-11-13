@@ -1,0 +1,409 @@
+html, body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.hg-button-small {
+  display: block;
+  flex-grow: 0;
+  width: 120px;
+  height: 24px;
+  background: navy;
+  font-size: 0.8em;
+  color: white;
+  text-align: center;
+  padding-top: 7px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.hg-page {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  min-height: 0px;
+}
+
+.hg-header, .hg-body, .hg-footer {
+  flex-shrink: 0;
+}
+
+/* ****** */
+/* HEADER */
+/* ****** */
+
+.hg-header {
+  background: navy;
+  padding: 5px;
+  height: 50px;
+  text-align: left;
+  line-height: 50px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.hg-game-heading {
+  color: white;
+  font-weight: bold;
+  font-size: 2em;
+  margin-left: 420px;
+  display: inline;
+}
+
+.hg-slogan {
+  font-weight: bold;
+  font-size: 1.3em;
+  color:yellow;
+  font-style:italic;
+  margin-left: 40px;
+  display: inline;
+}
+
+@media screen and (max-width: 1500px) {
+  .hg-slogan {
+    display: none;
+  }
+}
+
+.hg-header-right {
+  position: absolute;
+  background: white;
+  margin: 2px;
+  margin-top: 6px;
+  height: 46px;
+  width: 300px;
+  right: 20px;
+  vertical-align: middle;
+  border-radius: 20px;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.hg-header-right > img {
+  display: inline-flex;
+  margin-left: 20px;
+  margin-top: 3px;
+  height: 40px;
+  width: auto;
+}
+
+.hg-header-right > p {
+  display: inline-flex;
+  margin-left: 20px;
+  margin-bottom: 30px;
+  vertical-align: middle;
+}
+
+.hg-header-right > p > a {
+  color: blue;
+  font-weight: bold;
+  font-size: 1em;
+}
+
+.hg-header-logout > a:link, .hg-header-logout > a:visited, .hg-header-logout > a:active {
+  color: white;
+}
+
+.hg-header-game-user {
+  position: absolute;
+  text-align: left;
+  color: white;
+  font-weight: normal;
+  font-size: 0.8em;
+  margin-top: 5px;
+  margin-left: 10px;
+}
+
+.hg-header-game-user > p {
+  margin: 1px;
+}
+
+
+/* ****** */
+/* FOOTER */
+/* ****** */
+
+.hg-footer {
+  width: 100%;
+  background: navy;
+  padding: 0px;
+  height: 50px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.hg-footer > table {
+  position: absolute;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.hg-help-icon-left {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background-color: white;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+.hg-help-icon-left > img {
+  display: inline;
+  width: 44px;
+  height: 44px;
+}
+
+.hg-help-col {
+  padding-right: 20px;
+}
+
+.hg-help-col td {
+  white-space: nowrap;
+}
+
+.hg-help-col p {
+  margin: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+  padding-right: 10px;
+  font-size: 0.7em;
+  color: white;
+  font-style: normal;
+}
+
+/* ======================= */
+/* MAIN BODY OF THE SCREEN */
+/* ======================= */
+
+.hg-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+  height: calc(100vh - 200px);
+}
+
+.hg-facilitator-menu {
+  height: 40px;
+  flex-grow: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.hg-facilitator-menu-button, .hg-facilitator-menu-button-red, .hg-facilitator-menu-button-inactive {
+  flex-grow: 0;
+  width: 6%;
+  height: 25px;
+  font-size: 1em;
+  color: white;
+  text-align: center;
+  padding-top: 7px;
+  border-radius: 7px;
+}
+
+.hg-facilitator-menu-button {
+  background-color: navy;
+  cursor: pointer;
+}
+
+.hg-facilitator-menu-button-inactive {
+  background-color: gray;
+  cursor: default;
+}
+
+.hg-facilitator-menu-button-red {
+  background-color: red;
+  cursor: pointer;
+}
+
+.hg-facilitator {
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.hg-facilitator-line-header {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: orange;
+  margin-bottom: 5px;
+}
+
+.hg-facilitator-line:nth-child(even) {
+  background-color: white;  
+}
+
+.hg-facilitator-line:nth-child(odd) {
+  background-color: #cccccc;  
+}
+
+.hg-facilitator-line, .hg-facilitator-line-selected {
+  display: flex;
+  flex-direction: row;
+}
+
+.hg-facilitator-line-selected {
+  background-color: yellow;
+}
+
+.hg-facilitator-highlight, .hg-facilitator-highlight a {
+  background-color: yellow;
+}
+
+.hg-facilitator-line-field {
+  flex-grow: 1;
+}
+
+.hg-facilitator-line-click {
+  flex-grow: 0;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.hg-facilitator-table-button {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 10px;
+  height: 1.5em;
+  text-align: left;
+}
+
+.hg-preview-image-100 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 100px;
+  height: 100px;
+}
+
+.hg-preview-image-100 > img {
+  max-width: 100px;
+  max-height: 100px;
+}
+
+.hg-preview-image-200 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 200px;
+  height: 200px;
+}
+
+.hg-preview-image-200 > img {
+  max-width: 200px;
+  max-height: 200px;
+}
+
+.hg-users-score {
+  font-size: 0.8em;
+}
+
+.hg-detail-score {
+  font-size: 0.8em;
+}
+
+.hg-logging {
+  font-size: 0.8em;
+}
+
+/* ===================================== */
+/* MODAL WINDOWS WITH POP UP INFORMATION */
+/* ===================================== */
+
+/* modal background */
+.hg-modal {
+  display: block;
+  position: fixed; /* Stay in place */
+  z-index: 9; /* On top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* modal window close button */
+.hg-modal-close {
+  font-size: 2em;
+  font-weight: bold; 
+  padding-left: 10px;
+}
+
+.hg-modal-close:hover,
+.hg-modal-close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* modal window definition for client */
+.hg-modal-window {
+  position: absolute;
+  z-index: 10;
+  display: block;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: #fefefe;
+  left: calc(50vw - 350px);
+  top: calc(50vh - 200px);
+  border: 1px solid #888;
+  width: 700px;
+  height: 400px;
+}
+
+/* modal window header for client */
+.hg-modal-window-header {
+  cursor: move;
+  display: flex;
+  background-color: orange;
+  width: 100%;
+  height: 40px;
+  padding-top: 2px;
+}
+
+.hg-modal-window-header > p {
+  width: 100%;
+  font-weight: bold;
+  font-size: 1.2em;
+  color: black;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.hg-modal-button-row {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.hg-modal-body {
+  flex-direction: column;
+  justify-content: space-around;
+  width: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.hg-modal-text {
+  display: block;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.hg-modal-text > p {
+  text-align: center;
+  font-size: 1em;
+  font-style: normal;
+}
+  
