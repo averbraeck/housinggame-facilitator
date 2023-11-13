@@ -46,7 +46,7 @@ public final class SessionUtils
         StringBuilder s = new StringBuilder();
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         List<GameRecord> gameRecords = dslContext.selectFrom(Tables.GAME).fetch();
-
+    
         s.append(FacilitatorTable.startTable());
         for (GameRecord game : gameRecords) {
             TableRow tableRow = new TableRow(game.getId(), selectedGameRecordNr,
@@ -55,7 +55,7 @@ public final class SessionUtils
             s.append(tableRow.process());
         }
         s.append(FacilitatorTable.endTable());
-
+    
         data.getColumn(0).setSelectedRecordNr(selectedGameRecordNr);
         data.getColumn(0).setContent(s.toString());
     }

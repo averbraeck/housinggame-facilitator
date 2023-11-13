@@ -38,8 +38,6 @@ public class UserLoginServlet extends HttpServlet
         try
         {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Class.forName("com.mysql.cj.protocol.a.NullValueEncoder");
-            Class.forName("com.mysql.cj.protocol.a.SqlDateValueEncoder");
         }
         catch (ClassNotFoundException e)
         {
@@ -72,7 +70,8 @@ public class UserLoginServlet extends HttpServlet
     }
 
     @Override
-    protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+    protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
+            throws ServletException, IOException
     {
 
         String username = request.getParameter("username");
@@ -107,7 +106,7 @@ public class UserLoginServlet extends HttpServlet
         UserRecord user = SqlUtils.readUserFromUsername(data, username);
         String userPassword = user == null ? "" : user.getPassword() == null ? "" : user.getPassword();
         // TODO: hashedPassword
-        if (user != null && userPassword.equals(password) && user.getFacilitatoristrator().intValue() == 1)
+        if (user != null && userPassword.equals(password) /* TODO: CHECK FACILITATOR */)
         {
             data.setUsername(user.getUsername());
             data.setUserId(user.getId().intValue());
@@ -122,7 +121,8 @@ public class UserLoginServlet extends HttpServlet
     }
 
     @Override
-    protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+    protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
+            throws ServletException, IOException
     {
         response.sendRedirect("jsp/facilitator/login.jsp");
     }

@@ -164,7 +164,7 @@ html, body {
         <div class="hg-logo-right">
           <img src="images/hg-logo.png" />
         </div>
-        <h1>Housing Game Facilitatoristration</h1> 
+        <h1>Housing Game Facilitator App</h1> 
         <p>The following functions are available:</p>
         <ul>
           <li>Creating and maintaining game scenarios</li>

@@ -399,7 +399,7 @@ public final class SqlUtils
      *
      * @param data FacilitatorData; record with all session relevant information
      * @param scenario ScenarioRecord
-     * @throws HousingGameException 
+     * @throws HousingGameException
      */
     public static void destroyScenario(final FacilitatorData data, final ScenarioRecord scenario) throws HousingGameException
     {
@@ -474,9 +474,10 @@ public final class SqlUtils
      *
      * @param data FacilitatorData; record with all session relevant information
      * @param gameVersion GameversionRecord
-     * @throws HousingGameException 
+     * @throws HousingGameException
      */
-    public static void destroyGameVersion(final FacilitatorData data, final GameversionRecord gameVersion) throws HousingGameException
+    public static void destroyGameVersion(final FacilitatorData data, final GameversionRecord gameVersion)
+            throws HousingGameException
     {
         // 1. Check whether the gameVersion has an associated gamesession or scenario; if yes, throw exception.
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
