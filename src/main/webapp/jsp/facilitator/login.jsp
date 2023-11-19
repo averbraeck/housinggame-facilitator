@@ -1,3 +1,4 @@
+<%@page import="nl.tudelft.simulation.housinggame.facilitator.FacilitatorData"%>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
  pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
@@ -8,7 +9,7 @@
 
 <style>
 html, body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Roboto, Arial, Helvetica, sans-serif;
 }
 
 .hg-login-page {
@@ -150,6 +151,14 @@ html, body {
 </head>
 
 <body>
+
+<%
+  if(session.getAttribute("facilitatorData") == null) {
+	  FacilitatorData facilitatorData = new FacilitatorData();
+    session.setAttribute("facilitatorData", facilitatorData);
+  }
+%>
+
   <div class="hg-login-page">
     <div class="hg-login-header">
       <div class="hg-login-header-right">
@@ -182,9 +191,8 @@ html, body {
              <td width="60px">&nbsp;</td>
              <td>Session &nbsp; </td>
              <td>
-               <select name="session">
-                 <option value="3">Ommen morning session</option>
-                 <option value="6">Ommen afternoon session</option>
+               <select name="gamesession">
+                 ${facilitatorData.getValidSessionOptions() }
                </select>
              </td>
            </tr>
