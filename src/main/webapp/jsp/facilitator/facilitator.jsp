@@ -1,28 +1,11 @@
+<%@page import="nl.tudelft.simulation.housinggame.facilitator.FacilitatorData"%>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
   pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="ISO-8859-1">
+    <jsp:include page="head.jsp"></jsp:include>
     <title>Housing Game Facilitator App</title>
-
-    <link rel="stylesheet" type="text/css" href="/housinggame-facilitator/css/facilitator.css" />
-    <script src="/housinggame-facilitator/js/facilitator.js"></script>
-
-    <style>
-    table, th, td {
-    	border: 1px solid gray;
-    	border-spacing: 0px;
-    	border-collapse: collapse;
-    	padding: 5px;
-    	vertical-align: top;
-    }
-    
-    body {
-    	line-height: 1.2;
-    }
-    </style>
-
   </head>
 
   <body onload="initPage()">
