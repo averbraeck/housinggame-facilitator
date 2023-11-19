@@ -167,11 +167,11 @@ html, body {
         <h1>Housing Game Facilitator App</h1> 
         <p>The following functions are available:</p>
         <ul>
-          <li>Creating and maintaining game scenarios</li>
-          <li>Creating and maintaining game-play instances</li>
-          <li>Creating and maintaining users (also in bulk)</li>
-          <li>Allocating users to game-play instances</li>
-          <li>Viewing and exporting results and log data</li>
+          <li>Initialize play for the table</li>
+          <li>Advance the group to a next round</li>
+          <li>Read the news for the round</li>
+          <li>Enter the results of fluvial and pluvial events</li>
+          <li>Follow the players' progress</li>
         </ul>
       </div>
 
@@ -180,7 +180,17 @@ html, body {
          <table>
            <tr>
              <td width="60px">&nbsp;</td>
-             <td>UserName &nbsp; </td>
+             <td>Session &nbsp; </td>
+             <td>
+               <select name="session">
+                 <option value="3">Ommen morning session</option>
+                 <option value="6">Ommen afternoon session</option>
+               </select>
+             </td>
+           </tr>
+           <tr>
+             <td width="60px">&nbsp;</td>
+             <td>User name &nbsp; </td>
              <td><input type="text" name="username" /></td>
            </tr>
            <tr>
@@ -191,7 +201,7 @@ html, body {
          </table>
          <br/>
          <span>
-           <input type="submit" value="ADMINISTRATOR LOGIN" class="hg-login-button" />
+           <input type="submit" value="FACILITATOR LOGIN" class="hg-login-button" />
          </span>
         </form>
       </div>

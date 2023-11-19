@@ -22,7 +22,7 @@ import jakarta.xml.bind.DatatypeConverter;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
 
 @WebServlet("/login")
-public class UserLoginServlet extends HttpServlet
+public class FacilitatorLoginServlet extends HttpServlet
 {
 
     /** */
@@ -108,9 +108,9 @@ public class UserLoginServlet extends HttpServlet
         // TODO: hashedPassword
         if (user != null && userPassword.equals(password) /* TODO: CHECK FACILITATOR */)
         {
-            data.setUsername(user.getUsername());
-            data.setUserId(user.getId().intValue());
             data.setUser(user);
+
+
             response.sendRedirect("jsp/facilitator/facilitator.jsp");
         }
         else
