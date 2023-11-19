@@ -161,7 +161,7 @@ public class FacilitatorData
 
     public String getUsername()
     {
-        return this.user.getUsername();
+        return this.user == null ? null : this.user.getUsername();
     }
 
     public UserRecord getUser()
