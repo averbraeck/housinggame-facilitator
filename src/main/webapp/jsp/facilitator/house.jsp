@@ -361,28 +361,28 @@ body {
         <div class="hg-fac-menu">
           <div class="hg-fac-row">
             <div class="hg-fac-item">
-              <form action="/housinggame-facilitator/facilitator-player" method="post">
+              <form action="/housinggame-facilitator/jsp/facilitator/player.jsp" method="post">
                 <div class="hg-button">
-                  <input type="submit" value='Player overview' class="btn btn-primary" />
+                  <input type="submit" value='Player overview' class="btn" />
                 </div>
               </form>
             </div>
             <div class="hg-fac-item">
-              <form action="/housinggame-facilitator/facilitator-house" method="post">
+              <form action="/housinggame-facilitator/jsp/facilitator/house.jsp" method="post">
                 <div class="hg-button">
-                  <input type="submit" value='House overview' class="btn" />
+                  <input type="submit" value='House overview' class="btn btn-primary" />
                 </div>
               </form>
             </div>
             <div class="hg-fac-item">
-              <form action="/housinggame-facilitator/facilitator-flood" method="post">
+              <form action="/housinggame-facilitator/jsp/facilitator/flood.jsp" method="post">
                 <div class="hg-button">
                   <input type="submit" value='Flood overview' class="btn" />
                 </div>
               </form>
             </div>
             <div class="hg-fac-item">
-              <form action="/housinggame-facilitator/facilitator-news" method="post">
+              <form action="/housinggame-facilitator/jsp/facilitator/news.jsp" method="post">
                 <div class="hg-button">
                   <input type="submit" value='News overview' class="btn" />
                 </div>
@@ -399,15 +399,10 @@ body {
         </div>
         <div class="hg-fac-table">
           <table class="pmd table table-striped" style="text-align:center;">
-             ${facilitatorData.getContentHtml("player/playerStateTable") }
+             ${facilitatorData.getContentHtml("house/houseTable") }
           </table>
         </div>
 
-        <div class="hg-fac-table">
-           <table class="pmd table table-striped" style="text-align:center;">
-             ${facilitatorData.getContentHtml("player/playerBudgetTable") }
-           </table>
-        </div>
       </div>
     </div>
   </body>

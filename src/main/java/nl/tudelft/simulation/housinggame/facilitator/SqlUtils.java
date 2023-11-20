@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.servlet.http.HttpSession;
 
@@ -18,6 +20,7 @@ import org.jooq.types.UInteger;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.RoundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
 
@@ -130,6 +133,21 @@ public final class SqlUtils
             }
         }
         return groupRound;
+    }
+
+    public static SortedMap<Integer, PlayerroundRecord> getPlayerRoundMap(final FacilitatorData data, final UInteger playerId)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        SortedMap<Integer, PlayerroundRecord> playerRoundMap = new TreeMap<>();
+        List<PlayerroundRecord> playerRoundList =
+            dslContext.selectFrom(Tables.PLAYERROUND).where(Tables.PLAYERROUND.PLAYER_ID.eq(playerId)).fetch();
+        for (PlayerroundRecord playerRound : playerRoundList)
+        {
+            GrouproundRecord gr = SqlUtils.readRecordFromId(data, Tables.GROUPROUND, playerRound.getGrouproundId());
+            RoundRecord round = SqlUtils.readRecordFromId(data, Tables.ROUND, gr.getRoundId());
+            playerRoundMap.put(round.getRoundNumber(), playerRound);
+        }
+        return playerRoundMap;
     }
 
 }

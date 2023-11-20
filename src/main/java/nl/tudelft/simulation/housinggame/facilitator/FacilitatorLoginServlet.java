@@ -130,7 +130,7 @@ public class FacilitatorLoginServlet extends HttpServlet
 
         if (ok)
         {
-            response.sendRedirect("jsp/facilitator/facilitator-player.jsp");
+            response.sendRedirect("facilitator-player");
         }
         else
         {
