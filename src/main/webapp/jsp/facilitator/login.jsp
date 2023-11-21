@@ -1,3 +1,4 @@
+<%@page import="nl.tudelft.simulation.housinggame.facilitator.SessionUtils"%>
 <%@page import="nl.tudelft.simulation.housinggame.facilitator.FacilitatorData"%>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
  pageEncoding="ISO-8859-1"%>
@@ -154,8 +155,7 @@ html, body {
 
 <%
   if(session.getAttribute("facilitatorData") == null) {
-	  FacilitatorData facilitatorData = new FacilitatorData();
-    session.setAttribute("facilitatorData", facilitatorData);
+	  FacilitatorData facilitatorData = SessionUtils.getData(session);
   }
 %>
 

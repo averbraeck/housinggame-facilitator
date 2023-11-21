@@ -89,7 +89,7 @@ public final class SqlUtils
     public static GrouproundRecord getOrMakeLatestGroupRound(final FacilitatorData data, final GroupRecord group)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        // is there a current (highest) groupRound? Execute this code with a database lock around it (!)
+        // is there a groupRound 0? Execute this code with a database lock around it (!)
         List<GrouproundRecord> grList = new ArrayList<>();
         try
         {

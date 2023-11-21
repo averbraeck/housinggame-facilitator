@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -18,6 +20,7 @@ import org.jooq.impl.DSL;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GameversionRecord;
@@ -50,6 +53,9 @@ public class FacilitatorData
 
     /** the current round as a record. Always there. */
     private RoundRecord round;
+
+    /** the rounda. Always there. */
+    private SortedMap<Integer, RoundRecord> roundMap = new TreeMap<>();
 
     /** The scenario. Always there. */
     private ScenarioRecord scenario;
@@ -219,6 +225,11 @@ public class FacilitatorData
         this.round = round;
     }
 
+    public SortedMap<Integer, RoundRecord> getRoundMap()
+    {
+        return this.roundMap;
+    }
+
     public ScenarioRecord getScenario()
     {
         return this.scenario;
@@ -241,7 +252,12 @@ public class FacilitatorData
 
     public String getContentHtml(final String key)
     {
-        return this.contentHtmlMap.get(key);
+        return this.contentHtmlMap.containsKey(key) ? this.contentHtmlMap.get(key) : "";
+    }
+
+    public void putContentHtml(final String key, final String value)
+    {
+        this.contentHtmlMap.put(key, value);
     }
 
     public Map<String, String> getContentHtml()
@@ -290,6 +306,16 @@ public class FacilitatorData
             return Integer.toString(nr);
         else
             return Integer.toString(nr / 1000) + " k";
+    }
+
+    public int getHighestRound()
+    {
+        return this.getRoundMap().lastKey();
+    }
+
+    public boolean isState(final RoundState state)
+    {
+        return RoundState.eq(state.toString(), this.groupRound.getRoundState());
     }
 
 }

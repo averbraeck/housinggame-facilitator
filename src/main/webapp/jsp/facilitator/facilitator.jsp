@@ -17,7 +17,7 @@ body {
   background-color: white;
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: flex-start;
 }
@@ -26,6 +26,7 @@ body {
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
+  flex-shrink: 0;
   justify-content: flex-start;
   align-items: flex-start;
 }
@@ -64,6 +65,18 @@ body {
   grid-template-columns: auto auto;
 }
 
+.hg-grid2-left-right {
+  display: grid;
+  row-gap: 4px;
+  column-gap: 10px;
+  justify-items: start;
+  align-items: center;
+  justify-content: space-between;
+  align-content: center;
+  grid-template-columns: auto auto;
+}
+
+
 .hg-fac-accordion {
   width: 100%;
 }
@@ -93,6 +106,17 @@ body {
 .panel-body {
   padding: 1rem;
 }
+
+.btn-active {
+  disabled:false; 
+  cursor:pointer; 
+}
+
+.btn-inactive {
+  disabled:true;
+  cursor:not-allowed;
+}
+
     </style>
   </head>
 
@@ -112,16 +136,6 @@ body {
             <div>Round:</div><div>${facilitatorData.getRound().getRoundNumber() }</div>
           </div>
           <br />
-          <div class="hg-fac-row">
-            <div class="hg-fac-item">
-              <button disabled="disabled">START GAME</button>
-            </div>
-            <div class="hg-fac-item">
-              <button disabled="disabled">END GAME</button>
-            </div>
-            <div class="hg-fac-item">
-            </div>
-          </div>
         </div>
         
         
@@ -142,7 +156,7 @@ body {
 			        </div>
 			        <div id="collapse1" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading1">
 			          <div class="panel-body">
-			            <div class="hg-grid2-left">
+			            <div class="hg-grid2-left-right">
                      <div>
                        Allow the minimum <br/>
                        number of players to <br/> 
@@ -150,7 +164,12 @@ body {
                        round of the game
                      </div>
                      <div>
-                       <button disabled="disabled">START NEW ROUND</button>
+                       <form action="/housinggame-facilitator/facilitator" method="post">
+                         <input type="hidden" name="button" value="new-round" />
+                         <div class="hg-button">
+                           <input type="submit" value="START NEW ROUND" class='${facilitatorData.getContentHtml("button/new-round") }' />
+                         </div>
+                       </form>
                      </div>
 			            </div>
 			          </div>
@@ -326,7 +345,7 @@ body {
                  <h4 class="panel-title">
                    <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse7" aria-expanded="false" 
                      aria-controls="collapse7" data-expandable="false">
-                     House market
+                     Damage
                      <i class="material-icons md-dark pmd-sm pmd-accordion-arrow">
                        keyboard_arrow_down
                      </i>
@@ -355,36 +374,40 @@ body {
         </div> <!-- hg-fac-accordion -->
       </div>
       
-      <div style="width: 36px;"></div>
+      <div style="width: 48px; min-width: 48px;"></div>
       
       <div class="hg-fac-right">
         <div class="hg-fac-menu">
           <div class="hg-fac-row">
             <div class="hg-fac-item">
-              <form action="/housinggame-facilitator/facilitator-player" method="post">
+              <form action="/housinggame-facilitator/facilitator" method="post">
+                <input type="hidden" name="menu" value="Player" />
                 <div class="hg-button">
-                  <input type="submit" value='Player overview' class="btn btn-primary" />
+                  <input type="submit" value='Player overview' class='${facilitatorData.getContentHtml("menuPlayer")}' />
                 </div>
               </form>
             </div>
             <div class="hg-fac-item">
-              <form action="/housinggame-facilitator/facilitator-house" method="post">
+              <form action="/housinggame-facilitator/facilitator" method="post">
+                <input type="hidden" name="menu" value="House" />
                 <div class="hg-button">
-                  <input type="submit" value='House overview' class="btn" />
+                  <input type="submit" value='House overview' class='${facilitatorData.getContentHtml("menuHouse")}' />
                 </div>
               </form>
             </div>
             <div class="hg-fac-item">
-              <form action="/housinggame-facilitator/facilitator-flood" method="post">
+              <form action="/housinggame-facilitator/facilitator" method="post">
+                <input type="hidden" name="menu" value="Flood" />
                 <div class="hg-button">
-                  <input type="submit" value='Flood overview' class="btn" />
+                  <input type="submit" value='Flood overview' class='${facilitatorData.getContentHtml("menuFlood")}' />
                 </div>
               </form>
             </div>
             <div class="hg-fac-item">
-              <form action="/housinggame-facilitator/facilitator-news" method="post">
+              <form action="/housinggame-facilitator/facilitator" method="post">
+                <input type="hidden" name="menu" value="News" />
                 <div class="hg-button">
-                  <input type="submit" value='News overview' class="btn" />
+                  <input type="submit" value='News overview' class='${facilitatorData.getContentHtml("menuNews")}' />
                 </div>
               </form>
             </div>
@@ -397,19 +420,14 @@ body {
             </div>
           </div>
         </div>
-        <div class="hg-fac-table">
-          <table class="pmd table table-striped" style="text-align:center;">
-             ${facilitatorData.getContentHtml("player/playerStateTable") }
-          </table>
-        </div>
 
-        <div class="hg-fac-table">
-           <table class="pmd table table-striped" style="text-align:center;">
-             ${facilitatorData.getContentHtml("player/playerBudgetTable") }
-           </table>
-        </div>
+        ${facilitatorData.getContentHtml("facilitator/tables") }
+        
       </div>
     </div>
+    
+    ${facilitatorData.getModalWindowHtml()}
+    
   </body>
 
 </html>

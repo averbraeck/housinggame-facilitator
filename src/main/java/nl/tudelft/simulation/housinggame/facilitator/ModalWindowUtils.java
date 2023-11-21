@@ -3,18 +3,18 @@ package nl.tudelft.simulation.housinggame.facilitator;
 public class ModalWindowUtils
 {
 
-    public static void popup(FacilitatorData data, String title, String message, String okMethod)
+    public static void popup(final FacilitatorData data, final String title, final String message, final String okReturn)
     {
         // make popup
         StringBuilder s = new StringBuilder();
         s.append("<p>");
         s.append(message);
         s.append("</p>\n");
-        data.setModalWindowHtml(makeOkModalWindow(title, s.toString(), okMethod));
+        data.setModalWindowHtml(makeOkModalWindow(title, s.toString(), okReturn));
         data.setShowModalWindow(1);
     }
 
-    public static String makeModalWindow(String title, String content, String onClickClose)
+    public static String makeModalWindow(final String title, final String content, final String onClickClose)
     {
         StringBuilder s = new StringBuilder();
         s.append("    <div class=\"hg-modal\">\n");
@@ -37,7 +37,7 @@ public class ModalWindowUtils
         return s.toString();
     }
 
-    public static String makeOkModalWindow(String title, String htmlText, String okMethod)
+    public static String makeOkModalWindow(final String title, final String htmlText, final String okReturn)
     {
         StringBuilder s = new StringBuilder();
         s.append("        <div class=\"hg-modal-body\">");
@@ -46,28 +46,26 @@ public class ModalWindowUtils
         s.append(htmlText);
         s.append("            </p>\n");
         s.append("          <div class=\"hg-modal-button-row\">\n");
-        s.append("            <div class=\"hg-button-small\" onclick=\"" + okMethod + "\">OK</div>\n");
+        s.append("            <div class=\"hg-button-small\" onclick=\"" + okReturn + "\">OK</div>\n");
         s.append("          </div>\n");
         s.append("        </div>\n");
-        return makeModalWindow(title, s.toString(), okMethod);
+        return makeModalWindow(title, s.toString(), okReturn);
     }
 
-    public static String makeOkModalWindow(String title, String htmlText)
+    public static String makeOkModalWindow(final String title, final String htmlText)
     {
         return makeOkModalWindow(title, htmlText, "clickModalWindowOk()");
     }
 
-    public static void make2ButtonModalWindow(FacilitatorData data, String title, String content, String buttonText1,
-            String buttonMethod1, String buttonText2, String buttonMethod2, String closeMethod)
+    public static void make2ButtonModalWindow(final FacilitatorData data, final String title, final String content,
+            final String buttonText1, final String buttonReturn1, final String buttonText2, final String buttonReturn2,
+            final String closeReturn)
     {
         StringBuilder s = new StringBuilder();
         s.append("    <div class=\"hg-modal\">\n");
         s.append("      <div class=\"hg-modal-window\" id=\"hg-modal-window\">\n");
         s.append("        <div class=\"hg-modal-window-header\">");
-        s.append("          <span class=\"hg-modal-close\" onclick=\"");
-        s.append(closeMethod);
-        s.append("\">");
-        s.append("&times;</span>\n");
+        // TODO close button at the right
         s.append("          <p>");
         s.append(title);
         s.append("</p>\n");
@@ -79,23 +77,41 @@ public class ModalWindowUtils
         s.append("            </p>\n");
         s.append("          </div>\n"); // hg-modal-text
         s.append("          <div class=\"hg-modal-button-row\">\n");
-        s.append("            <div class=\"hg-button-small\" onclick=\"");
-        s.append(buttonMethod1);
-        s.append("\">");
+
+        s.append("            <div class=\"hg-button-small\"\n");
+        s.append("              <form action=\"/housinggame-facilitator/facilitator\" method=\"post\">\n");
+        s.append("                <input type=\"hidden\" name=\"button\" value=\"");
+        s.append(buttonReturn1);
+        s.append("\" />\n");
+        s.append("                <div class=\"hg-button\">\n");
+        s.append("                  <input type=\"submit\" value=\"");
         s.append(buttonText1);
-        s.append("</div>\n");
-        s.append("            <div class=\"hg-button-small\" onclick=\"");
-        s.append(buttonMethod2);
-        s.append("\">");
+        s.append("\" />\n");
+        s.append("                </div>\n");
+        s.append("              </form>\n");
+        s.append("            </div>\n");
+
+        s.append("            <div class=\"hg-button-small\"\n");
+        s.append("              <form action=\"/housinggame-facilitator/facilitator\" method=\"post\">\n");
+        s.append("                <input type=\"hidden\" name=\"button\" value=\"");
+        s.append(buttonReturn2);
+        s.append("\" />\n");
+        s.append("                <div class=\"hg-button\">\n");
+        s.append("                  <input type=\"submit\" value=\"");
         s.append(buttonText2);
-        s.append("</div>\n");
+        s.append("\" />\n");
+        s.append("                </div>\n");
+        s.append("              </form>\n");
+        s.append("            </div>\n");
+
         s.append("          </div>\n"); // hg-modal-button-row
         s.append("        </div>\n"); // hg-hg-modal-body
         s.append("      </div>\n"); // hg-modal-window
         s.append("    </div>\n"); // hg-modal
-        s.append("    <script>");
-        s.append("      dragElement(document.getElementById(\"hg-modal-window\"));");
-        s.append("    </script>");
+        s.append("  </form>\n");
+        s.append("  <script>");
+        s.append("    dragElement(document.getElementById(\"hg-modal-window\"));");
+        s.append("  </script>");
 
         data.setModalWindowHtml(s.toString());
         data.setShowModalWindow(1);

@@ -1,21 +1,20 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.io.IOException;
+import java.util.List;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.sql.DataSource;
 
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
+import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GameversionRecord;
@@ -66,17 +65,7 @@ public class FacilitatorLoginServlet extends HttpServlet
         */
 
         HttpSession session = request.getSession();
-
-        FacilitatorData data = (FacilitatorData) session.getAttribute("facilitatorData");
-        session.setAttribute("facilitatorData", data);
-        try
-        {
-            data.setDataSource((DataSource) new InitialContext().lookup("/housinggame-facilitator_datasource"));
-        }
-        catch (NamingException e)
-        {
-            throw new ServletException(e);
-        }
+        FacilitatorData data = SessionUtils.getData(session);
 
         boolean ok = true;
         int gameSessionId = 0;
@@ -124,13 +113,26 @@ public class FacilitatorLoginServlet extends HttpServlet
                             dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.ID.eq(groupRound.getRoundId())).fetchOne();
                     data.setRound(round);
                     data.setGroupRound(groupRound);
+                    List<RoundRecord> roundList =
+                            dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.SCENARIO_ID.eq(scenario.getId())).fetch();
+                    data.getRoundMap().clear();
+                    for (RoundRecord rr : roundList)
+                        data.getRoundMap().put(rr.getRoundNumber(), rr);
+                    if (data.isState(RoundState.INIT))
+                    {
+                        if (data.getCurrentRound() == 0)
+                            data.getGroupRound().setRoundState(RoundState.LOGIN.toString());
+                        else
+                            data.getGroupRound().setRoundState(RoundState.NEW_ROUND.toString());
+                        data.getGroupRound().store();
+                    }
                 }
             }
         }
 
         if (ok)
         {
-            response.sendRedirect("facilitator-player");
+            response.sendRedirect("/housinggame-facilitator/facilitator");
         }
         else
         {
