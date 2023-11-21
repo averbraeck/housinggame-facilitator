@@ -2,7 +2,6 @@ package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.SortedMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,8 +16,10 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.jooq.types.UInteger;
 
+import nl.tudelft.simulation.housinggame.common.PlayerState;
 import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
+import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.NewsitemRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
@@ -118,37 +119,130 @@ public class FacilitatorServlet extends HttpServlet
         for (String b : new String[] {"new-round", "announce-news", "show-houses", "assign-houses", "calculate-taxes",
                 "allow-improvements", "ask-perceptions", "roll-dice", "show-damage"})
             data.putContentHtml("button/" + b, "btn btn-inactive");
-        switch (RoundState.valueOf(data.getGroupRound().getRoundState()))
+        for (String a : new String[] {"new-round", "announce-news", "houses-taxes",
+                "allow-improvements", "ask-perceptions", "roll-dice", "show-damage"})
+            data.putContentHtml("accordion/" + a, "");
+        switch (RoundState.valueOf(data.getCurrentGroupRound().getRoundState()))
         {
-            case INIT -> data.putContentHtml("button/new-round", "btn btn-primary btn-active");
-            case LOGIN -> data.putContentHtml("button/new-round", "btn btn-primary btn-active");
-            case NEW_ROUND -> data.putContentHtml("button/announce-news", "btn btn-primary btn-active");
-            case ANNOUNCE_NEWS -> data.putContentHtml("button/show-houses", "btn btn-primary btn-active");
-            case SHOW_HOUSES -> data.putContentHtml("button/assign-houses", "btn btn-primary btn-active");
-            case ASSIGN_HOUSES -> data.putContentHtml("button/calculate-taxes", "btn btn-primary btn-active");
-            case CALCULATE_TAXES -> data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
-            case ALLOW_IMPROVEMENTS -> data.putContentHtml("button/ask-perceptions", "btn btn-primary btn-active");
-            case ASK_PERCEPTIONS -> data.putContentHtml("button/roll-dice", "btn btn-primary btn-active");
-            case ROLL_DICE -> data.putContentHtml("button/show-damage", "btn btn-primary btn-active");
+            case INIT ->
+            {
+                data.putContentHtml("button/new-round", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/new-round", "in");
+            }
+            case LOGIN ->
+            {
+                data.putContentHtml("button/new-round", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/new-round", "in");
+            }
+            case NEW_ROUND ->
+            {
+                data.putContentHtml("button/announce-news", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/announce-news", "in");
+            }
+            case ANNOUNCE_NEWS ->
+            {
+                data.putContentHtml("button/show-houses", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/houses-taxes", "in");
+            }
+            case SHOW_HOUSES ->
+            {
+                data.putContentHtml("button/assign-houses", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/houses-taxes", "in");
+            }
+            case ASSIGN_HOUSES ->
+            {
+                data.putContentHtml("button/calculate-taxes", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/houses-taxes", "in");
+            }
+            case CALCULATE_TAXES ->
+            {
+                data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/allow-improvements", "in");
+            }
+            case ALLOW_IMPROVEMENTS ->
+            {
+                data.putContentHtml("button/ask-perceptions", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/ask-perceptions", "in");
+            }
+            case ASK_PERCEPTIONS ->
+            {
+                data.putContentHtml("button/roll-dice", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/roll-dice", "in");
+            }
+            case ROLL_DICE ->
+            {
+                data.putContentHtml("button/show-damage", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/show-damage", "in");
+            }
             case SHOW_DAMAGE ->
             {
-                if (data.getCurrentRound() < data.getHighestRound())
+                if (data.getCurrentRoundNumber() < data.getScenario().getHighestRoundNumber().intValue())
                     data.putContentHtml("button/new-round", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/new-round", "in");
             }
-            default -> System.err.println("Unknown RoundState: " + data.getGroupRound().getRoundState());
+            default -> System.err.println("Unknown RoundState: " + data.getCurrentGroupRound().getRoundState());
         }
     }
 
     public void popupNewRound(final FacilitatorData data)
     {
-        String content = "There are XX players logged in, <br>do you really want to move to the next round?";
+        int nrLoggedInPlayers = 0;
+        int nrReadyPlayers = 0;
+        int nrActivePlayers = 0;
+        for (PlayerRecord player : data.getPlayerList())
+        {
+            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = SqlUtils.getCurrentPlayerRound(data, player.getId());
+            if (!playerRoundList.isEmpty())
+            {
+                if (playerRoundList.get(0) != null)
+                    nrLoggedInPlayers++;
+                else
+                {
+                    if (playerRound != null && PlayerState.ge(playerRound.getPlayerState(), PlayerState.SUMMARY.toString()))
+                        nrReadyPlayers++;
+                }
+                if (playerRound != null && playerRound.getGrouproundId().equals(data.getCurrentGroupRound().getId()))
+                    nrActivePlayers++;
+            }
+        }
+
+        String content = "There are " + nrLoggedInPlayers + " players who have logged in";
+        content += "<br>There are " + nrActivePlayers + " players who are active";
+        content += "<br>There are " + nrReadyPlayers + " players who are at the summary screen<br>";
+        if (data.getCurrentRoundNumber() == 0)
+        {
+            if (nrLoggedInPlayers < data.getScenario().getMinimumPlayers().intValue())
+                content += "<br>This is LESS than the minimum number: " + data.getScenario().getMinimumPlayers().intValue();
+            else
+                content += "<br>This number would be sufficient to play the game.";
+        }
+        else
+        {
+            if (nrReadyPlayers < nrActivePlayers)
+                content += "<br>NOT ALL PLAYERS are at the summary screen! (" + nrReadyPlayers + " < " + nrActivePlayers + ")";
+            else if (nrActivePlayers == 0)
+                content += "<br>PLAYERS HAVE NOT CARRIED OUT ANY ACTIONS YET!";
+            else
+                content += "<br>All players are at the summary screen";
+        }
+        content += "<br>Do you really want to move to the next round?<br>";
+
         ModalWindowUtils.make2ButtonModalWindow(data, "Move to next round?", content, "YES", "new-round-ok", "NO", "", "");
         data.setShowModalWindow(1);
     }
 
     public void newRound(final FacilitatorData data)
     {
-        System.out.println("Here, we would really move to the next round");
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        GrouproundRecord groupRound = dslContext.newRecord(Tables.GROUPROUND);
+        groupRound.setRoundState(RoundState.NEW_ROUND.toString());
+        groupRound.setRoundId(data.getRoundList().get(data.getCurrentRoundNumber() + 1).getId());
+        groupRound.setGroupId(data.getGroup().getId());
+        groupRound.setPluvialFloodIntensity(null);
+        groupRound.setFluvialFloodIntensity(null);
+        groupRound.store();
+        data.readDynamicData();
     }
 
     public static String makePlayerStateTable(final FacilitatorData data)
@@ -176,7 +270,6 @@ public class FacilitatorServlet extends HttpServlet
           ...
         </tbody>
          */
-        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         StringBuilder s = new StringBuilder();
         s.append("                <thead>\n");
         s.append("                  <tr>\n");
@@ -189,14 +282,12 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                  </tr>\n");
         s.append("                </thead>\n");
         s.append("                <tbody>\n");
-        List<PlayerRecord> playerList = dslContext.selectFrom(Tables.PLAYER)
-                .where(Tables.PLAYER.GROUP_ID.eq(data.getGroup().getId())).fetch().sortAsc(Tables.PLAYER.CODE);
-        for (PlayerRecord player : playerList)
+        for (PlayerRecord player : data.getPlayerList())
         {
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
-            SortedMap<Integer, PlayerroundRecord> playerRoundMap = SqlUtils.getPlayerRoundMap(data, player.getId());
-            if (playerRoundMap.isEmpty())
+            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            if (playerRoundList.isEmpty() || playerRoundList.get(0) == null)
             {
                 WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
                 s.append("                    <td>-</td>\n");
@@ -207,8 +298,16 @@ public class FacilitatorServlet extends HttpServlet
             }
             else
             {
-                int highestRound = playerRoundMap.lastKey();
-                PlayerroundRecord prr = playerRoundMap.get(highestRound);
+                int highestRound = 0;
+                PlayerroundRecord prr = playerRoundList.get(0);
+                for (int i = 0; i < playerRoundList.size(); i++)
+                {
+                    if (playerRoundList.get(i) != null)
+                    {
+                        prr = playerRoundList.get(i);
+                        highestRound = i;
+                    }
+                }
                 s.append("                    <td>" + highestRound + "</td>\n");
                 s.append("                    <td>" + prr.getPlayerState() + "</td>\n");
                 s.append("                    <td>" + prr.getSatisfaction() + "</td>\n");
@@ -229,7 +328,6 @@ public class FacilitatorServlet extends HttpServlet
 
     public static String makePlayerBudgetTable(final FacilitatorData data)
     {
-        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         StringBuilder s = new StringBuilder();
         s.append("                <thead>\n");
         s.append("                  <tr>\n");
@@ -243,14 +341,12 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                  </tr>\n");
         s.append("                </thead>\n");
         s.append("                <tbody>\n");
-        List<PlayerRecord> playerList = dslContext.selectFrom(Tables.PLAYER)
-                .where(Tables.PLAYER.GROUP_ID.eq(data.getGroup().getId())).fetch().sortAsc(Tables.PLAYER.CODE);
-        for (PlayerRecord player : playerList)
+        for (PlayerRecord player : data.getPlayerList())
         {
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
-            SortedMap<Integer, PlayerroundRecord> playerRoundMap = SqlUtils.getPlayerRoundMap(data, player.getId());
-            if (playerRoundMap.isEmpty())
+            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            if (playerRoundList.isEmpty() || playerRoundList.get(0) == null)
             {
                 WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
                 s.append("                    <td>" + data.k(welfareType.getIncomePerRound().intValue()) + "</td>\n");
@@ -262,8 +358,12 @@ public class FacilitatorServlet extends HttpServlet
             }
             else
             {
-                int highestRound = playerRoundMap.lastKey();
-                PlayerroundRecord prr = playerRoundMap.get(highestRound);
+                PlayerroundRecord prr = playerRoundList.get(0);
+                for (int i = 0; i < playerRoundList.size(); i++)
+                {
+                    if (playerRoundList.get(i) != null)
+                        prr = playerRoundList.get(i);
+                }
                 s.append("                    <td>" + data.k(prr.getIncomePerRound().intValue()) + "</td>\n");
                 s.append("                    <td>" + data.k(prr.getLivingCosts().intValue()) + "</td>\n");
                 s.append("                    <td>" + data.k(prr.getMaximumMortgage().intValue()) + "</td>\n");
@@ -321,7 +421,7 @@ public class FacilitatorServlet extends HttpServlet
         {
             UInteger id = (UInteger) record.get(0);
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, id);
-            if (house.getAvailableRound().intValue() <= data.getCurrentRound())
+            if (house.getAvailableRound().intValue() <= data.getCurrentRoundNumber())
             {
                 s.append("                  <tr>\n");
                 s.append("                    <td>" + house.getAddress() + "</td>\n");
@@ -364,7 +464,7 @@ public class FacilitatorServlet extends HttpServlet
             UInteger id = (UInteger) record.get(0);
             NewsitemRecord news = SqlUtils.readRecordFromId(data, Tables.NEWSITEM, id);
             RoundRecord round = SqlUtils.readRecordFromId(data, Tables.ROUND, news.getRoundId());
-            if (round.getRoundNumber() <= data.getCurrentRound())
+            if (round.getRoundNumber() <= data.getCurrentRoundNumber())
             {
                 s.append("                  <tr>\n");
                 s.append("                    <td>" + round.getRoundNumber() + "</td>\n");

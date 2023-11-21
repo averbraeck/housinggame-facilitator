@@ -5,10 +5,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import javax.servlet.http.HttpSession;
 
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -18,7 +14,6 @@ import org.jooq.impl.DSL;
 import org.jooq.types.UInteger;
 
 import nl.tudelft.simulation.housinggame.data.Tables;
-import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.RoundRecord;
@@ -60,12 +55,6 @@ public final class SqlUtils
         return dslContext.selectFrom(Tables.USER).where(Tables.USER.USERNAME.eq(username)).fetchAny();
     }
 
-    public static void loadAttributes(final HttpSession session)
-    {
-        FacilitatorData data = SessionUtils.getData(session);
-        data.setMenuChoice("");
-    }
-
     public static <R extends org.jooq.UpdatableRecord<R>> R readRecordFromId(final FacilitatorData data, final Table<R> table,
             final int recordId)
     {
@@ -81,73 +70,38 @@ public final class SqlUtils
     }
 
     /**
-     * Return the latest GroupRound for the given group, or create a GroupRound for round 0.
-     * @param data PlayerData; session data
-     * @param group GroupRecord; the group for which we want to know the latest GroupRound
-     * @return GrouproundRecord; the latest GroupRound or a newly created GroupRound for round 0
+     * This method always returns a list of length up to and including the current round number. Not played rounds are null.
+     * @param data FacilitatorData
+     * @param playerId player to retrieve
+     * @return list of PlayerRoundRecords
      */
-    public static GrouproundRecord getOrMakeLatestGroupRound(final FacilitatorData data, final GroupRecord group)
+    public static List<PlayerroundRecord> getPlayerRoundList(final FacilitatorData data, final UInteger playerId)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        // is there a groupRound 0? Execute this code with a database lock around it (!)
-        List<GrouproundRecord> grList = new ArrayList<>();
-        try
+        List<PlayerroundRecord> playerRoundList = new ArrayList<>();
+        for (int i = 0; i < data.getGroupRoundList().size(); i++)
         {
-            dslContext.execute("LOCK TABLES groupround WRITE, round WRITE WAIT 10;");
-            grList = dslContext.selectFrom(Tables.GROUPROUND).where(Tables.GROUPROUND.GROUP_ID.eq(group.getId())).fetch();
-            if (grList.isEmpty())
-            {
-                GrouproundRecord newGr = dslContext.newRecord(Tables.GROUPROUND);
-                newGr.setGroupId(group.getId());
-                // find the round with the lowest number: SELECT * from round WHERE round.scenario_id=3
-                // AND round_number=(SELECT MIN(round_number) FROM round WHERE round.scenario_id=3 );
-                int minRoundNumber = dslContext
-                        .execute("SELECT MIN(round_number) FROM round WHERE round.scenario_id=" + group.getScenarioId());
-                RoundRecord lowestRound =
-                        dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.SCENARIO_ID.eq(group.getScenarioId()))
-                                .and(Tables.ROUND.ROUND_NUMBER.eq(minRoundNumber)).fetchOne();
-                newGr.setRoundId(lowestRound.getId());
-                newGr.setFluvialFloodIntensity(0);
-                newGr.setPluvialFloodIntensity(0);
-                // newGr.setStartTime(LocalDateTime.now());
-                newGr.store();
-                grList.add(newGr);
-            }
+            GrouproundRecord groupRound = data.getGroupRoundList().get(i);
+            PlayerroundRecord playerRound =
+                    dslContext.selectFrom(Tables.PLAYERROUND).where(Tables.PLAYERROUND.PLAYER_ID.eq(playerId))
+                            .and(Tables.PLAYERROUND.GROUPROUND_ID.eq(groupRound.getId())).fetchAny();
+            playerRoundList.add(playerRound);
         }
-        finally
-        {
-            dslContext.execute("UNLOCK TABLES;");
-        }
-
-        // find the GrouproundRecord with the highest associated round number
-        GrouproundRecord groupRound = null;
-        int currentRound = -1;
-        for (int i = 0; i < grList.size(); i++)
-        {
-            UInteger roundId = grList.get(i).getRoundId();
-            RoundRecord roundRecord = SqlUtils.readRecordFromId(data, Tables.ROUND, roundId);
-            if (roundRecord.getRoundNumber().intValue() > currentRound)
-            {
-                currentRound = roundRecord.getRoundNumber().intValue();
-                groupRound = grList.get(i);
-            }
-        }
-        return groupRound;
+        return playerRoundList;
     }
 
-    public static SortedMap<Integer, PlayerroundRecord> getPlayerRoundMap(final FacilitatorData data, final UInteger playerId)
+    /**
+     * Return the current PlayerRound or null when not started.
+     * @param data FacilitatorData
+     * @param playerId player to retrieve
+     * @return list of PlayerRoundRecords
+     */
+    public static PlayerroundRecord getCurrentPlayerRound(final FacilitatorData data, final UInteger playerId)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        SortedMap<Integer, PlayerroundRecord> playerRoundMap = new TreeMap<>();
-        List<PlayerroundRecord> playerRoundList =
-            dslContext.selectFrom(Tables.PLAYERROUND).where(Tables.PLAYERROUND.PLAYER_ID.eq(playerId)).fetch();
-        for (PlayerroundRecord playerRound : playerRoundList)
-        {
-            GrouproundRecord gr = SqlUtils.readRecordFromId(data, Tables.GROUPROUND, playerRound.getGrouproundId());
-            RoundRecord round = SqlUtils.readRecordFromId(data, Tables.ROUND, gr.getRoundId());
-            playerRoundMap.put(round.getRoundNumber(), playerRound);
-        }
-        return playerRoundMap;
+        GrouproundRecord groupRound = data.getGroupRoundList().get(data.getGroupRoundList().size() - 1);
+        return dslContext.selectFrom(Tables.PLAYERROUND).where(Tables.PLAYERROUND.PLAYER_ID.eq(playerId))
+                .and(Tables.PLAYERROUND.GROUPROUND_ID.eq(groupRound.getId())).fetchAny();
     }
 
 }

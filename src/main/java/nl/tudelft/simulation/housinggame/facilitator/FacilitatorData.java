@@ -1,11 +1,10 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -26,6 +25,7 @@ import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GameversionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.RoundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
@@ -39,29 +39,32 @@ public class FacilitatorData
      */
     private DataSource dataSource;
 
-    /** the facilitator User record. */
+    /** the facilitator User record (static during session). */
     private UserRecord user;
 
-    /** There is always a gamesession to which the player belongs. */
-    private GamesessionRecord gameSession;
+    /** The game version (static during session). */
+    private GameversionRecord gameVersion;
 
-    /** There is always a group to which the player belongs. */
-    private GroupRecord group;
-
-    /** The game might not have started, but a groep ALWAYS has a highest group round (0 if not started). */
-    private GrouproundRecord groupRound;
-
-    /** the current round as a record. Always there. */
-    private RoundRecord round;
-
-    /** the rounda. Always there. */
-    private SortedMap<Integer, RoundRecord> roundMap = new TreeMap<>();
-
-    /** The scenario. Always there. */
+    /** The scenario (static during session). */
     private ScenarioRecord scenario;
 
-    /** The game version. Always there. */
-    private GameversionRecord gameVersion;
+    /** Gamesession for the facilitator (static during session). */
+    private GamesessionRecord gameSession;
+
+    /** Group that the facilitator is responsible for (static during session). */
+    private GroupRecord group;
+
+    /** List of all players of the session (static during session). */
+    private List<PlayerRecord> playerList;
+
+    /** List of all rounds (static during session). */
+    private List<RoundRecord> roundList = new ArrayList<>();
+
+    /** The current round. This is DYNAMIC. */
+    private int currentRoundNumber = -1;
+
+    /** The list of GroupRounds until now. This is DYNAMIC. */
+    private List<GrouproundRecord> groupRoundList = new ArrayList<>();
 
     /* ================================= */
     /* FULLY DYNAMIC INFO IN THE SESSION */
@@ -69,9 +72,6 @@ public class FacilitatorData
 
     /** Content that ready for the jsp page to display. */
     private Map<String, String> contentHtmlMap = new HashMap<>();
-
-    /** which menu has been chosen, to maintain persistence after a POST. */
-    private String menuChoice = "";
 
     /** when 0, do not show popup; when 1: show popup. filled and updated by RoundServlet. */
     private int showModalWindow = 0;
@@ -123,7 +123,7 @@ public class FacilitatorData
                     throw new RuntimeException(new ServletException(e));
                 }
 
-                setDataSource((DataSource) new InitialContext().lookup("/housinggame-facilitator_datasource"));
+                this.dataSource = (DataSource) new InitialContext().lookup("/housinggame-facilitator_datasource");
             }
             catch (NamingException e)
             {
@@ -131,11 +131,6 @@ public class FacilitatorData
             }
         }
         return this.dataSource;
-    }
-
-    public void setDataSource(final DataSource dataSource)
-    {
-        this.dataSource = dataSource;
     }
 
     /*-
@@ -165,6 +160,63 @@ public class FacilitatorData
         return s.toString();
     }
 
+    public void readFacilitatorData(final UserRecord user, final GroupRecord group)
+    {
+        DSLContext dslContext = DSL.using(getDataSource(), SQLDialect.MYSQL);
+        this.user = user;
+        this.group = group;
+        this.gameSession = SqlUtils.readRecordFromId(this, Tables.GAMESESSION, group.getGamesessionId());
+        this.scenario = SqlUtils.readRecordFromId(this, Tables.SCENARIO, group.getScenarioId());
+        this.gameVersion = SqlUtils.readRecordFromId(this, Tables.GAMEVERSION, this.scenario.getGameversionId());
+        this.playerList = dslContext.selectFrom(Tables.PLAYER).where(Tables.PLAYER.GROUP_ID.eq(group.getId())).fetch()
+                .sortAsc(Tables.PLAYER.CODE);
+        this.roundList.clear();
+        for (int i = 0; i <= this.scenario.getHighestRoundNumber().intValue(); i++)
+        {
+            this.roundList.add(dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.ROUND_NUMBER.eq(i))
+                    .and(Tables.ROUND.SCENARIO_ID.eq(this.scenario.getId())).fetchAny());
+        }
+        readDynamicData();
+    }
+
+    public void readDynamicData()
+    {
+        DSLContext dslContext = DSL.using(getDataSource(), SQLDialect.MYSQL);
+        try
+        {
+            this.groupRoundList.clear();
+            this.currentRoundNumber = -1;
+            dslContext.execute("LOCK TABLES groupround WRITE WAIT 10;");
+            for (int i = 0; i <= this.scenario.getHighestRoundNumber().intValue(); i++)
+            {
+                GrouproundRecord groupRound = dslContext.selectFrom(Tables.GROUPROUND)
+                        .where(Tables.GROUPROUND.ROUND_ID.eq(this.roundList.get(i).getId()))
+                        .and(Tables.GROUPROUND.GROUP_ID.eq(this.group.getId())).fetchAny();
+                if (groupRound != null)
+                {
+                    this.groupRoundList.add(groupRound);
+                    this.currentRoundNumber = i;
+                }
+            }
+            if (this.groupRoundList.isEmpty())
+            {
+                GrouproundRecord groupRound = new GrouproundRecord();
+                groupRound.setGroupId(this.group.getId());
+                groupRound.setRoundId(this.roundList.get(0).getId());
+                groupRound.setFluvialFloodIntensity(0);
+                groupRound.setPluvialFloodIntensity(0);
+                groupRound.setRoundState(RoundState.INIT.toString());
+                groupRound.store();
+                this.groupRoundList.add(groupRound);
+                this.currentRoundNumber = 0;
+            }
+        }
+        finally
+        {
+            dslContext.execute("UNLOCK TABLES;");
+        }
+    }
+
     public String getUsername()
     {
         return this.user == null ? null : this.user.getUsername();
@@ -175,19 +227,9 @@ public class FacilitatorData
         return this.user;
     }
 
-    public void setUser(final UserRecord user)
-    {
-        this.user = user;
-    }
-
     public GamesessionRecord getGameSession()
     {
         return this.gameSession;
-    }
-
-    public void setGameSession(final GamesessionRecord gameSession)
-    {
-        this.gameSession = gameSession;
     }
 
     public GroupRecord getGroup()
@@ -195,39 +237,34 @@ public class FacilitatorData
         return this.group;
     }
 
-    public void setGroup(final GroupRecord group)
+    public GrouproundRecord getCurrentGroupRound()
     {
-        this.group = group;
+        return this.groupRoundList.isEmpty() ? null : this.groupRoundList.get(this.currentRoundNumber);
     }
 
-    public GrouproundRecord getGroupRound()
+    public int getCurrentRoundNumber()
     {
-        return this.groupRound;
+        return this.currentRoundNumber;
     }
 
-    public void setGroupRound(final GrouproundRecord groupRound)
+    public RoundRecord getCurrentRound()
     {
-        this.groupRound = groupRound;
+        return this.currentRoundNumber < 0 ? null : this.roundList.get(this.currentRoundNumber);
     }
 
-    public int getCurrentRound()
+    public List<PlayerRecord> getPlayerList()
     {
-        return this.round.getRoundNumber();
+        return this.playerList;
     }
 
-    public RoundRecord getRound()
+    public List<GrouproundRecord> getGroupRoundList()
     {
-        return this.round;
+        return this.groupRoundList;
     }
 
-    public void setRound(final RoundRecord round)
+    public List<RoundRecord> getRoundList()
     {
-        this.round = round;
-    }
-
-    public SortedMap<Integer, RoundRecord> getRoundMap()
-    {
-        return this.roundMap;
+        return this.roundList;
     }
 
     public ScenarioRecord getScenario()
@@ -235,19 +272,9 @@ public class FacilitatorData
         return this.scenario;
     }
 
-    public void setScenario(final ScenarioRecord scenario)
-    {
-        this.scenario = scenario;
-    }
-
     public GameversionRecord getGameVersion()
     {
         return this.gameVersion;
-    }
-
-    public void setGameVersion(final GameversionRecord gameVersion)
-    {
-        this.gameVersion = gameVersion;
     }
 
     public String getContentHtml(final String key)
@@ -275,16 +302,6 @@ public class FacilitatorData
         this.showModalWindow = showModalWindow;
     }
 
-    public String getMenuChoice()
-    {
-        return this.menuChoice;
-    }
-
-    public void setMenuChoice(final String menuChoice)
-    {
-        this.menuChoice = menuChoice;
-    }
-
     public String getModalWindowHtml()
     {
         return this.modalWindowHtml;
@@ -308,14 +325,9 @@ public class FacilitatorData
             return Integer.toString(nr / 1000) + " k";
     }
 
-    public int getHighestRound()
-    {
-        return this.getRoundMap().lastKey();
-    }
-
     public boolean isState(final RoundState state)
     {
-        return RoundState.eq(state.toString(), this.groupRound.getRoundState());
+        return RoundState.eq(state.toString(), getCurrentGroupRound().getRoundState());
     }
 
 }

@@ -1,7 +1,6 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,11 +16,7 @@ import org.jooq.impl.DSL;
 import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.GameversionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.RoundRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
 
 @WebServlet("/login")
@@ -93,7 +88,6 @@ public class FacilitatorLoginServlet extends HttpServlet
                 ok = false;
             else
             {
-                data.setUser(user);
                 GroupRecord groupRecord = dslContext.selectFrom(Tables.GROUP)
                         .where(Tables.GROUP.GAMESESSION_ID.eq(gs.getId()).and(Tables.GROUP.FACILITATOR_ID.eq(user.getId())))
                         .fetchAny();
@@ -101,30 +95,14 @@ public class FacilitatorLoginServlet extends HttpServlet
                     ok = false;
                 else
                 {
-                    data.setGroup(groupRecord);
-                    data.setGameSession(gs);
-                    ScenarioRecord scenario = SqlUtils.readRecordFromId(data, Tables.SCENARIO, groupRecord.getScenarioId());
-                    data.setScenario(scenario);
-                    GameversionRecord gameVersion =
-                            SqlUtils.readRecordFromId(data, Tables.GAMEVERSION, scenario.getGameversionId());
-                    data.setGameVersion(gameVersion);
-                    GrouproundRecord groupRound = SqlUtils.getOrMakeLatestGroupRound(data, data.getGroup());
-                    RoundRecord round =
-                            dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.ID.eq(groupRound.getRoundId())).fetchOne();
-                    data.setRound(round);
-                    data.setGroupRound(groupRound);
-                    List<RoundRecord> roundList =
-                            dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.SCENARIO_ID.eq(scenario.getId())).fetch();
-                    data.getRoundMap().clear();
-                    for (RoundRecord rr : roundList)
-                        data.getRoundMap().put(rr.getRoundNumber(), rr);
+                    data.readFacilitatorData(user, groupRecord);
                     if (data.isState(RoundState.INIT))
                     {
-                        if (data.getCurrentRound() == 0)
-                            data.getGroupRound().setRoundState(RoundState.LOGIN.toString());
+                        if (data.getCurrentRoundNumber() == 0)
+                            data.getCurrentGroupRound().setRoundState(RoundState.LOGIN.toString());
                         else
-                            data.getGroupRound().setRoundState(RoundState.NEW_ROUND.toString());
-                        data.getGroupRound().store();
+                            data.getCurrentGroupRound().setRoundState(RoundState.NEW_ROUND.toString());
+                        data.getCurrentGroupRound().store();
                     }
                 }
             }

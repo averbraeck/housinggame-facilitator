@@ -113,8 +113,8 @@ body {
 }
 
 .btn-inactive {
-  disabled:true;
-  cursor:not-allowed;
+  disabled:true !important;
+  cursor:not-allowed !important;
 }
 
     </style>
@@ -133,7 +133,7 @@ body {
             </div>
             <div>Game session:</div><div>${facilitatorData.getGameSession().getName() }</div>
             <div>Group / Table:</div><div>${facilitatorData.getGroup().getName() }</div>
-            <div>Round:</div><div>${facilitatorData.getRound().getRoundNumber() }</div>
+            <div>Round:</div><div>${facilitatorData.getCurrentRoundNumber() }</div>
           </div>
           <br />
         </div>
@@ -154,23 +154,24 @@ body {
 			            </a>
 			          </h4>
 			        </div>
-			        <div id="collapse1" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading1">
+			        <div id="collapse1" class='panel-collapse collapse ${facilitatorData.getContentHtml("accordion/new-round") }' 
+			            role="tabpanel" aria-labelledby="heading1">
 			          <div class="panel-body">
 			            <div class="hg-grid2-left-right">
-                     <div>
-                       Allow the minimum <br/>
-                       number of players to <br/> 
-                       start playing a new <br/>
-                       round of the game
-                     </div>
-                     <div>
-                       <form action="/housinggame-facilitator/facilitator" method="post">
-                         <input type="hidden" name="button" value="new-round" />
-                         <div class="hg-button">
-                           <input type="submit" value="START NEW ROUND" class='${facilitatorData.getContentHtml("button/new-round") }' />
-                         </div>
-                       </form>
-                     </div>
+                    <div>
+                      Allow the minimum <br/>
+                      number of players to <br/> 
+                      start playing a new <br/>
+                      round of the game
+                    </div>
+                    <div>
+                    <form action="/housinggame-facilitator/facilitator" method="post">
+                      <input type="hidden" name="button" value="new-round" />
+                      <div class="hg-button">
+                        <input type="submit" value="START NEW ROUND" class='${facilitatorData.getContentHtml("button/new-round") }' />
+                      </div>
+                     </form>
+                    </div>
 			            </div>
 			          </div>
 			        </div>
@@ -188,21 +189,25 @@ body {
                    </a>
                  </h4>
                </div>
-               <div id="collapse2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading2">
+               <div id="collapse2" class='panel-collapse collapse ${facilitatorData.getContentHtml("accordion/announce-news") }'
+                    role="tabpanel" aria-labelledby="heading2">
                  <div class="panel-body">
-                   <div class="hg-grid2-left">
+                   <div class="hg-grid2-left-right">
                      <div>
                        Show the available houses <br/>
                        to the players on the table.<br/>
                        Go to your house overview. <br/>
                        Read the news and press the<br/> 
                        'Announce news' button so that <br/>
-                       players explore the house list <br/>
+                       players explore the news <br/>
                        on their phone
                      </div>
-                     <div>
-                       <button disabled="disabled">ANNOUNCE NEWS</button>
-                     </div>
+                     <form action="/housinggame-facilitator/facilitator" method="post">
+                       <input type="hidden" name="button" value="announce-news" />
+                       <div class="hg-button">
+                         <input type="submit" value="ANNOUNCE NEWS" class='${facilitatorData.getContentHtml("button/announce-news") }' />
+                       </div>
+                     </form>
                    </div>
                  </div>
                </div>
@@ -220,9 +225,10 @@ body {
                    </a>
                  </h4>
                </div>
-               <div id="collapse3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading3">
+               <div id="collapse3" class='panel-collapse collapse ${facilitatorData.getContentHtml("accordion/houses-taxes") }'
+                    role="tabpanel" aria-labelledby="heading3">
                  <div class="panel-body">
-                   <div class="hg-grid2-left">
+                   <div class="hg-grid2-left-right">
                      <div>
                        Ensure every player puts <br/>
                        the pawn on the house they<br/> 
@@ -233,8 +239,25 @@ body {
                        Edit 'buy prices' as needed <br/>
                        before allowing house buy
                      </div>
-                     <div>
-                       <button disabled="disabled">ALLOW HOUSE BUY</button>
+                     <div style="display:flex; flex-direction:column; justify-content:space-evenly;">
+	                     <form action="/housinggame-facilitator/facilitator" method="post" style="margin-top:10px; margin-bottom:10px;">
+	                       <input type="hidden" name="button" value="show-houses" />
+	                       <div class="hg-button">
+	                         <input type="submit" value="SHOW HOUSES" class='${facilitatorData.getContentHtml("button/show-houses") }' />
+	                       </div>
+	                     </form>
+	                     <form action="/housinggame-facilitator/facilitator" method="post" style="margin-top:10px; margin-bottom:10px;">
+	                       <input type="hidden" name="button" value="assign-houses" />
+	                       <div class="hg-button">
+	                         <input type="submit" value="ASSIGN HOUSES" class='${facilitatorData.getContentHtml("button/assign-houses") }' />
+	                       </div>
+	                     </form>
+	                     <form action="/housinggame-facilitator/facilitator" method="post" style="margin-top:10px; margin-bottom:10px;">
+	                       <input type="hidden" name="button" value="calculate-taxes" />
+	                       <div class="hg-button">
+	                         <input type="submit" value="CALCULATE TAXES" class='${facilitatorData.getContentHtml("button/calculate-taxes") }' />
+	                       </div>
+	                     </form>
                      </div>
                    </div>
                  </div>
@@ -253,28 +276,22 @@ body {
                    </a>
                  </h4>
                </div>
-               <div id="collapse4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading4">
+               <div id="collapse4" class='panel-collapse collapse ${facilitatorData.getContentHtml("accordion/allow-improvements") }'
+                    role="tabpanel" aria-labelledby="heading4">
                  <div class="panel-body">
-                   <div class="hg-grid2-left">
+                   <div class="hg-grid2-left-right">
                      <div>
                        When all players have chosen <br/>
                        a house and agreed on the <br/>
                        prices, save the buy prices <br/>
                        and allow the house buy
                      </div>
-                     <div>
-                       <button disabled="disabled">HOUSE MEASURES</button>
-                     </div>
-                   </div>
-                   <div class="hg-grid2-left">
-                     <div>
-                       When all players buy a house, <br/>
-                       calculate taxes so that players <br/>
-                       can move into their houses
-                     </div>
-                     <div>
-                       <button disabled="disabled">CALCULATE TAXES</button>
-                     </div>
+                     <form action="/housinggame-facilitator/facilitator" method="post">
+                       <input type="hidden" name="button" value="allow-improvements" />
+                       <div class="hg-button">
+                         <input type="submit" value="ALLOW IMPROVEMENTS" class='${facilitatorData.getContentHtml("button/allow-improvements") }' />
+                       </div>
+                     </form>
                    </div>
                  </div>
                </div>
@@ -292,17 +309,21 @@ body {
                    </a>
                  </h4>
                </div>
-               <div id="collapse5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading5">
+               <div id="collapse5" class='panel-collapse collapse ${facilitatorData.getContentHtml("accordion/ask-perceptions") }'
+                    role="tabpanel" aria-labelledby="heading5">
                  <div class="panel-body">
-                   <div class="hg-grid2-left">
+                   <div class="hg-grid2-left-right">
                      <div>
                        Invite all players to<br/>
                        enter the answers to the<br/>
                        survey questions.
                      </div>
-                     <div>
-                       <button disabled="disabled">OPEN SURVEY</button>
-                     </div>
+                     <form action="/housinggame-facilitator/facilitator" method="post">
+                       <input type="hidden" name="button" value="ask-perceptions" />
+                       <div class="hg-button">
+                         <input type="submit" value="ASK PERCEPTIONS" class='${facilitatorData.getContentHtml("button/ask-perceptions") }' />
+                       </div>
+                     </form>
                    </div>
                  </div>
                </div>
@@ -320,21 +341,25 @@ body {
                    </a>
                  </h4>
                </div>
-               <div id="collapse6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading6">
+               <div id="collapse6" class='panel-collapse collapse ${facilitatorData.getContentHtml("accordion/roll-dice") }'
+                    role="tabpanel" aria-labelledby="heading6">
                  <div class="panel-body">
-                   <div class="hg-grid2-left">
+                   <div class="hg-grid2-left-right">
                      <div>
                        Roll the dice for pluvial<br/>
                        and fluvial impacts, and<br/>
                        enter the data to the right<br/>
                      </div>
-                     <div>
+                     <form action="/housinggame-facilitator/facilitator" method="post">
+                       <input type="hidden" name="button" value="roll-dice" />
                        <label for="pluvial">Pluvial dice roll:</label><br>
-                       <input type="number" id="pluvial" name="pluvial" disabled="disabled"><br>
+                       <input type="number" id="pluvial" name="pluvial"><br>
                        <label for="fluvial">Fluvial dice roll:</label><br>
-                       <input type="number" id="fluvial" name="fluvial" disabled="disabled"><br>
-                       <button disabled="disabled">ENTER DICE ROLLS</button>
-                     </div>
+                       <input type="number" id="fluvial" name="fluvial"><br>
+                       <div class="hg-button">
+                         <input type="submit" value="ROLL DICE" class='${facilitatorData.getContentHtml("button/roll-dice") }' />
+                       </div>
+                     </form>
                    </div>
                  </div>
                </div>
@@ -352,18 +377,22 @@ body {
                    </a>
                  </h4>
                </div>
-               <div id="collapse7" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading7">
+               <div id="collapse7" class='panel-collapse collapse ${facilitatorData.getContentHtml("accordion/show-damage") }'
+                    role="tabpanel" aria-labelledby="heading7">
                  <div class="panel-body">
-                   <div class="hg-grid2-left">
+                   <div class="hg-grid2-left-right">
                      <div>
                        Press the button to<br/>
                        show the players the <br/>
                        effects of the rain/flood<br/>
                        on their houses
                      </div>
-                     <div>
-                       <button disabled="disabled">SHOW DAMAGE</button>
-                     </div>
+                     <form action="/housinggame-facilitator/facilitator" method="post">
+                       <input type="hidden" name="button" value="show-damage" />
+                       <div class="hg-button">
+                         <input type="submit" value="SHOW DAMAGE" class='${facilitatorData.getContentHtml("button/show-damage") }' />
+                       </div>
+                     </form>
                    </div>
                  </div>
                </div>
