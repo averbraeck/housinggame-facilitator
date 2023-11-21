@@ -98,7 +98,7 @@ public class FacilitatorPlayerServlet extends HttpServlet
                 s.append("                    <td>0</td>");
                 s.append("                    <td>LOGIN</td>");
                 s.append("                    <td>" + welfareType.getInitialSatisfaction() + "</td>");
-                s.append("                    <td>" + data.k(welfareType.getIncome().intValue()) + "</td>");
+                s.append("                    <td>" + data.k(welfareType.getIncomePerRound().intValue()) + "</td>");
                 s.append("                    <td>--</td>");
             }
             else
@@ -108,7 +108,7 @@ public class FacilitatorPlayerServlet extends HttpServlet
                 s.append("                    <td>" + highestRound + "</td>");
                 s.append("                    <td>" + prr.getPlayerState() + "</td>");
                 s.append("                    <td>" + prr.getSatisfaction() + "</td>");
-                s.append("                    <td>" + data.k(prr.getIncome().intValue()) + "</td>");
+                s.append("                    <td>" + data.k(prr.getIncomePerRound().intValue()) + "</td>");
                 if (prr.getHouseId() == null)
                     s.append("                    <td>--</td>");
                 else
@@ -149,7 +149,7 @@ public class FacilitatorPlayerServlet extends HttpServlet
             if (playerRoundMap.isEmpty())
             {
                 WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
-                s.append("                    <td>" + data.k(welfareType.getIncome().intValue()) + "</td>");
+                s.append("                    <td>" + data.k(welfareType.getIncomePerRound().intValue()) + "</td>");
                 s.append("                    <td>" + data.k(welfareType.getLivingCosts().intValue()) + "</td>");
                 s.append("                    <td>" + data.k(welfareType.getMaximumMortgage().intValue()) + "</td>");
                 s.append("                    <td>" + data.k(welfareType.getInitialMoney().intValue()) + "</td>");
@@ -160,7 +160,7 @@ public class FacilitatorPlayerServlet extends HttpServlet
             {
                 int highestRound = playerRoundMap.lastKey();
                 PlayerroundRecord prr = playerRoundMap.get(highestRound);
-                s.append("                    <td>" + data.k(prr.getIncome().intValue()) + "</td>");
+                s.append("                    <td>" + data.k(prr.getIncomePerRound().intValue()) + "</td>");
                 s.append("                    <td>" + data.k(prr.getLivingCosts().intValue()) + "</td>");
                 s.append("                    <td>" + data.k(prr.getMaximumMortgage().intValue()) + "</td>");
                 s.append("                    <td>" + data.k(prr.getSavings().intValue()) + "</td>");
