@@ -78,7 +78,7 @@ public class ModalWindowUtils
         s.append("          </div>\n"); // hg-modal-text
         s.append("          <div class=\"hg-modal-button-row\">\n");
 
-        s.append("            <div class=\"hg-button-small\"\n");
+        s.append("            <div>\n");
         s.append("              <form action=\"/housinggame-facilitator/facilitator\" method=\"post\">\n");
         s.append("                <input type=\"hidden\" name=\"button\" value=\"");
         s.append(buttonReturn1);
@@ -86,12 +86,12 @@ public class ModalWindowUtils
         s.append("                <div class=\"hg-button\">\n");
         s.append("                  <input type=\"submit\" value=\"");
         s.append(buttonText1);
-        s.append("\" />\n");
+        s.append("\" class=\"btn btn-primary\" />\n");
         s.append("                </div>\n");
         s.append("              </form>\n");
         s.append("            </div>\n");
 
-        s.append("            <div class=\"hg-button-small\"\n");
+        s.append("            <div>\n");
         s.append("              <form action=\"/housinggame-facilitator/facilitator\" method=\"post\">\n");
         s.append("                <input type=\"hidden\" name=\"button\" value=\"");
         s.append(buttonReturn2);
@@ -99,7 +99,7 @@ public class ModalWindowUtils
         s.append("                <div class=\"hg-button\">\n");
         s.append("                  <input type=\"submit\" value=\"");
         s.append(buttonText2);
-        s.append("\" />\n");
+        s.append("\" class=\"btn btn-primary\" />\n");
         s.append("                </div>\n");
         s.append("              </form>\n");
         s.append("            </div>\n");
