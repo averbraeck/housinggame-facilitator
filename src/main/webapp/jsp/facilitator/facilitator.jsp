@@ -5,6 +5,7 @@
 <html>
   <head>
     <jsp:include page="head.jsp"></jsp:include>
+    <meta http-equiv="refresh" content="10;">
     <title>Housing Game Facilitator App</title>
     
     <style>

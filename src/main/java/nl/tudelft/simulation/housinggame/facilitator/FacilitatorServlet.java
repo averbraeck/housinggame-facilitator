@@ -61,6 +61,12 @@ public class FacilitatorServlet extends HttpServlet
             return;
         }
 
+        System.out.println("data in facilitator = " + data);
+        System.out.println(data.getUser());
+        System.out.println(data.getScenario());
+
+
+        data.readDynamicData();
         data.setShowModalWindow(0);
         data.setModalWindowHtml("");
         handleTopMenu(data);
