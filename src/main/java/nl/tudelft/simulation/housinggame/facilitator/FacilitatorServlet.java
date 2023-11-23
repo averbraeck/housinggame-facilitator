@@ -112,6 +112,46 @@ public class FacilitatorServlet extends HttpServlet
             popupNewRound(data);
         else if (button.equals("new-round-ok"))
             newRound(data);
+        else if (button.equals("announce-news"))
+        {
+            data.getCurrentGroupRound().setRoundState(RoundState.SHOW_HOUSES.toString());
+            data.getCurrentGroupRound().store();
+        }
+        else if (button.equals("assign-houses"))
+        {
+            // TODO: handle the house allocation first, before this button is pressed
+            // TODO: popup to ask if all houses have eben allocated
+            data.getCurrentGroupRound().setRoundState(RoundState.ASSIGN_HOUSES.toString());
+            data.getCurrentGroupRound().store();
+        }
+        else if (button.equals("calculate-taxes"))
+        {
+            // TODO: calculate taxes based on number of house owners per community
+            data.getCurrentGroupRound().setRoundState(RoundState.CALCULATE_TAXES.toString());
+            data.getCurrentGroupRound().store();
+        }
+        else if (button.equals("allow-improvements"))
+        {
+            data.getCurrentGroupRound().setRoundState(RoundState.ALLOW_IMPROVEMENTS.toString());
+            data.getCurrentGroupRound().store();
+        }
+        else if (button.equals("ask-perceptions"))
+        {
+            data.getCurrentGroupRound().setRoundState(RoundState.ASK_PERCEPTIONS.toString());
+            data.getCurrentGroupRound().store();
+        }
+        else if (button.equals("roll-dice"))
+        {
+            // TODO: read dice values; check if dice values are valid. Popup if not -- ask to resubmit
+            // TODO: calculate the damage
+            data.getCurrentGroupRound().setRoundState(RoundState.ROLL_DICE.toString());
+            data.getCurrentGroupRound().store();
+        }
+        else if (button.equals("show-summary"))
+        {
+            data.getCurrentGroupRound().setRoundState(RoundState.SHOW_SUMMARY.toString());
+            data.getCurrentGroupRound().store();
+        }
     }
 
     public void handleActivateButtons(final FacilitatorData data)
