@@ -117,10 +117,10 @@ public class FacilitatorServlet extends HttpServlet
     public void handleActivateButtons(final FacilitatorData data)
     {
         for (String b : new String[] {"new-round", "announce-news", "show-houses", "assign-houses", "calculate-taxes",
-                "allow-improvements", "ask-perceptions", "roll-dice", "show-damage"})
+                "allow-improvements", "ask-perceptions", "roll-dice", "show-summary"})
             data.putContentHtml("button/" + b, "btn btn-inactive");
         for (String a : new String[] {"new-round", "announce-news", "houses-taxes",
-                "allow-improvements", "ask-perceptions", "roll-dice", "show-damage"})
+                "allow-improvements", "ask-perceptions", "roll-dice", "show-summary"})
             data.putContentHtml("accordion/" + a, "");
         switch (RoundState.valueOf(data.getCurrentGroupRound().getRoundState()))
         {
@@ -167,9 +167,9 @@ public class FacilitatorServlet extends HttpServlet
             case ROLL_DICE ->
             {
                 data.putContentHtml("button/show-damage", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/show-damage", "in");
+                data.putContentHtml("accordion/show-summary", "in");
             }
-            case SHOW_DAMAGE ->
+            case SHOW_SUMMARY ->
             {
                 if (data.getCurrentRoundNumber() < data.getScenario().getHighestRoundNumber().intValue())
                     data.putContentHtml("button/new-round", "btn btn-primary btn-active");
