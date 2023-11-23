@@ -66,7 +66,6 @@ public class ReloadTablesServlet extends HttpServlet
             else if (data.getMenuState().equals("Flood"))
                 FacilitatorServlet.makeFloodTable(data);
             response.getWriter().write(data.getContentHtml("facilitator/tables"));
-            System.out.println("Reloaded tables for menu " + this.menuState);
             return;
         }
 
