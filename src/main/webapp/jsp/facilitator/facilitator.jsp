@@ -349,6 +349,10 @@ body {
                        Roll the dice for pluvial<br/>
                        and fluvial impacts, and<br/>
                        enter the data to the right<br/>
+                       Press the button to<br/>
+                       show the players the <br/>
+                       effects of the rain/flood<br/>
+                       on their houses
                      </div>
                      <form action="/housinggame-facilitator/facilitator" method="post">
                        <input type="hidden" name="button" value="roll-dice" />
@@ -377,20 +381,20 @@ body {
                    </a>
                  </h4>
                </div>
-               <div id="collapse7" class='panel-collapse collapse ${facilitatorData.getContentHtml("accordion/show-damage") }'
+               <div id="collapse7" class='panel-collapse collapse ${facilitatorData.getContentHtml("accordion/show-summary") }'
                     role="tabpanel" aria-labelledby="heading7">
                  <div class="panel-body">
                    <div class="hg-grid2-left-right">
                      <div>
                        Press the button to<br/>
-                       show the players the <br/>
-                       effects of the rain/flood<br/>
-                       on their houses
+                       allow the players to <br/>
+                       see the summary screen<br/>
+                       for the round
                      </div>
                      <form action="/housinggame-facilitator/facilitator" method="post">
-                       <input type="hidden" name="button" value="show-damage" />
+                       <input type="hidden" name="button" value="show-summary" />
                        <div class="hg-button">
-                         <input type="submit" value="SHOW DAMAGE" class='${facilitatorData.getContentHtml("button/show-damage") }' />
+                         <input type="submit" value="SHOW SUMMARY" class='${facilitatorData.getContentHtml("button/show-summary") }' />
                        </div>
                      </form>
                    </div>

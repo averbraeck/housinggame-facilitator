@@ -166,7 +166,7 @@ public class FacilitatorServlet extends HttpServlet
             }
             case ROLL_DICE ->
             {
-                data.putContentHtml("button/show-damage", "btn btn-primary btn-active");
+                data.putContentHtml("button/show-summary", "btn btn-primary btn-active");
                 data.putContentHtml("accordion/show-summary", "in");
             }
             case SHOW_SUMMARY ->
