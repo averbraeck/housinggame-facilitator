@@ -61,10 +61,6 @@ public class FacilitatorServlet extends HttpServlet
             return;
         }
 
-        System.out.println("data in facilitator = " + data);
-        System.out.println(data.getUser());
-        System.out.println(data.getScenario());
-
         data.readDynamicData();
         data.setShowModalWindow(0);
         data.setModalWindowHtml("");
@@ -242,18 +238,18 @@ public class FacilitatorServlet extends HttpServlet
             {
                 if (playerRoundList.get(0) != null)
                     nrLoggedInPlayers++;
-                else
+                if (playerRound != null && playerRound.getGrouproundId().equals(data.getCurrentGroupRound().getId()))
                 {
-                    if (playerRound != null && PlayerState.ge(playerRound.getPlayerState(), PlayerState.SUMMARY.toString()))
+                    PlayerState playerState = PlayerState.valueOf(playerRound.getPlayerState());
+                    nrActivePlayers++;
+                    if (playerState.nr == PlayerState.SUMMARY.nr)
                         nrReadyPlayers++;
                 }
-                if (playerRound != null && playerRound.getGrouproundId().equals(data.getCurrentGroupRound().getId()))
-                    nrActivePlayers++;
             }
         }
 
         String content = "There are " + nrLoggedInPlayers + " players who have logged in";
-        content += "<br>There are " + nrActivePlayers + " players who are active";
+        content += "<br>There are " + nrActivePlayers + " players who are active (in the same round)";
         content += "<br>There are " + nrReadyPlayers + " players who are at the summary screen<br>";
         if (data.getCurrentRoundNumber() == 0)
         {
@@ -267,7 +263,7 @@ public class FacilitatorServlet extends HttpServlet
             if (nrReadyPlayers < nrActivePlayers)
                 content += "<br>NOT ALL PLAYERS are at the summary screen! (" + nrReadyPlayers + " < " + nrActivePlayers + ")";
             else if (nrActivePlayers == 0)
-                content += "<br>PLAYERS HAVE NOT CARRIED OUT ANY ACTIONS YET!";
+                content += "<br>NO PLAYERS HAVE CARRIED OUT ANY ACTIONS YET!";
             else
                 content += "<br>All players are at the summary screen";
         }
