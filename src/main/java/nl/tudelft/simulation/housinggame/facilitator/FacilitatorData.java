@@ -25,9 +25,11 @@ import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GameversionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.RoundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioparametersRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
 
 public class FacilitatorData
@@ -78,6 +80,9 @@ public class FacilitatorData
 
     /** client info (dynamic) for popup. */
     private String modalWindowHtml = "";
+
+    /** the menu state of the facilitator app (right-hand side of the screen). */
+    private String menuState = "Player";
 
     /* ******************* */
     /* GETTERS AND SETTERS */
@@ -312,6 +317,16 @@ public class FacilitatorData
         this.modalWindowHtml = modalClientWindowHtml;
     }
 
+    public String getMenuState()
+    {
+        return this.menuState;
+    }
+
+    public void setMenuState(final String menuState)
+    {
+        this.menuState = menuState;
+    }
+
     /**
      * Express a number in thousands.
      * @param nr int; the number to display
@@ -330,4 +345,28 @@ public class FacilitatorData
         return RoundState.eq(state.toString(), getCurrentGroupRound().getRoundState());
     }
 
+    public int getExpectedMortgage(final HouseRecord house)
+    {
+        if (house == null)
+            return 0;
+        // TODO: bid?
+        ScenarioparametersRecord spr =
+                SqlUtils.readRecordFromId(this, Tables.SCENARIOPARAMETERS, this.scenario.getScenarioparametersId());
+        return (int) (house.getPrice().intValue() / spr.getMortgagePercentage());
+    }
+
+    public int getExpectedTaxes(final HouseRecord house)
+    {
+        if (house == null)
+            return 0;
+        // TODO: get mid score from database
+        return 15000;
+    }
+
+    public int getMortgagePercentage()
+    {
+        ScenarioparametersRecord spr =
+                SqlUtils.readRecordFromId(this, Tables.SCENARIOPARAMETERS, this.scenario.getScenarioparametersId());
+        return spr.getMortgagePercentage().intValue();
+    }
 }

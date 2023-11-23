@@ -28,12 +28,15 @@ import nl.tudelft.simulation.housinggame.data.tables.records.RoundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioparametersRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.WelfaretypeRecord;
 
-@WebServlet("/facilitator")
-public class FacilitatorServlet extends HttpServlet
+@WebServlet("/reload-tables")
+public class ReloadTablesServlet extends HttpServlet
 {
 
     /** */
     private static final long serialVersionUID = 1L;
+
+    /** can be Player, House, News or Flood. */
+    private String menuState = "Player";
 
     /** button that has been pressed. */
     private String button = "";
@@ -51,8 +54,24 @@ public class FacilitatorServlet extends HttpServlet
             return;
         }
 
+        if (request.getParameter("reloadTables") != null)
+        {
+            response.setContentType("text/plain");
+            if (data.getMenuState().equals("Player"))
+                FacilitatorServlet.makePlayerTables(data);
+            else if (data.getMenuState().equals("House"))
+                FacilitatorServlet.makeHouseTable(data);
+            else if (data.getMenuState().equals("News"))
+                FacilitatorServlet.makeNewsTable(data);
+            else if (data.getMenuState().equals("Flood"))
+                FacilitatorServlet.makeFloodTable(data);
+            response.getWriter().write(data.getContentHtml("facilitator/tables"));
+            System.out.println("Reloaded tables for menu " + this.menuState);
+            return;
+        }
+
         if (request.getParameter("menu") != null)
-            data.setMenuState(request.getParameter("menu"));
+            this.menuState = request.getParameter("menu");
 
         if (request.getParameter("button") != null)
             this.button = request.getParameter("button");
@@ -71,7 +90,7 @@ public class FacilitatorServlet extends HttpServlet
 
     public void handleTopMenu(final FacilitatorData data)
     {
-        if (data.getMenuState().equals("Player"))
+        if (this.menuState.equals("Player"))
         {
             makePlayerTables(data);
             data.getContentHtml().put("menuPlayer", "btn btn-primary");
@@ -79,7 +98,7 @@ public class FacilitatorServlet extends HttpServlet
             data.getContentHtml().put("menuNews", "btn");
             data.getContentHtml().put("menuFlood", "btn");
         }
-        else if (data.getMenuState().equals("House"))
+        else if (this.menuState.equals("House"))
         {
             makeHouseTable(data);
             data.getContentHtml().put("menuPlayer", "btn");
@@ -87,7 +106,7 @@ public class FacilitatorServlet extends HttpServlet
             data.getContentHtml().put("menuNews", "btn");
             data.getContentHtml().put("menuFlood", "btn");
         }
-        else if (data.getMenuState().equals("News"))
+        else if (this.menuState.equals("News"))
         {
             makeNewsTable(data);
             data.getContentHtml().put("menuPlayer", "btn");
@@ -95,7 +114,7 @@ public class FacilitatorServlet extends HttpServlet
             data.getContentHtml().put("menuNews", "btn btn-primary");
             data.getContentHtml().put("menuFlood", "btn");
         }
-        else if (data.getMenuState().equals("Flood"))
+        else if (this.menuState.equals("Flood"))
         {
             makeFloodTable(data);
             data.getContentHtml().put("menuPlayer", "btn");
