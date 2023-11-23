@@ -65,7 +65,6 @@ public class FacilitatorServlet extends HttpServlet
         System.out.println(data.getUser());
         System.out.println(data.getScenario());
 
-
         data.readDynamicData();
         data.setShowModalWindow(0);
         data.setModalWindowHtml("");
@@ -120,6 +119,11 @@ public class FacilitatorServlet extends HttpServlet
             newRound(data);
         else if (button.equals("announce-news"))
         {
+            data.getCurrentGroupRound().setRoundState(RoundState.ANNOUNCE_NEWS.toString());
+            data.getCurrentGroupRound().store();
+        }
+        else if (button.equals("show-houses"))
+        {
             data.getCurrentGroupRound().setRoundState(RoundState.SHOW_HOUSES.toString());
             data.getCurrentGroupRound().store();
         }
@@ -165,8 +169,8 @@ public class FacilitatorServlet extends HttpServlet
         for (String b : new String[] {"new-round", "announce-news", "show-houses", "assign-houses", "calculate-taxes",
                 "allow-improvements", "ask-perceptions", "roll-dice", "show-summary"})
             data.putContentHtml("button/" + b, "btn btn-inactive");
-        for (String a : new String[] {"new-round", "announce-news", "houses-taxes",
-                "allow-improvements", "ask-perceptions", "roll-dice", "show-summary"})
+        for (String a : new String[] {"new-round", "announce-news", "houses-taxes", "allow-improvements", "ask-perceptions",
+                "roll-dice", "show-summary"})
             data.putContentHtml("accordion/" + a, "");
         switch (RoundState.valueOf(data.getCurrentGroupRound().getRoundState()))
         {
