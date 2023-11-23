@@ -200,12 +200,12 @@ public class FacilitatorData
             }
             if (this.groupRoundList.isEmpty())
             {
-                GrouproundRecord groupRound = new GrouproundRecord();
+                GrouproundRecord groupRound = dslContext.newRecord(Tables.GROUPROUND);
                 groupRound.setGroupId(this.group.getId());
                 groupRound.setRoundId(this.roundList.get(0).getId());
                 groupRound.setFluvialFloodIntensity(0);
                 groupRound.setPluvialFloodIntensity(0);
-                groupRound.setRoundState(RoundState.INIT.toString());
+                groupRound.setRoundState(RoundState.LOGIN.toString());
                 groupRound.store();
                 this.groupRoundList.add(groupRound);
                 this.currentRoundNumber = 0;

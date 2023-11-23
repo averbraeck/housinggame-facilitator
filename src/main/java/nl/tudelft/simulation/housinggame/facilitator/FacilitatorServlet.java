@@ -124,11 +124,6 @@ public class FacilitatorServlet extends HttpServlet
             data.putContentHtml("accordion/" + a, "");
         switch (RoundState.valueOf(data.getCurrentGroupRound().getRoundState()))
         {
-            case INIT ->
-            {
-                data.putContentHtml("button/new-round", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/new-round", "in");
-            }
             case LOGIN ->
             {
                 data.putContentHtml("button/new-round", "btn btn-primary btn-active");

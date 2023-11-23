@@ -96,7 +96,7 @@ public class FacilitatorLoginServlet extends HttpServlet
                 else
                 {
                     data.readFacilitatorData(user, groupRecord);
-                    if (data.isState(RoundState.INIT))
+                    if (data.isState(RoundState.LOGIN))
                     {
                         if (data.getCurrentRoundNumber() == 0)
                             data.getCurrentGroupRound().setRoundState(RoundState.LOGIN.toString());
