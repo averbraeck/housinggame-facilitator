@@ -104,4 +104,19 @@ public final class SqlUtils
                 .and(Tables.PLAYERROUND.GROUPROUND_ID.eq(groupRound.getId())).fetchAny();
     }
 
+    public static PlayerroundRecord getLastPlayerRound(final FacilitatorData data, final UInteger playerId)
+    {
+        List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, playerId);
+        if (!playerRoundList.isEmpty())
+        {
+            PlayerroundRecord prr = playerRoundList.get(0);
+            for (int i = 0; i < playerRoundList.size(); i++)
+            {
+                if (playerRoundList.get(i) != null)
+                    prr = playerRoundList.get(i);
+            }
+            return prr;
+        }
+        return null;
+    }
 }

@@ -195,10 +195,10 @@ body {
 							<div class="panel-body">
 								<div class="hg-grid2-left-right">
 									<div>
-										Show the available houses <br /> to the players on the table.<br />
-										Go to your house overview. <br /> Read the news and press the<br />
-										'Announce news' button so that <br /> players explore the news
-										<br /> on their phone
+										Read the news and press the<br />
+										'ANNNOUNCE NEWS' button so that <br />
+										players can get the news<br />
+										summary on their phone
 									</div>
 									<form action="/housinggame-facilitator/facilitator"
 										method="post">
@@ -232,10 +232,19 @@ body {
 							<div class="panel-body">
 								<div class="hg-grid2-left-right">
 									<div>
-										Ensure every player puts <br /> the pawn on the house they<br />
-										want to buy. If multiple <br /> players want the same <br />
-										house, give them the paper <br /> card to bid. <br /> Edit
-										'buy prices' as needed <br /> before allowing house buy
+										Show the available houses <br/>
+										to the players on the table; <br/>
+										press the SHOW HOUSES button <br/>
+										for players to explore options. <br/>
+										Go to your HOUSE OVERVIEW tab. <br/><br/>
+                    In the map, ensure every player <br/>
+                    puts the pawn on the preferred house.<br/>
+                    Do a bidding process if needed.<br/><br/>
+                    When everyone has agreed on the <br/>
+                    house to buy, press the buy button <br/>
+                    for every player. When finished, <br/>
+                    press the ASSIGN HOUSES and <br/>
+                    CALCULATE TAXES buttons.
 									</div>
 									<div
 										style="display: flex; flex-direction: column; justify-content: space-evenly;">
@@ -288,9 +297,12 @@ body {
 							<div class="panel-body">
 								<div class="hg-grid2-left-right">
 									<div>
-										When all players have chosen <br /> a house and agreed on the
-										<br /> prices, save the buy prices <br /> and allow the house
-										buy
+										Explain that they can buy <br/>
+										satisfaction or flood <br/>
+										measures to protect their <br/>
+										property. Explore the measures<br/>
+										on the table. When ready,<br/>
+										press ALLOW IMPROVEMENTS.
 									</div>
 									<form action="/housinggame-facilitator/facilitator"
 										method="post">
@@ -358,10 +370,12 @@ body {
 							<div class="panel-body">
 								<div class="hg-grid2-left-right">
 									<div>
-										Roll the dice for pluvial<br /> and fluvial impacts, and<br />
-										enter the data to the right<br /> Press the button to<br />
-										show the players the <br /> effects of the rain/flood<br /> on
-										their houses
+										Roll the dice for pluvial<br /> 
+										and fluvial impacts, <br />
+										enter the data, and press <br />
+										the ROLL DICE button to show <br />
+										the players the effects of <br />
+										the rain/flood on their houses.
 									</div>
 									<form action="/housinggame-facilitator/facilitator"
 										method="post">
@@ -398,8 +412,12 @@ body {
 							<div class="panel-body">
 								<div class="hg-grid2-left-right">
 									<div>
-										Press the button to<br /> allow the players to <br /> see the
-										summary screen<br /> for the round
+										Press the SHOW SUMMARY <br/>
+										button so that players <br/>
+										can pay their house damages <br/>
+										and get an overview of the <br/>
+										satisfaction score before <br/>
+										moving to the next round.
 									</div>
 									<form action="/housinggame-facilitator/facilitator"
 										method="post">
@@ -478,73 +496,10 @@ body {
         ${facilitatorData.getContentHtml("facilitator/tables") }
       </div>
 
-			<!--  buying and selling houses, will be moved to a variable -->
-
-			<div class="hg-grid2-left">
-				<div>
-					<b>Buying of house by player</b>
-					<form action="/housinggame-facilitator/facilitator" method="post">
-						<input type="hidden" name="house-management" value="buy-house" />
-						<div style="display: flex; flex-direction: column;">
-							<div>
-								<label for="buy-house">House for player to buy</label> <select
-									name="house" id="buy-house">
-									<option value=""></option>
-									<option value="U01">U01</option>
-									<option value="D01">D01</option>
-								</select>
-							</div>
-							<div>
-								<label for="buy-player">Player who buys</label> <select
-									name="player" id="buy-player">
-									<option value=""></option>
-									<option value="t1p1">t1p1</option>
-									<option value="t1p2">t1p2</option>
-								</select>
-							</div>
-							<div>
-								<label for="buy-price">Adjusted buying price</label> <input
-									type="number" id="buy-price" name="buy-price" value="">
-							</div>
-							<br />
-							<div class="hg-button">
-								<input type="submit" value='Sell house to player'
-									class="btn btn-primary" />
-							</div>
-						</div>
-					</form>
-				</div>
-				<div>
-					<b>Selling of house to the bank</b>
-					<form action="/housinggame-facilitator/facilitator" method="post">
-						<input type="hidden" name="house-management" value="sell-house" />
-						<div style="display: flex; flex-direction: column;">
-							<div>
-								<label for="sell-house">House player sells to bank</label> <select
-									name="house" id="sell-house">
-									<option value=""></option>
-									<option value="U01">U01</option>
-									<option value="D01">D01</option>
-								</select>
-							</div>
-							<div>
-								<label for="sell-price">Adjusted selling price</label> <input
-									type="number" id="sell-price" name="sell-price" value="">
-							</div>
-							<div>
-								<label for="sell-reason">Reason for selling house</label> <input
-									type="text" id="sell-reason" name="sell-reason" value="">
-							</div>
-							<br />
-							<div class="hg-button">
-								<input type="submit" value='Sell house to the bank'
-									class="btn btn-primary" />
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-
+      <div>
+        ${facilitatorData.getContentHtml("facilitator/house-allocation") }
+      </div>
+      
 		</div>
 	</div>
 

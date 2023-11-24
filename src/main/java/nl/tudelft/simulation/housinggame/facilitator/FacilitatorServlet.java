@@ -1,7 +1,10 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -19,8 +22,12 @@ import org.jooq.types.UInteger;
 import nl.tudelft.simulation.housinggame.common.PlayerState;
 import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
+import nl.tudelft.simulation.housinggame.data.tables.records.BidRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.InitialhousemeasureRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.NewsitemRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
@@ -51,6 +58,9 @@ public class FacilitatorServlet extends HttpServlet
             return;
         }
 
+        data.setShowModalWindow(0);
+        data.setModalWindowHtml("");
+
         if (request.getParameter("menu") != null)
             data.setMenuState(request.getParameter("menu"));
 
@@ -59,9 +69,19 @@ public class FacilitatorServlet extends HttpServlet
         else
             this.button = "";
 
+        if (request.getParameter("house-management") != null)
+        {
+            if (request.getParameter("house-management").equals("buy-house"))
+                houseBuyPopup(data, request);
+        }
+
+        if (this.button.equals("buy-house-ok"))
+        {
+            handleHouseBuy(data, request);
+            this.button = "";
+        }
+
         data.readDynamicData();
-        data.setShowModalWindow(0);
-        data.setModalWindowHtml("");
         handleTopMenu(data);
         handlePressedButton(data, this.button, request);
         handleActivateButtons(data);
@@ -71,6 +91,7 @@ public class FacilitatorServlet extends HttpServlet
 
     public void handleTopMenu(final FacilitatorData data)
     {
+        data.getContentHtml().put("facilitator/house-allocation", "");
         if (data.getMenuState().equals("Player"))
         {
             makePlayerTables(data);
@@ -82,6 +103,8 @@ public class FacilitatorServlet extends HttpServlet
         else if (data.getMenuState().equals("House"))
         {
             makeHouseTable(data);
+            if (data.getCurrentGroupRound().getRoundState().equals(RoundState.SHOW_HOUSES.toString()))
+                makeHouseAllocation(data);
             data.getContentHtml().put("menuPlayer", "btn");
             data.getContentHtml().put("menuHouse", "btn btn-primary");
             data.getContentHtml().put("menuNews", "btn");
@@ -123,8 +146,10 @@ public class FacilitatorServlet extends HttpServlet
         }
         else if (button.equals("assign-houses"))
         {
-            // TODO: handle the house allocation first, before this button is pressed
-            // TODO: popup to ask if all houses have eben allocated
+            popupAssignHouses(data);
+        }
+        else if (button.equals("assign-houses-ok"))
+        {
             data.getCurrentGroupRound().setRoundState(RoundState.ASSIGN_HOUSES.toString());
             data.getCurrentGroupRound().store();
         }
@@ -284,6 +309,44 @@ public class FacilitatorServlet extends HttpServlet
         data.readDynamicData();
     }
 
+    public void popupAssignHouses(final FacilitatorData data)
+    {
+        int nrLoggedInPlayers = 0;
+        int nrPlayersWithHouse = 0;
+        int nrActivePlayers = 0;
+        for (PlayerRecord player : data.getPlayerList())
+        {
+            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = SqlUtils.getCurrentPlayerRound(data, player.getId());
+            if (!playerRoundList.isEmpty())
+            {
+                if (playerRoundList.get(0) != null)
+                    nrLoggedInPlayers++;
+                if (playerRound != null && playerRound.getGrouproundId().equals(data.getCurrentGroupRound().getId()))
+                {
+                    nrActivePlayers++;
+                    if (playerRound.getHouseId() != null)
+                        nrPlayersWithHouse++;
+                }
+            }
+        }
+
+        String content = "There are " + nrLoggedInPlayers + " players who have logged in";
+        content += "<br>There are " + nrActivePlayers + " players who are active (in the same round)";
+        content += "<br>There are " + nrPlayersWithHouse + " players who have a house<br>";
+        if (nrPlayersWithHouse < nrActivePlayers)
+            content += "<br>NOT ALL aCTIVE PLAYERS HAVE A HOUSE! (" + nrPlayersWithHouse + " < " + nrActivePlayers + ")";
+        else if (nrActivePlayers == 0)
+            content += "<br>NO PLAYERS HAVE CARRIED OUT ANY ACTIONS YET!";
+        else
+            content += "<br>All active players have been allocated a house";
+        content += "<br>Are you really ready with allocating houses?<br>";
+
+        ModalWindowUtils.make2ButtonModalWindow(data, "Stop house allocation?", content, "YES", "assign-houses-ok", "NO", "",
+                "");
+        data.setShowModalWindow(1);
+    }
+
     public static String makePlayerStateTable(final FacilitatorData data)
     {
         /*-
@@ -366,7 +429,8 @@ public class FacilitatorServlet extends HttpServlet
                 s.append("                    <td>" + highestRound + "</td>\n");
                 s.append("                    <td>" + prr.getPlayerState() + "</td>\n");
 
-                HouseRecord house = prr.getHouseId() == null ? null : SqlUtils.readRecordFromId(data, Tables.HOUSE, prr.getHouseId());
+                HouseRecord house =
+                        prr.getHouseId() == null ? null : SqlUtils.readRecordFromId(data, Tables.HOUSE, prr.getHouseId());
                 int mortgage;
                 int taxes;
                 if (house == null)
@@ -473,6 +537,7 @@ public class FacilitatorServlet extends HttpServlet
     public static void makePlayerTables(final FacilitatorData data)
     {
         StringBuilder s = new StringBuilder();
+        s.append("        <h1>Players in the group</h1>");
         s.append("        <div class=\"hg-fac-table\">\n");
         s.append("          <table class=\"pmd table table-striped\" style=\"text-align:center;\">\n");
         s.append(makePlayerStateTable(data));
@@ -492,6 +557,7 @@ public class FacilitatorServlet extends HttpServlet
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         StringBuilder s = new StringBuilder();
+        s.append("        <h1>Available houses in this round</h1>");
         s.append("        <div class=\"hg-fac-table\">\n");
         s.append("          <table class=\"pmd table table-striped\" style=\"text-align:center;\">\n");
         s.append("                <thead>\n");
@@ -506,6 +572,14 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                  </tr>\n");
         s.append("                </thead>\n");
         s.append("                <tbody>\n");
+
+        // get the players with a house
+        Map<UInteger, PlayerRecord> ownedHouses = getPlayersForOwnedHouseIds(data);
+
+        // get the initial and implemented measures for all houses
+        Map<UInteger, List<MeasuretypeRecord>> measureMap = getMeasuresPerHouse(data);
+
+        // get the houses
         Result<org.jooq.Record> resultList =
                 dslContext.fetch("SELECT house.id FROM house INNER JOIN community ON house.community_id=community.id "
                         + "WHERE community.gameversion_id=" + data.getGameVersion().getId()
@@ -514,7 +588,7 @@ public class FacilitatorServlet extends HttpServlet
         {
             UInteger id = (UInteger) record.get(0);
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, id);
-            if (house.getAvailableRound().intValue() <= data.getCurrentRoundNumber())
+            if (house.getAvailableRound().intValue() == data.getCurrentRoundNumber() || ownedHouses.containsKey(house.getId()))
             {
                 s.append("                  <tr>\n");
                 s.append("                    <td>" + house.getAddress() + "</td>\n");
@@ -523,10 +597,25 @@ public class FacilitatorServlet extends HttpServlet
                 s.append("                    <td>" + house.getRating() + "</td>\n");
                 // TODO
                 s.append("                    <td>" + "--" + "</td>\n");
-                // TODO
-                s.append("                    <td>" + "--" + "</td>\n");
-                // TODO
-                s.append("                    <td>" + "--" + "</td>\n");
+                if (ownedHouses.containsKey(house.getId()))
+                    s.append("                    <td>" + ownedHouses.get(house.getId()).getCode() + "</td>\n");
+                else
+                    s.append("                    <td>" + "--" + "</td>\n");
+                if (measureMap.get(house.getId()).size() == 0)
+                    s.append("                    <td>" + "--" + "</td>\n");
+                else
+                {
+                    s.append("                    <td>");
+                    boolean first = true;
+                    for (MeasuretypeRecord measureType : measureMap.get(house.getId()))
+                    {
+                        if (!first)
+                            s.append("<br />");
+                        first = false;
+                        s.append(measureType.getName());
+                    }
+                    s.append("</td>\n");
+                }
                 s.append("                  </tr>\n");
             }
         }
@@ -540,6 +629,7 @@ public class FacilitatorServlet extends HttpServlet
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         StringBuilder s = new StringBuilder();
+        s.append("        <h1>News for this round and previous rounds</h1>");
         s.append("        <div class=\"hg-fac-table\">\n");
         s.append("          <table class=\"pmd table table-striped\" style=\"text-align:left; width:90%;\">\n");
         s.append("                <thead>\n");
@@ -575,10 +665,303 @@ public class FacilitatorServlet extends HttpServlet
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         StringBuilder s = new StringBuilder();
+        s.append("        <h1>Information about floods up to this round</h1>");
 
         // TODO flood table.
 
         data.getContentHtml().put("facilitator/tables", s.toString());
+    }
+
+    public static void makeHouseAllocation(final FacilitatorData data)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        StringBuilder s = new StringBuilder();
+
+        s.append("      <div class=\"hg-grid2-left\">\n");
+        s.append("        <div>\n");
+        s.append("          <b>Buying of house by player</b>\n");
+        s.append("          <form action=\"/housinggame-facilitator/facilitator\" method=\"post\">\n");
+        s.append("            <input type=\"hidden\" name=\"house-management\" value=\"buy-house\" />\n");
+        s.append("            <div style=\"display: flex; flex-direction: column;\">\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"buy-house\">House for player to buy</label> <select\n");
+        s.append("                  name=\"house\" id=\"buy-house\">\n");
+        s.append("                  <option value=\"\"></option>\n");
+        for (HouseRecord house : getAvailableHousesForRound(data))
+            s.append("                  <option value=\"" + house.getId() + "\">" + house.getAddress() + "</option>\n");
+        s.append("                </select>\n");
+        s.append("              </div>\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"buy-player\">Player who buys</label> <select\n");
+        s.append("                  name=\"player\" id=\"buy-player\">\n");
+        s.append("                  <option value=\"\"></option>\n");
+        for (PlayerRecord player : getPlayersWithoutHouse(data))
+            s.append("                  <option value=\"" + player.getId() + "\">" + player.getCode() + "</option>\n");
+        s.append("                </select>\n");
+        s.append("              </div>\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"buy-price\">Adjusted buying price</label> <input\n");
+        s.append("                  type=\"number\" id=\"buy-price\" name=\"buy-price\" value=\"\">\n");
+        s.append("              </div>\n");
+        s.append("              <br />\n");
+        s.append("              <div class=\"hg-button\">\n");
+        s.append("                <input type=\"submit\" value='Sell house to player'\n");
+        s.append("                  class=\"btn btn-primary\" />\n");
+        s.append("              </div>\n");
+        s.append("            </div>\n");
+        s.append("          </form>\n");
+        s.append("        </div>\n");
+        s.append("        <div>\n");
+        s.append("          <b>Selling of house to the bank</b>\n");
+        s.append("          <form action=\"/housinggame-facilitator/facilitator\" method=\"post\">\n");
+        s.append("            <input type=\"hidden\" name=\"house-management\" value=\"sell-house\" />\n");
+        s.append("            <div style=\"display: flex; flex-direction: column;\">\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"sell-house\">House player sells to bank</label> <select\n");
+        s.append("                  name=\"house\" id=\"sell-house\">\n");
+        s.append("                  <option value=\"\"></option>\n");
+        for (HouseRecord house : getOwnedHouses(data))
+            s.append("                  <option value=\"" + house.getId() + "\">" + house.getAddress() + "</option>\n");
+        s.append("                </select>\n");
+        s.append("              </div>\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"sell-price\">Adjusted selling price</label> <input\n");
+        s.append("                  type=\"number\" id=\"sell-price\" name=\"sell-price\" value=\"\">\n");
+        s.append("              </div>\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"sell-reason\">Reason for selling house</label> <input\n");
+        s.append("                  type=\"text\" id=\"sell-reason\" name=\"sell-reason\" value=\"\">\n");
+        s.append("              </div>\n");
+        s.append("              <br />\n");
+        s.append("              <div class=\"hg-button\">\n");
+        s.append("                <input type=\"submit\" value='Sell house to the bank'\n");
+        s.append("                  class=\"btn btn-primary\" />\n");
+        s.append("              </div>\n");
+        s.append("            </div>\n");
+        s.append("          </form>\n");
+        s.append("        </div>\n");
+        s.append("      </div>\n");
+
+        data.getContentHtml().put("facilitator/house-allocation", s.toString());
+    }
+
+    public static Map<UInteger, PlayerRecord> getPlayersForOwnedHouseIds(final FacilitatorData data)
+    {
+        Map<UInteger, PlayerRecord> playersForOwnedHouseIds = new HashMap<>();
+        for (PlayerRecord player : data.getPlayerList())
+        {
+            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            if (!playerRoundList.isEmpty())
+            {
+                PlayerroundRecord prr = playerRoundList.get(0);
+                for (int i = 0; i < playerRoundList.size(); i++)
+                {
+                    if (playerRoundList.get(i) != null)
+                        prr = playerRoundList.get(i);
+                }
+                if (prr != null && prr.getHouseId() != null)
+                    playersForOwnedHouseIds.put(prr.getHouseId(), player);
+            }
+        }
+        return playersForOwnedHouseIds;
+    }
+
+    public static List<PlayerRecord> getPlayersWithoutHouse(final FacilitatorData data)
+    {
+        List<PlayerRecord> playersWithoutHouse = new ArrayList<>();
+        for (PlayerRecord player : data.getPlayerList())
+        {
+            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            if (!playerRoundList.isEmpty())
+            {
+                PlayerroundRecord prr = playerRoundList.get(0);
+                for (int i = 0; i < playerRoundList.size(); i++)
+                {
+                    if (playerRoundList.get(i) != null)
+                        prr = playerRoundList.get(i);
+                }
+                if (prr != null && prr.getHouseId() == null)
+                    playersWithoutHouse.add(player);
+            }
+        }
+        return playersWithoutHouse;
+    }
+
+    public static List<HouseRecord> getAvailableHousesForRound(final FacilitatorData data)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        Map<UInteger, PlayerRecord> playersForOwnedHouseIds = getPlayersForOwnedHouseIds(data);
+        List<HouseRecord> availableHouses = new ArrayList<>();
+        Result<org.jooq.Record> resultList =
+                dslContext.fetch("SELECT house.id FROM house INNER JOIN community ON house.community_id=community.id "
+                        + "WHERE community.gameversion_id=" + data.getGameVersion().getId()
+                        + " ORDER BY available_round, address ASC;");
+        for (org.jooq.Record record : resultList)
+        {
+            UInteger id = (UInteger) record.get(0);
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, id);
+            if (house.getAvailableRound().intValue() == data.getCurrentRoundNumber())
+            {
+                if (!playersForOwnedHouseIds.keySet().contains(house.getId()))
+                    availableHouses.add(house);
+            }
+        }
+        return availableHouses;
+    }
+
+    public static List<HouseRecord> getOwnedHouses(final FacilitatorData data)
+    {
+        List<HouseRecord> ownedHouses = new ArrayList<>();
+        for (PlayerRecord player : data.getPlayerList())
+        {
+            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            if (!playerRoundList.isEmpty())
+            {
+                PlayerroundRecord prr = playerRoundList.get(0);
+                for (int i = 0; i < playerRoundList.size(); i++)
+                {
+                    if (playerRoundList.get(i) != null)
+                        prr = playerRoundList.get(i);
+                }
+                if (prr != null && prr.getHouseId() != null)
+                {
+                    HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, prr.getHouseId());
+                    ownedHouses.add(house);
+                }
+            }
+        }
+        return ownedHouses;
+    }
+
+    public static Map<UInteger, List<MeasuretypeRecord>> getMeasuresPerHouse(final FacilitatorData data)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        Map<UInteger, List<MeasuretypeRecord>> measureMap = new HashMap<>();
+        Result<org.jooq.Record> resultList =
+                dslContext.fetch("SELECT house.id FROM house INNER JOIN community ON house.community_id=community.id "
+                        + "WHERE community.gameversion_id=" + data.getGameVersion().getId()
+                        + " ORDER BY available_round, address ASC;");
+        for (org.jooq.Record record : resultList)
+        {
+            UInteger id = (UInteger) record.get(0);
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, id);
+            List<MeasureRecord> measureList =
+                    dslContext.selectFrom(Tables.MEASURE).where(Tables.MEASURE.HOUSE_ID.eq(house.getId())).fetch();
+            List<InitialhousemeasureRecord> initialMeasureList = dslContext.selectFrom(Tables.INITIALHOUSEMEASURE)
+                    .where(Tables.INITIALHOUSEMEASURE.HOUSE_ID.eq(house.getId())).fetch();
+            List<MeasuretypeRecord> measureTypeList = new ArrayList<>();
+            for (MeasureRecord measure : measureList)
+                measureTypeList.add(SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId()));
+            for (InitialhousemeasureRecord initialMeasure : initialMeasureList)
+                measureTypeList.add(SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, initialMeasure.getMeasuretypeId()));
+            measureMap.put(house.getId(), measureTypeList);
+        }
+        return measureMap;
+    }
+
+    public static void houseBuyPopup(final FacilitatorData data, final HttpServletRequest request)
+    {
+
+        System.out.println("house = " + request.getParameter("house"));
+        System.out.println("player = " + request.getParameter("player"));
+        System.out.println("buy-price = " + request.getParameter("buy-price"));
+
+        UInteger houseId;
+        UInteger playerId;
+        int buyPrice;
+        try
+        {
+            houseId = UInteger.valueOf(request.getParameter("house").trim());
+            playerId = UInteger.valueOf(request.getParameter("player").trim());
+            buyPrice = request.getParameter("buy-price").trim().length() == 0 ? -1
+                    : Integer.valueOf(request.getParameter("buy-price"));
+        }
+        catch (Exception e)
+        {
+            // e.g., one of the fields not filled, or illegal number for buy-price
+            return;
+        }
+
+        HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseId);
+        PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerId);
+        PlayerroundRecord prr = SqlUtils.getLastPlayerRound(data, player.getId());
+        if (buyPrice == -1)
+            buyPrice = house.getPrice().intValue();
+        int marketPrice = house.getPrice().intValue();
+        // TODO: discount if area has been flooded
+
+        String content = "";
+        if (Math.abs(buyPrice - marketPrice) > marketPrice * 0.1)
+            content += "Buying price " + buyPrice + " is more than 10% different from market price: " + marketPrice + "<br />";
+        int maxSpend = prr.getMaximumMortgage().intValue() + prr.getSavings().intValue();
+        if (buyPrice > maxSpend)
+            content += "Buying price " + buyPrice + " is more than the max mortgage + savings of the player: " + maxSpend
+                    + "<br />";
+        if (content.length() == 0)
+            content = "The player can afford the house, and the price is within reasonable bounds<br />";
+        content += "<br />Are you sure you want to have the player buy the house?<br /><br />";
+        Map<String, String> parameterMap = new HashMap<>();
+        parameterMap.put("house", "" + houseId);
+        parameterMap.put("player-round", "" + prr.getId());
+        parameterMap.put("buy-price", "" + buyPrice);
+        ModalWindowUtils.make2ButtonModalWindow(data, "Confirm house allocation?", content, "YES", "buy-house-ok", "NO", "",
+                "", parameterMap);
+        data.setShowModalWindow(1);
+    }
+
+    public static void handleHouseBuy(final FacilitatorData data, final HttpServletRequest request)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        UInteger houseId;
+        UInteger playerRoundId;
+        int buyPrice;
+        try
+        {
+            System.out.println(request.getParameterMap().keySet());
+            houseId = UInteger.valueOf(request.getParameter("house").trim());
+            playerRoundId = UInteger.valueOf(request.getParameter("player-round").trim());
+            buyPrice = request.getParameter("buy-price").trim().length() == 0 ? -1
+                    : Integer.valueOf(request.getParameter("buy-price"));
+        }
+        catch (Exception e)
+        {
+            System.err.println("Error in processing houseBuy, message: " +e.getMessage());
+            return;
+        }
+
+        System.out.println("handleHouseBuy");
+        System.out.println("house = " + houseId);
+        System.out.println("playerRound = " + playerRoundId);
+        System.out.println("buyPrice = " + buyPrice);
+
+        HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseId);
+        PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, playerRoundId);
+
+        prr.setHouseId(house.getId());
+        prr.setHousePriceBought(UInteger.valueOf(buyPrice));
+        if (buyPrice > prr.getMaximumMortgage().intValue())
+        {
+            // use some savings
+            int savings = prr.getSavings().intValue();
+            savings -= (buyPrice - prr.getMaximumMortgage().intValue());
+            prr.setSpentSavingsForBuyingHouse(UInteger.valueOf((buyPrice - prr.getMaximumMortgage().intValue())));
+            // if savings are negative, add to debt, and set savings to 0
+            if (savings >= 0)
+                prr.setSavings(UInteger.valueOf(savings));
+            else
+                prr.setDebt(UInteger.valueOf(prr.getDebt().intValue() - savings));
+        }
+        prr.store();
+
+        if (buyPrice != house.getPrice().intValue())
+        {
+            // make bid record
+            BidRecord bid = dslContext.newRecord(Tables.BID);
+            bid.setPrice(buyPrice);
+            bid.setHouseId(house.getId());
+            bid.setGrouproundId(prr.getGrouproundId());
+            bid.store();
+        }
     }
 
     @Override
