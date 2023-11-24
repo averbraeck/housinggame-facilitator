@@ -196,9 +196,9 @@ body {
 								<div class="hg-grid2-left-right">
 									<div>
 										Read the news and press the<br />
-										'ANNNOUNCE NEWS' button so that <br />
-										players can get the news<br />
-										summary on their phone
+										'ANNNOUNCE NEWS' button so <br />
+										that players can get the <br />
+										news summary on their phone
 									</div>
 									<form action="/housinggame-facilitator/facilitator"
 										method="post">
@@ -300,9 +300,10 @@ body {
 										Explain that they can buy <br/>
 										satisfaction or flood <br/>
 										measures to protect their <br/>
-										property. Explore the measures<br/>
-										on the table. When ready,<br/>
-										press ALLOW IMPROVEMENTS.
+										property. Explore the 
+										measures on the table.<br/>
+										When ready, press <br/>
+										ALLOW IMPROVEMENTS.
 									</div>
 									<form action="/housinggame-facilitator/facilitator"
 										method="post">
