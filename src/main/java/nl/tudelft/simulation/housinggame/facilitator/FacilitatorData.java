@@ -155,7 +155,7 @@ public class FacilitatorData
                 if (gs.getEndTime() == null || now.isBefore(gs.getEndTime()))
                 {
                     s.append("<option value=\"");
-                    s.append(gs.getId().intValue());
+                    s.append(gs.getId());
                     s.append("\">");
                     s.append(gs.getName());
                     s.append("</option>\n");
@@ -176,7 +176,7 @@ public class FacilitatorData
         this.playerList = dslContext.selectFrom(Tables.PLAYER).where(Tables.PLAYER.GROUP_ID.eq(group.getId())).fetch()
                 .sortAsc(Tables.PLAYER.CODE);
         this.roundList.clear();
-        for (int i = 0; i <= this.scenario.getHighestRoundNumber().intValue(); i++)
+        for (int i = 0; i <= this.scenario.getHighestRoundNumber(); i++)
         {
             this.roundList.add(dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.ROUND_NUMBER.eq(i))
                     .and(Tables.ROUND.SCENARIO_ID.eq(this.scenario.getId())).fetchAny());
@@ -192,7 +192,7 @@ public class FacilitatorData
             this.groupRoundList.clear();
             this.currentRoundNumber = -1;
             dslContext.execute("LOCK TABLES groupround WRITE WAIT 10;");
-            for (int i = 0; i <= this.scenario.getHighestRoundNumber().intValue(); i++)
+            for (int i = 0; i <= this.scenario.getHighestRoundNumber(); i++)
             {
                 GrouproundRecord groupRound = dslContext.selectFrom(Tables.GROUPROUND)
                         .where(Tables.GROUPROUND.ROUND_ID.eq(this.roundList.get(i).getId()))
@@ -352,7 +352,7 @@ public class FacilitatorData
         // TODO: bid?
         ScenarioparametersRecord spr =
                 SqlUtils.readRecordFromId(this, Tables.SCENARIOPARAMETERS, this.scenario.getScenarioparametersId());
-        return (int) (house.getPrice().intValue() / spr.getMortgagePercentage());
+        return (int) (house.getPrice() / spr.getMortgagePercentage());
     }
 
     public int getExpectedTaxes(final HouseRecord house)

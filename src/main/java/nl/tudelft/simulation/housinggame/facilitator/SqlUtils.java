@@ -11,7 +11,6 @@ import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.impl.DSL;
-import org.jooq.types.UInteger;
 
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
@@ -37,16 +36,16 @@ public final class SqlUtils
         return DriverManager.getConnection(jdbcURL, dbUser, dbPassword);
     }
 
-    public static RoundRecord readRoundFromRoundId(final FacilitatorData data, final Integer roundId)
+    public static RoundRecord readRoundFromRoundId(final FacilitatorData data, final int roundId)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        return dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.ID.eq(UInteger.valueOf(roundId))).fetchAny();
+        return dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.ID.eq(roundId)).fetchAny();
     }
 
-    public static UserRecord readUserFromUserId(final FacilitatorData data, final Integer userId)
+    public static UserRecord readUserFromUserId(final FacilitatorData data, final int userId)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        return dslContext.selectFrom(Tables.USER).where(Tables.USER.ID.eq(UInteger.valueOf(userId))).fetchAny();
+        return dslContext.selectFrom(Tables.USER).where(Tables.USER.ID.eq(userId)).fetchAny();
     }
 
     public static UserRecord readUserFromUsername(final FacilitatorData data, final String username)
@@ -55,18 +54,12 @@ public final class SqlUtils
         return dslContext.selectFrom(Tables.USER).where(Tables.USER.USERNAME.eq(username)).fetchAny();
     }
 
+    @SuppressWarnings("unchecked")
     public static <R extends org.jooq.UpdatableRecord<R>> R readRecordFromId(final FacilitatorData data, final Table<R> table,
             final int recordId)
     {
-        return readRecordFromId(data, table, UInteger.valueOf(recordId));
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <R extends org.jooq.UpdatableRecord<R>> R readRecordFromId(final FacilitatorData data, final Table<R> table,
-            final UInteger recordId)
-    {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        return dslContext.selectFrom(table).where(((TableField<R, UInteger>) table.field("id")).eq(recordId)).fetchOne();
+        return dslContext.selectFrom(table).where(((TableField<R, Integer>) table.field("id")).eq(recordId)).fetchOne();
     }
 
     /**
@@ -75,7 +68,7 @@ public final class SqlUtils
      * @param playerId player to retrieve
      * @return list of PlayerRoundRecords
      */
-    public static List<PlayerroundRecord> getPlayerRoundList(final FacilitatorData data, final UInteger playerId)
+    public static List<PlayerroundRecord> getPlayerRoundList(final FacilitatorData data, final int playerId)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         List<PlayerroundRecord> playerRoundList = new ArrayList<>();
@@ -96,7 +89,7 @@ public final class SqlUtils
      * @param playerId player to retrieve
      * @return list of PlayerRoundRecords
      */
-    public static PlayerroundRecord getCurrentPlayerRound(final FacilitatorData data, final UInteger playerId)
+    public static PlayerroundRecord getCurrentPlayerRound(final FacilitatorData data, final int playerId)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         GrouproundRecord groupRound = data.getGroupRoundList().get(data.getGroupRoundList().size() - 1);
@@ -104,7 +97,7 @@ public final class SqlUtils
                 .and(Tables.PLAYERROUND.GROUPROUND_ID.eq(groupRound.getId())).fetchAny();
     }
 
-    public static PlayerroundRecord getLastPlayerRound(final FacilitatorData data, final UInteger playerId)
+    public static PlayerroundRecord getLastPlayerRound(final FacilitatorData data, final int playerId)
     {
         List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, playerId);
         if (!playerRoundList.isEmpty())

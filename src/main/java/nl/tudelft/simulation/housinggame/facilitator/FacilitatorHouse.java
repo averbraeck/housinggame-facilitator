@@ -13,7 +13,6 @@ import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
-import org.jooq.types.UInteger;
 
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
@@ -64,12 +63,12 @@ public class FacilitatorHouse extends HttpServlet
                         + "WHERE community.gameversion_id=" + data.getGameVersion().getId() + " ORDER BY available_round, address ASC;");
         for (org.jooq.Record record : resultList)
         {
-            UInteger id = (UInteger) record.get(0);
+            int id = Integer.valueOf(record.get(0).toString());
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, id);
             s.append("                  <tr>");
             s.append("                    <td>" + house.getAddress() + "</td>");
             s.append("                    <td>" + house.getAvailableRound() + "</td>");
-            s.append("                    <td>" + data.k(house.getPrice().intValue()) + "</td>");
+            s.append("                    <td>" + data.k(house.getPrice()) + "</td>");
             s.append("                    <td>" + house.getRating() + "</td>");
             s.append("                    <td>" + "--" + "</td>");
             s.append("                    <td>" + "--" + "</td>");
