@@ -66,7 +66,7 @@ public class FacilitatorHouse extends HttpServlet
             int id = Integer.valueOf(record.get(0).toString());
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, id);
             s.append("                  <tr>");
-            s.append("                    <td>" + house.getAddress() + "</td>");
+            s.append("                    <td>" + house.getCode() + "</td>");
             s.append("                    <td>" + house.getAvailableRound() + "</td>");
             s.append("                    <td>" + data.k(house.getPrice()) + "</td>");
             s.append("                    <td>" + house.getRating() + "</td>");

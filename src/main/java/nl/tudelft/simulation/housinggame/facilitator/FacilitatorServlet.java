@@ -441,7 +441,7 @@ public class FacilitatorServlet extends HttpServlet
                 }
                 else
                 {
-                    s.append("                    <td>" + house.getAddress() + "</td>\n");
+                    s.append("                    <td>" + house.getCode() + "</td>\n");
                     s.append("                    <td>" + data.k(data.getExpectedTaxes(house)) + "</td>\n");
                     mortgage = data.getExpectedMortgage(house);
                     taxes = data.getExpectedTaxes(house);
@@ -590,7 +590,7 @@ public class FacilitatorServlet extends HttpServlet
             if (house.getAvailableRound() == data.getCurrentRoundNumber() || ownedHouses.containsKey(house.getId()))
             {
                 s.append("                  <tr>\n");
-                s.append("                    <td>" + house.getAddress() + "</td>\n");
+                s.append("                    <td>" + house.getCode() + "</td>\n");
                 s.append("                    <td>" + house.getAvailableRound() + "</td>\n");
                 s.append("                    <td>" + data.k(house.getPrice()) + "</td>\n");
                 s.append("                    <td>" + house.getRating() + "</td>\n");
@@ -687,7 +687,7 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                  name=\"house\" id=\"buy-house\">\n");
         s.append("                  <option value=\"\"></option>\n");
         for (HouseRecord house : getAvailableHousesForRound(data))
-            s.append("                  <option value=\"" + house.getId() + "\">" + house.getAddress() + "</option>\n");
+            s.append("                  <option value=\"" + house.getId() + "\">" + house.getCode() + "</option>\n");
         s.append("                </select>\n");
         s.append("              </div>\n");
         s.append("              <div>\n");
@@ -720,7 +720,7 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                  name=\"house\" id=\"sell-house\">\n");
         s.append("                  <option value=\"\"></option>\n");
         for (HouseRecord house : getOwnedHouses(data))
-            s.append("                  <option value=\"" + house.getId() + "\">" + house.getAddress() + "</option>\n");
+            s.append("                  <option value=\"" + house.getId() + "\">" + house.getCode() + "</option>\n");
         s.append("                </select>\n");
         s.append("              </div>\n");
         s.append("              <div>\n");
