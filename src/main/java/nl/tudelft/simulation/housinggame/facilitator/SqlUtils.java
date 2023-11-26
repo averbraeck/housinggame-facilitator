@@ -15,7 +15,6 @@ import org.jooq.impl.DSL;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.RoundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
 
 public final class SqlUtils
@@ -34,12 +33,6 @@ public final class SqlUtils
 
         Class.forName("com.mysql.cj.jdbc.Driver");
         return DriverManager.getConnection(jdbcURL, dbUser, dbPassword);
-    }
-
-    public static RoundRecord readRoundFromRoundId(final FacilitatorData data, final int roundId)
-    {
-        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        return dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.ID.eq(roundId)).fetchAny();
     }
 
     public static UserRecord readUserFromUserId(final FacilitatorData data, final int userId)

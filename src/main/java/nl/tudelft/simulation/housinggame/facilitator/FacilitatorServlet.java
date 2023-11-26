@@ -30,7 +30,6 @@ import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.NewsitemRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.RoundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioparametersRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.WelfaretypeRecord;
 
@@ -645,11 +644,10 @@ public class FacilitatorServlet extends HttpServlet
         {
             int id = Integer.valueOf(record.get(0).toString());
             NewsitemRecord news = SqlUtils.readRecordFromId(data, Tables.NEWSITEM, id);
-            RoundRecord round = SqlUtils.readRecordFromId(data, Tables.ROUND, news.getRoundId());
-            if (round.getRoundNumber() <= data.getCurrentRoundNumber())
+            if (news.getRoundNumber() <= data.getCurrentRoundNumber())
             {
                 s.append("                  <tr>\n");
-                s.append("                    <td>" + round.getRoundNumber() + "</td>\n");
+                s.append("                    <td>" + news.getRoundNumber() + "</td>\n");
                 s.append("                    <td style=\"text-align:left;\">" + news.getContent() + "</td>\n");
                 s.append("                  </tr>\n");
             }

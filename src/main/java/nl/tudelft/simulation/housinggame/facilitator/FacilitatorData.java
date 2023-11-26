@@ -27,7 +27,6 @@ import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.RoundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioparametersRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
@@ -58,9 +57,6 @@ public class FacilitatorData
 
     /** List of all players of the session (static during session). */
     private List<PlayerRecord> playerList;
-
-    /** List of all rounds (static during session). */
-    private List<RoundRecord> roundList = new ArrayList<>();
 
     /** The current round. This is DYNAMIC. */
     private int currentRoundNumber = -1;
@@ -175,12 +171,6 @@ public class FacilitatorData
         this.gameVersion = SqlUtils.readRecordFromId(this, Tables.GAMEVERSION, this.scenario.getGameversionId());
         this.playerList = dslContext.selectFrom(Tables.PLAYER).where(Tables.PLAYER.GROUP_ID.eq(group.getId())).fetch()
                 .sortAsc(Tables.PLAYER.CODE);
-        this.roundList.clear();
-        for (int i = 0; i <= this.scenario.getHighestRoundNumber(); i++)
-        {
-            this.roundList.add(dslContext.selectFrom(Tables.ROUND).where(Tables.ROUND.ROUND_NUMBER.eq(i))
-                    .and(Tables.ROUND.SCENARIO_ID.eq(this.scenario.getId())).fetchAny());
-        }
         readDynamicData();
     }
 
@@ -194,20 +184,19 @@ public class FacilitatorData
             dslContext.execute("LOCK TABLES groupround WRITE WAIT 10;");
             for (int i = 0; i <= this.scenario.getHighestRoundNumber(); i++)
             {
-                GrouproundRecord groupRound = dslContext.selectFrom(Tables.GROUPROUND)
-                        .where(Tables.GROUPROUND.ROUND_ID.eq(this.roundList.get(i).getId()))
-                        .and(Tables.GROUPROUND.GROUP_ID.eq(this.group.getId())).fetchAny();
-                if (groupRound != null)
-                {
-                    this.groupRoundList.add(groupRound);
-                    this.currentRoundNumber = i;
-                }
+                GrouproundRecord groupRound =
+                        dslContext.selectFrom(Tables.GROUPROUND).where(Tables.GROUPROUND.ROUND_NUMBER.eq(i))
+                                .and(Tables.GROUPROUND.GROUP_ID.eq(this.group.getId())).fetchAny();
+                if (groupRound == null)
+                    break;
+                this.groupRoundList.add(groupRound);
+                this.currentRoundNumber = i;
             }
             if (this.groupRoundList.isEmpty())
             {
                 GrouproundRecord groupRound = dslContext.newRecord(Tables.GROUPROUND);
                 groupRound.setGroupId(this.group.getId());
-                groupRound.setRoundId(this.roundList.get(0).getId());
+                groupRound.setRoundNumber(0);
                 groupRound.setFluvialFloodIntensity(0);
                 groupRound.setPluvialFloodIntensity(0);
                 groupRound.setRoundState(RoundState.LOGIN.toString());
@@ -252,11 +241,6 @@ public class FacilitatorData
         return this.currentRoundNumber;
     }
 
-    public RoundRecord getCurrentRound()
-    {
-        return this.currentRoundNumber < 0 ? null : this.roundList.get(this.currentRoundNumber);
-    }
-
     public List<PlayerRecord> getPlayerList()
     {
         return this.playerList;
@@ -265,11 +249,6 @@ public class FacilitatorData
     public List<GrouproundRecord> getGroupRoundList()
     {
         return this.groupRoundList;
-    }
-
-    public List<RoundRecord> getRoundList()
-    {
-        return this.roundList;
     }
 
     public ScenarioRecord getScenario()
