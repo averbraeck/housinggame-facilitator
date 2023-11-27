@@ -579,7 +579,7 @@ public class FacilitatorServlet extends HttpServlet
         Result<org.jooq.Record> resultList =
                 dslContext.fetch("SELECT house.id FROM house INNER JOIN community ON house.community_id=community.id "
                         + "WHERE community.gameversion_id=" + data.getGameVersion().getId()
-                        + " ORDER BY available_round, address ASC;");
+                        + " ORDER BY available_round, code ASC;");
         for (org.jooq.Record record : resultList)
         {
             int id = Integer.valueOf(record.get(0).toString());
@@ -745,14 +745,17 @@ public class FacilitatorServlet extends HttpServlet
             if (!playerRoundList.isEmpty())
             {
                 PlayerroundRecord prr = playerRoundList.get(0);
-                for (int i = 0; i < playerRoundList.size(); i++)
+                if (prr != null)
                 {
-                    if (playerRoundList.get(i) != null)
-                        prr = playerRoundList.get(i);
+                    for (int i = 0; i < playerRoundList.size(); i++)
+                    {
+                        if (playerRoundList.get(i) != null)
+                            prr = playerRoundList.get(i);
+                    }
+                    HouseRecord house = data.getHouseForPlayerRound(prr);
+                    if (prr != null && house != null)
+                        playersForOwnedHouseIds.put(house.getId(), player);
                 }
-                HouseRecord house = data.getHouseForPlayerRound(prr);
-                if (prr != null && house != null)
-                    playersForOwnedHouseIds.put(house.getId(), player);
             }
         }
         return playersForOwnedHouseIds;
@@ -767,14 +770,17 @@ public class FacilitatorServlet extends HttpServlet
             if (!playerRoundList.isEmpty())
             {
                 PlayerroundRecord prr = playerRoundList.get(0);
-                for (int i = 0; i < playerRoundList.size(); i++)
+                if (prr != null)
                 {
-                    if (playerRoundList.get(i) != null)
-                        prr = playerRoundList.get(i);
+                    for (int i = 0; i < playerRoundList.size(); i++)
+                    {
+                        if (playerRoundList.get(i) != null)
+                            prr = playerRoundList.get(i);
+                    }
+                    HouseRecord house = data.getHouseForPlayerRound(prr);
+                    if (prr != null && house == null)
+                        playersWithoutHouse.add(player);
                 }
-                HouseRecord house = data.getHouseForPlayerRound(prr);
-                if (prr != null && house == null)
-                    playersWithoutHouse.add(player);
             }
         }
         return playersWithoutHouse;
@@ -788,7 +794,7 @@ public class FacilitatorServlet extends HttpServlet
         Result<org.jooq.Record> resultList =
                 dslContext.fetch("SELECT house.id FROM house INNER JOIN community ON house.community_id=community.id "
                         + "WHERE community.gameversion_id=" + data.getGameVersion().getId()
-                        + " ORDER BY available_round, address ASC;");
+                        + " ORDER BY available_round, code ASC;");
         for (org.jooq.Record record : resultList)
         {
             int id = Integer.valueOf(record.get(0).toString());
@@ -811,14 +817,17 @@ public class FacilitatorServlet extends HttpServlet
             if (!playerRoundList.isEmpty())
             {
                 PlayerroundRecord prr = playerRoundList.get(0);
-                for (int i = 0; i < playerRoundList.size(); i++)
+                if (prr != null)
                 {
-                    if (playerRoundList.get(i) != null)
-                        prr = playerRoundList.get(i);
+                    for (int i = 0; i < playerRoundList.size(); i++)
+                    {
+                        if (playerRoundList.get(i) != null)
+                            prr = playerRoundList.get(i);
+                    }
+                    HouseRecord house = data.getHouseForPlayerRound(prr);
+                    if (prr != null && house != null)
+                        ownedHouses.add(house);
                 }
-                HouseRecord house = data.getHouseForPlayerRound(prr);
-                if (prr != null && house != null)
-                    ownedHouses.add(house);
             }
         }
         return ownedHouses;
