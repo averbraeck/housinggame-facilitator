@@ -21,9 +21,9 @@ import org.jooq.impl.DSL;
 import nl.tudelft.simulation.housinggame.common.PlayerState;
 import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
-import nl.tudelft.simulation.housinggame.data.tables.records.BidRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HouseroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.InitialhousemeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
@@ -299,7 +299,7 @@ public class FacilitatorServlet extends HttpServlet
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         GrouproundRecord groupRound = dslContext.newRecord(Tables.GROUPROUND);
         groupRound.setRoundState(RoundState.NEW_ROUND.toString());
-        groupRound.setRoundId(data.getRoundList().get(data.getCurrentRoundNumber() + 1).getId());
+        groupRound.setRoundNumber(data.getCurrentRoundNumber() + 1);
         groupRound.setGroupId(data.getGroup().getId());
         groupRound.setPluvialFloodIntensity(null);
         groupRound.setFluvialFloodIntensity(null);
@@ -323,7 +323,7 @@ public class FacilitatorServlet extends HttpServlet
                 if (playerRound != null && playerRound.getGrouproundId().equals(data.getCurrentGroupRound().getId()))
                 {
                     nrActivePlayers++;
-                    if (playerRound.getHouseId() != null)
+                    if (playerRound.getStartHouseroundId() != null)
                         nrPlayersWithHouse++;
                 }
             }
@@ -427,8 +427,7 @@ public class FacilitatorServlet extends HttpServlet
                 s.append("                    <td>" + highestRound + "</td>\n");
                 s.append("                    <td>" + prr.getPlayerState() + "</td>\n");
 
-                HouseRecord house =
-                        prr.getHouseId() == null ? null : SqlUtils.readRecordFromId(data, Tables.HOUSE, prr.getHouseId());
+                HouseRecord house = data.getHouseForPlayerRound(prr);
                 int mortgage;
                 int taxes;
                 if (house == null)
@@ -445,24 +444,23 @@ public class FacilitatorServlet extends HttpServlet
                     mortgage = data.getExpectedMortgage(house);
                     taxes = data.getExpectedTaxes(house);
                 }
-                int improvements = prr.getCostMeasureBought();
-                int damage = prr.getFluvialDamage() + prr.getFluvialDamage();
-                int spendableIncome = prr.getIncomePerRound() + prr.getSavings() - prr.getLivingCosts() - mortgage - taxes
-                        - improvements - damage;
+                int improvements = prr.getCostMeasuresBought();
+                int damageCost = prr.getCostFluvialDamage() + prr.getCostFluvialDamage();
+                int spendableIncome = prr.getRoundIncome() + prr.getStartSavings() - prr.getLivingCosts() - mortgage - taxes
+                        - improvements - damageCost;
                 s.append("                    <td>" + data.k(spendableIncome) + "</td>\n");
-                s.append("                    <td>" + prr.getSatisfaction() + "</td>\n");
-                int totalSatisfaction = prr.getSatisfaction();
+                s.append("                    <td>" + prr.getStartPersonalSatisfaction() + "</td>\n");
+                int totalSatisfaction = prr.getStartPersonalSatisfaction();
                 if (house == null)
                 {
                     s.append("                    <td>--</td>\n");
                 }
                 else
                 {
-                    int houseSatisfaction = house.getRating() - prr.getPreferredHouseRating();
-                    s.append("                    <td>" + houseSatisfaction + "</td>\n");
-                    totalSatisfaction += houseSatisfaction;
+                    s.append("                    <td>" + prr.getStartHouseSatisfaction() + "</td>\n");
+                    totalSatisfaction += prr.getStartHouseSatisfaction();
                 }
-                if (prr.getDebt() == 0)
+                if (prr.getStartDebt() == 0)
                     s.append("                    <td>-</td>\n");
                 else
                 {
@@ -499,9 +497,9 @@ public class FacilitatorServlet extends HttpServlet
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
             List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
             if (playerRoundList.isEmpty() || playerRoundList.get(0) == null)
             {
-                WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
                 s.append("                    <td>" + data.k(welfareType.getIncomePerRound()) + "</td>\n");
                 s.append("                    <td>" + data.k(welfareType.getLivingCosts()) + "</td>\n");
                 s.append("                    <td>" + data.k(welfareType.getMaximumMortgage()) + "</td>\n");
@@ -518,12 +516,12 @@ public class FacilitatorServlet extends HttpServlet
                     if (playerRoundList.get(i) != null)
                         prr = playerRoundList.get(i);
                 }
-                s.append("                    <td>" + data.k(prr.getIncomePerRound()) + "</td>\n");
+                s.append("                    <td>" + data.k(prr.getRoundIncome()) + "</td>\n");
                 s.append("                    <td>" + data.k(prr.getLivingCosts()) + "</td>\n");
                 s.append("                    <td>" + data.k(prr.getMaximumMortgage()) + "</td>\n");
-                s.append("                    <td>" + data.k(prr.getSavings()) + "</td>\n");
-                s.append("                    <td>" + data.k(prr.getDebt()) + "</td>\n");
-                s.append("                    <td>" + data.k(prr.getSatisfactionCostPerPoint()) + "</td>\n");
+                s.append("                    <td>" + data.k(prr.getStartSavings()) + "</td>\n");
+                s.append("                    <td>" + data.k(prr.getStartDebt()) + "</td>\n");
+                s.append("                    <td>" + data.k(welfareType.getSatisfactionCostPerPoint()) + "</td>\n");
                 s.append("                    <td>" + prr.getPreferredHouseRating() + "</td>\n");
             }
             s.append("                  </tr>\n");
@@ -637,20 +635,16 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                  </tr>\n");
         s.append("                </thead>\n");
         s.append("                <tbody>\n");
-        Result<org.jooq.Record> resultList =
-                dslContext.fetch("SELECT newsitem.id FROM newsitem INNER JOIN round ON newsitem.round_id=round.id "
-                        + "WHERE round.scenario_id=" + data.getScenario().getId() + " ORDER BY round_number DESC;");
-        for (org.jooq.Record record : resultList)
+        List<NewsitemRecord> newsItemList =
+                dslContext.selectFrom(Tables.NEWSITEM).where(Tables.NEWSITEM.SCENARIO_ID.eq(data.getScenario().getId()))
+                        .and(Tables.NEWSITEM.ROUND_NUMBER.le(data.getCurrentRoundNumber())).fetch()
+                        .sortDesc(Tables.NEWSITEM.ROUND_NUMBER);
+        for (NewsitemRecord news : newsItemList)
         {
-            int id = Integer.valueOf(record.get(0).toString());
-            NewsitemRecord news = SqlUtils.readRecordFromId(data, Tables.NEWSITEM, id);
-            if (news.getRoundNumber() <= data.getCurrentRoundNumber())
-            {
-                s.append("                  <tr>\n");
-                s.append("                    <td>" + news.getRoundNumber() + "</td>\n");
-                s.append("                    <td style=\"text-align:left;\">" + news.getContent() + "</td>\n");
-                s.append("                  </tr>\n");
-            }
+            s.append("                  <tr>\n");
+            s.append("                    <td>" + news.getRoundNumber() + "</td>\n");
+            s.append("                    <td style=\"text-align:left;\">" + news.getContent() + "</td>\n");
+            s.append("                  </tr>\n");
         }
         s.append("                </tbody>\n");
         s.append("           </table>\n");
@@ -756,8 +750,9 @@ public class FacilitatorServlet extends HttpServlet
                     if (playerRoundList.get(i) != null)
                         prr = playerRoundList.get(i);
                 }
-                if (prr != null && prr.getHouseId() != null)
-                    playersForOwnedHouseIds.put(prr.getHouseId(), player);
+                HouseRecord house = data.getHouseForPlayerRound(prr);
+                if (prr != null && house != null)
+                    playersForOwnedHouseIds.put(house.getId(), player);
             }
         }
         return playersForOwnedHouseIds;
@@ -777,7 +772,8 @@ public class FacilitatorServlet extends HttpServlet
                     if (playerRoundList.get(i) != null)
                         prr = playerRoundList.get(i);
                 }
-                if (prr != null && prr.getHouseId() == null)
+                HouseRecord house = data.getHouseForPlayerRound(prr);
+                if (prr != null && house == null)
                     playersWithoutHouse.add(player);
             }
         }
@@ -820,11 +816,9 @@ public class FacilitatorServlet extends HttpServlet
                     if (playerRoundList.get(i) != null)
                         prr = playerRoundList.get(i);
                 }
-                if (prr != null && prr.getHouseId() != null)
-                {
-                    HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, prr.getHouseId());
+                HouseRecord house = data.getHouseForPlayerRound(prr);
+                if (prr != null && house != null)
                     ownedHouses.add(house);
-                }
             }
         }
         return ownedHouses;
@@ -837,20 +831,31 @@ public class FacilitatorServlet extends HttpServlet
         Result<org.jooq.Record> resultList =
                 dslContext.fetch("SELECT house.id FROM house INNER JOIN community ON house.community_id=community.id "
                         + "WHERE community.gameversion_id=" + data.getGameVersion().getId()
-                        + " ORDER BY available_round, address ASC;");
+                        + " ORDER BY available_round, code ASC;");
         for (org.jooq.Record record : resultList)
         {
-            int id = Integer.valueOf(record.get(0).toString());
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, id);
-            List<MeasureRecord> measureList =
-                    dslContext.selectFrom(Tables.MEASURE).where(Tables.MEASURE.HOUSE_ID.eq(house.getId())).fetch();
+            int houseId = Integer.valueOf(record.get(0).toString());
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseId);
+            List<MeasureRecord> measureList = new ArrayList<>();
+            for (GrouproundRecord groupRound : data.getGroupRoundList())
+            {
+                HouseroundRecord houseRound =
+                        dslContext.selectFrom(Tables.HOUSEROUND).where(Tables.HOUSEROUND.GROUPROUND_ID.eq(groupRound.getId()))
+                                .and(Tables.HOUSEROUND.HOUSE_ID.eq(houseId)).fetchAny();
+                if (houseRound != null)
+                {
+                    List<MeasureRecord> mtrList = dslContext.selectFrom(Tables.MEASURE)
+                            .where(Tables.MEASURE.HOUSEROUND_ID.eq(houseRound.getId())).fetch();
+                    measureList.addAll(mtrList);
+                }
+            }
             List<InitialhousemeasureRecord> initialMeasureList = dslContext.selectFrom(Tables.INITIALHOUSEMEASURE)
                     .where(Tables.INITIALHOUSEMEASURE.HOUSE_ID.eq(house.getId())).fetch();
             List<MeasuretypeRecord> measureTypeList = new ArrayList<>();
-            for (MeasureRecord measure : measureList)
-                measureTypeList.add(SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId()));
             for (InitialhousemeasureRecord initialMeasure : initialMeasureList)
                 measureTypeList.add(SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, initialMeasure.getMeasuretypeId()));
+            for (MeasureRecord measure : measureList)
+                measureTypeList.add(SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId()));
             measureMap.put(house.getId(), measureTypeList);
         }
         return measureMap;
@@ -890,7 +895,7 @@ public class FacilitatorServlet extends HttpServlet
         String content = "";
         if (Math.abs(buyPrice - marketPrice) > marketPrice * 0.1)
             content += "Buying price " + buyPrice + " is more than 10% different from market price: " + marketPrice + "<br />";
-        int maxSpend = prr.getMaximumMortgage() + prr.getSavings();
+        int maxSpend = prr.getMaximumMortgage() + prr.getStartSavings();
         if (buyPrice > maxSpend)
             content += "Buying price " + buyPrice + " is more than the max mortgage + savings of the player: " + maxSpend
                     + "<br />";
@@ -931,10 +936,13 @@ public class FacilitatorServlet extends HttpServlet
         System.out.println("playerRound = " + playerRoundId);
         System.out.println("buyPrice = " + buyPrice);
 
+        // TODO: handle house buy properly with new code
+
+        /*-
         HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseId);
         PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, playerRoundId);
 
-        prr.setHouseId(house.getId());
+        prr.setFinalHouseId(house.getId());
         prr.setHousePriceBought(buyPrice);
         if (buyPrice > prr.getMaximumMortgage())
         {
@@ -959,6 +967,8 @@ public class FacilitatorServlet extends HttpServlet
             bid.setGrouproundId(prr.getGrouproundId());
             bid.store();
         }
+
+        */
     }
 
     @Override

@@ -26,7 +26,9 @@ import nl.tudelft.simulation.housinggame.data.tables.records.GameversionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HouseroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioparametersRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
@@ -322,6 +324,21 @@ public class FacilitatorData
     public boolean isState(final RoundState state)
     {
         return RoundState.eq(state.toString(), getCurrentGroupRound().getRoundState());
+    }
+
+    public HouseRecord getHouseForPlayerRound(final PlayerroundRecord playerRound)
+    {
+        if (playerRound.getFinalHouseroundId() != null)
+        {
+            HouseroundRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEROUND, playerRound.getFinalHouseroundId());
+            return SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
+        }
+        if (playerRound.getStartHouseroundId() != null)
+        {
+            HouseroundRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEROUND, playerRound.getStartHouseroundId());
+            return SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
+        }
+        return null;
     }
 
     public int getExpectedMortgage(final HouseRecord house)
