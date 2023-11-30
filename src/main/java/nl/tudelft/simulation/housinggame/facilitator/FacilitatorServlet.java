@@ -404,7 +404,7 @@ public class FacilitatorServlet extends HttpServlet
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
                 int spendableIncome =
-                        welfareType.getIncomePerRound() + welfareType.getInitialMoney() - welfareType.getLivingCosts();
+                        welfareType.getRoundIncome() + welfareType.getInitialMoney() - welfareType.getLivingCosts();
                 s.append("                    <td>" + data.k(spendableIncome) + "</td>\n");
                 s.append("                    <td>" + welfareType.getInitialSatisfaction() + "</td>\n");
                 s.append("                    <td>--</td>\n");
@@ -500,7 +500,7 @@ public class FacilitatorServlet extends HttpServlet
             WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
             if (playerRoundList.isEmpty() || playerRoundList.get(0) == null)
             {
-                s.append("                    <td>" + data.k(welfareType.getIncomePerRound()) + "</td>\n");
+                s.append("                    <td>" + data.k(welfareType.getRoundIncome()) + "</td>\n");
                 s.append("                    <td>" + data.k(welfareType.getLivingCosts()) + "</td>\n");
                 s.append("                    <td>" + data.k(welfareType.getMaximumMortgage()) + "</td>\n");
                 s.append("                    <td>" + data.k(welfareType.getInitialMoney()) + "</td>\n");
