@@ -80,9 +80,8 @@ public class FacilitatorServlet extends HttpServlet
         }
 
         data.readDynamicData();
-        handleTopMenu(data);
         handlePressedButton(data, this.button, request);
-        handleActivateButtons(data);
+        handleTopMenu(data); // dependent on NEW state
 
         response.sendRedirect("jsp/facilitator/facilitator.jsp");
     }
@@ -101,8 +100,8 @@ public class FacilitatorServlet extends HttpServlet
         else if (data.getMenuState().equals("House"))
         {
             makeHouseTable(data);
-            if (data.getCurrentGroupRound().getRoundState().equals(RoundState.SHOW_HOUSES.toString()))
-                makeHouseAllocation(data);
+            makeHouseSellingTable(data); // can be empty
+            makeHouseBuyingTable(data); // can be empty
             data.getContentHtml().put("menuPlayer", "btn");
             data.getContentHtml().put("menuHouse", "btn btn-primary");
             data.getContentHtml().put("menuNews", "btn");
@@ -128,122 +127,126 @@ public class FacilitatorServlet extends HttpServlet
 
     public void handlePressedButton(final FacilitatorData data, final String button, final HttpServletRequest request)
     {
-        if (button.equals("new-round"))
+        for (String b : new String[] {"start-new-round", "announce-news", "show-houses", "allow-selling", "finish-selling",
+                "allow-buying", "finish-buying", "allow-improvements", "show-survey", "complete-survey", "roll-dice",
+                "show-summary"})
+            data.putContentHtml("button/" + b, "btn btn-inactive");
+        for (String a : new String[] {"round", "news", "houses", "improvements", "survey", "dice", "summary"})
+            data.putContentHtml("accordion/" + a, "");
+
+        if (button.equals("start-new-round"))
             popupNewRound(data);
-        else if (button.equals("new-round-ok"))
+        else if (button.equals("start-new-round-ok"))
+        {
             newRound(data);
+            data.getCurrentGroupRound().setRoundState(RoundState.NEW_ROUND.toString());
+            data.getCurrentGroupRound().store();
+            data.putContentHtml("button/announce-news", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/news", "in");
+        }
         else if (button.equals("announce-news"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.ANNOUNCE_NEWS.toString());
             data.getCurrentGroupRound().store();
+            data.putContentHtml("button/show-houses", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
         }
         else if (button.equals("show-houses"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.SHOW_HOUSES.toString());
             data.getCurrentGroupRound().store();
+            data.putContentHtml("button/allow-selling", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
         }
-        else if (button.equals("assign-houses"))
+        else if (button.equals("allow-selling"))
         {
-            popupAssignHouses(data);
-        }
-        else if (button.equals("assign-houses-ok"))
-        {
-            data.getCurrentGroupRound().setRoundState(RoundState.ASSIGN_HOUSES.toString());
+            data.getCurrentGroupRound().setRoundState(RoundState.ALLOW_SELLING.toString());
             data.getCurrentGroupRound().store();
+            data.putContentHtml("button/finish-selling", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
         }
-        else if (button.equals("calculate-taxes"))
+        else if (button.equals("finish-selling"))
         {
-            // TODO: calculate taxes based on number of house owners per community
-            data.getCurrentGroupRound().setRoundState(RoundState.CALCULATE_TAXES.toString());
+            popupSellHouses(data);
+        }
+        else if (button.equals("finish-selling-ok"))
+        {
+            data.getCurrentGroupRound().setRoundState(RoundState.SELLING_FINISHED.toString());
             data.getCurrentGroupRound().store();
+            data.putContentHtml("button/allow-buying", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
+        }
+        else if (button.equals("allow-buying"))
+        {
+            data.getCurrentGroupRound().setRoundState(RoundState.ALLOW_BUYING.toString());
+            data.getCurrentGroupRound().store();
+            data.putContentHtml("button/finish-buying", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
+        }
+        else if (button.equals("finish-buying"))
+        {
+            popupBuyHouses(data);
+        }
+        else if (button.equals("finish-buying-ok"))
+        {
+            calculateTaxes();
+            data.getCurrentGroupRound().setRoundState(RoundState.BUYING_FINISHED.toString());
+            data.getCurrentGroupRound().store();
+            data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/improvements", "in");
         }
         else if (button.equals("allow-improvements"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.ALLOW_IMPROVEMENTS.toString());
             data.getCurrentGroupRound().store();
+            data.putContentHtml("button/show-survey", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/survey", "in");
         }
-        else if (button.equals("ask-perceptions"))
+        else if (button.equals("show-survey"))
         {
-            data.getCurrentGroupRound().setRoundState(RoundState.ASK_PERCEPTIONS.toString());
+            data.getCurrentGroupRound().setRoundState(RoundState.SHOW_SURVEY.toString());
             data.getCurrentGroupRound().store();
+            data.putContentHtml("button/complete-survey", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/survey", "in");
+        }
+        else if (button.equals("complete-survey"))
+        {
+            popupSurvey(data);
+        }
+        else if (button.equals("complete-survey-ok"))
+        {
+            data.getCurrentGroupRound().setRoundState(RoundState.SURVEY_COMPLETED.toString());
+            data.getCurrentGroupRound().store();
+            data.putContentHtml("button/roll-dice", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/dice", "in");
         }
         else if (button.equals("roll-dice"))
         {
             // TODO: read dice values; check if dice values are valid. Popup if not -- ask to resubmit
             // TODO: calculate the damage
-            data.getCurrentGroupRound().setRoundState(RoundState.ROLL_DICE.toString());
+            data.getCurrentGroupRound().setRoundState(RoundState.ROLLED_DICE.toString());
             data.getCurrentGroupRound().store();
+            data.putContentHtml("button/show-summary", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/summary", "in");
         }
         else if (button.equals("show-summary"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.SHOW_SUMMARY.toString());
             data.getCurrentGroupRound().store();
+            if (data.getCurrentRoundNumber() < data.getScenario().getHighestRoundNumber())
+            {
+                data.putContentHtml("button/start-new-round", "btn btn-primary btn-active");
+                data.putContentHtml("accordion/round", "in");
+            }
         }
-    }
 
-    public void handleActivateButtons(final FacilitatorData data)
-    {
-        for (String b : new String[] {"new-round", "announce-news", "show-houses", "assign-houses", "calculate-taxes",
-                "allow-improvements", "ask-perceptions", "roll-dice", "show-summary"})
-            data.putContentHtml("button/" + b, "btn btn-inactive");
-        for (String a : new String[] {"new-round", "announce-news", "houses-taxes", "allow-improvements", "ask-perceptions",
-                "roll-dice", "show-summary"})
-            data.putContentHtml("accordion/" + a, "");
-        switch (RoundState.valueOf(data.getCurrentGroupRound().getRoundState()))
+        // there could be no button press in the "LOGIN" state
+        if (data.getCurrentGroupRound().getRoundState().equals(RoundState.LOGIN.toString()))
         {
-            case LOGIN ->
-            {
-                data.putContentHtml("button/new-round", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/new-round", "in");
-            }
-            case NEW_ROUND ->
-            {
-                data.putContentHtml("button/announce-news", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/announce-news", "in");
-            }
-            case ANNOUNCE_NEWS ->
-            {
-                data.putContentHtml("button/show-houses", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/houses-taxes", "in");
-            }
-            case SHOW_HOUSES ->
-            {
-                data.putContentHtml("button/assign-houses", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/houses-taxes", "in");
-            }
-            case ASSIGN_HOUSES ->
-            {
-                data.putContentHtml("button/calculate-taxes", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/houses-taxes", "in");
-            }
-            case CALCULATE_TAXES ->
-            {
-                data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/allow-improvements", "in");
-            }
-            case ALLOW_IMPROVEMENTS ->
-            {
-                data.putContentHtml("button/ask-perceptions", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/ask-perceptions", "in");
-            }
-            case ASK_PERCEPTIONS ->
-            {
-                data.putContentHtml("button/roll-dice", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/roll-dice", "in");
-            }
-            case ROLL_DICE ->
-            {
-                data.putContentHtml("button/show-summary", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/show-summary", "in");
-            }
-            case SHOW_SUMMARY ->
-            {
-                if (data.getCurrentRoundNumber() < data.getScenario().getHighestRoundNumber())
-                    data.putContentHtml("button/new-round", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/new-round", "in");
-            }
-            default -> System.err.println("Unknown RoundState: " + data.getCurrentGroupRound().getRoundState());
+            data.putContentHtml("button/start-new-round", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/round", "in");
         }
+
     }
 
     public void popupNewRound(final FacilitatorData data)
@@ -263,7 +266,7 @@ public class FacilitatorServlet extends HttpServlet
                 {
                     PlayerState playerState = PlayerState.valueOf(playerRound.getPlayerState());
                     nrActivePlayers++;
-                    if (playerState.nr == PlayerState.SUMMARY.nr)
+                    if (playerState.equals(PlayerState.VIEW_SUMMARY))
                         nrReadyPlayers++;
                 }
             }
@@ -307,7 +310,7 @@ public class FacilitatorServlet extends HttpServlet
         data.readDynamicData();
     }
 
-    public void popupAssignHouses(final FacilitatorData data)
+    public void popupSellHouses(final FacilitatorData data)
     {
         int nrLoggedInPlayers = 0;
         int nrPlayersWithHouse = 0;
@@ -340,9 +343,90 @@ public class FacilitatorServlet extends HttpServlet
             content += "<br>All active players have been allocated a house";
         content += "<br>Are you really ready with allocating houses?<br>";
 
-        ModalWindowUtils.make2ButtonModalWindow(data, "Stop house allocation?", content, "YES", "assign-houses-ok", "NO", "",
-                "");
+        ModalWindowUtils.make2ButtonModalWindow(data, "Finish the selling / staying process?", content, "YES",
+                "finish-selling-ok", "NO", "", "");
         data.setShowModalWindow(1);
+    }
+
+    public void popupBuyHouses(final FacilitatorData data)
+    {
+        int nrLoggedInPlayers = 0;
+        int nrPlayersWithHouse = 0;
+        int nrActivePlayers = 0;
+        for (PlayerRecord player : data.getPlayerList())
+        {
+            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = SqlUtils.getCurrentPlayerRound(data, player.getId());
+            if (!playerRoundList.isEmpty())
+            {
+                if (playerRoundList.get(0) != null)
+                    nrLoggedInPlayers++;
+                if (playerRound != null && playerRound.getGrouproundId().equals(data.getCurrentGroupRound().getId()))
+                {
+                    nrActivePlayers++;
+                    if (playerRound.getFinalHouseroundId() != null)
+                        nrPlayersWithHouse++;
+                }
+            }
+        }
+
+        String content = "There are " + nrLoggedInPlayers + " players who have logged in";
+        content += "<br>There are " + nrActivePlayers + " players who are active (in the same round)";
+        content += "<br>There are " + nrPlayersWithHouse + " players who have a house<br>";
+        if (nrPlayersWithHouse < nrActivePlayers)
+            content += "<br>NOT ALL ACTIVE PLAYERS HAVE A HOUSE! (" + nrPlayersWithHouse + " < " + nrActivePlayers + ")";
+        else if (nrActivePlayers == 0)
+            content += "<br>NO PLAYERS HAVE CARRIED OUT ANY ACTIONS YET!";
+        else
+            content += "<br>All active players have been allocated a house";
+        content += "<br>Are you really ready with allocating houses?<br>";
+
+        ModalWindowUtils.make2ButtonModalWindow(data, "Finish the buying process?", content, "YES", "finish-buying-ok", "NO",
+                "", "");
+        data.setShowModalWindow(1);
+    }
+
+    public void popupSurvey(final FacilitatorData data)
+    {
+        int nrLoggedInPlayers = 0;
+        int nrReadyPlayers = 0;
+        int nrActivePlayers = 0;
+        for (PlayerRecord player : data.getPlayerList())
+        {
+            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = SqlUtils.getCurrentPlayerRound(data, player.getId());
+            if (!playerRoundList.isEmpty())
+            {
+                if (playerRoundList.get(0) != null)
+                    nrLoggedInPlayers++;
+                if (playerRound != null && playerRound.getGrouproundId().equals(data.getCurrentGroupRound().getId()))
+                {
+                    PlayerState playerState = PlayerState.valueOf(playerRound.getPlayerState());
+                    nrActivePlayers++;
+                    if (playerState.equals(PlayerState.SURVEY_COMPLETED))
+                        nrReadyPlayers++;
+                }
+            }
+        }
+
+        String content = "There are " + nrLoggedInPlayers + " players who have logged in";
+        content += "<br>There are " + nrActivePlayers + " players who are active (in the same round)";
+        content += "<br>There are " + nrReadyPlayers + " players who completed the survey<br>";
+        if (nrReadyPlayers < nrActivePlayers)
+            content += "<br>NOT ALL PLAYERS have completed the survey! (" + nrReadyPlayers + " < " + nrActivePlayers + ")";
+        else if (nrActivePlayers == 0)
+            content += "<br>NO PLAYERS HAVE COMPLETED THE SURVEY!";
+        else
+            content += "<br>All players have completed the survey";
+        content += "<br>Do you really want to move to dice rolls?<br>";
+
+        ModalWindowUtils.make2ButtonModalWindow(data, "Move to dice rolls?", content, "YES", "new-round-ok", "NO", "", "");
+        data.setShowModalWindow(1);
+    }
+
+    public void calculateTaxes()
+    {
+        // TODO make the tax calculations
     }
 
     public static String makePlayerStateTable(final FacilitatorData data)
@@ -663,7 +747,80 @@ public class FacilitatorServlet extends HttpServlet
         data.getContentHtml().put("facilitator/tables", s.toString());
     }
 
-    public static void makeHouseAllocation(final FacilitatorData data)
+    public static void makeHouseSellingTable(final FacilitatorData data)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        StringBuilder s = new StringBuilder();
+
+        s.append("      <div class=\"hg-grid2-left\">\n");
+        s.append("        <div>\n");
+        s.append("          <b>Buying of house by player</b>\n");
+        s.append("          <form action=\"/housinggame-facilitator/facilitator\" method=\"post\">\n");
+        s.append("            <input type=\"hidden\" name=\"house-management\" value=\"buy-house\" />\n");
+        s.append("            <div style=\"display: flex; flex-direction: column;\">\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"buy-house\">House for player to buy</label> <select\n");
+        s.append("                  name=\"house\" id=\"buy-house\">\n");
+        s.append("                  <option value=\"\"></option>\n");
+        for (HouseRecord house : getAvailableHousesForRound(data))
+            s.append("                  <option value=\"" + house.getId() + "\">" + house.getCode() + "</option>\n");
+        s.append("                </select>\n");
+        s.append("              </div>\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"buy-player\">Player who buys</label> <select\n");
+        s.append("                  name=\"player\" id=\"buy-player\">\n");
+        s.append("                  <option value=\"\"></option>\n");
+        for (PlayerRecord player : getPlayersWithoutHouse(data))
+            s.append("                  <option value=\"" + player.getId() + "\">" + player.getCode() + "</option>\n");
+        s.append("                </select>\n");
+        s.append("              </div>\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"buy-price\">Adjusted buying price</label> <input\n");
+        s.append("                  type=\"number\" id=\"buy-price\" name=\"buy-price\" value=\"\">\n");
+        s.append("              </div>\n");
+        s.append("              <br />\n");
+        s.append("              <div class=\"hg-button\">\n");
+        s.append("                <input type=\"submit\" value='Sell house to player'\n");
+        s.append("                  class=\"btn btn-primary\" />\n");
+        s.append("              </div>\n");
+        s.append("            </div>\n");
+        s.append("          </form>\n");
+        s.append("        </div>\n");
+        s.append("        <div>\n");
+        s.append("          <b>Selling of house to the bank</b>\n");
+        s.append("          <form action=\"/housinggame-facilitator/facilitator\" method=\"post\">\n");
+        s.append("            <input type=\"hidden\" name=\"house-management\" value=\"sell-house\" />\n");
+        s.append("            <div style=\"display: flex; flex-direction: column;\">\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"sell-house\">House player sells to bank</label> <select\n");
+        s.append("                  name=\"house\" id=\"sell-house\">\n");
+        s.append("                  <option value=\"\"></option>\n");
+        for (HouseRecord house : getOwnedHouses(data))
+            s.append("                  <option value=\"" + house.getId() + "\">" + house.getCode() + "</option>\n");
+        s.append("                </select>\n");
+        s.append("              </div>\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"sell-price\">Adjusted selling price</label> <input\n");
+        s.append("                  type=\"number\" id=\"sell-price\" name=\"sell-price\" value=\"\">\n");
+        s.append("              </div>\n");
+        s.append("              <div>\n");
+        s.append("                <label for=\"sell-reason\">Reason for selling house</label> <input\n");
+        s.append("                  type=\"text\" id=\"sell-reason\" name=\"sell-reason\" value=\"\">\n");
+        s.append("              </div>\n");
+        s.append("              <br />\n");
+        s.append("              <div class=\"hg-button\">\n");
+        s.append("                <input type=\"submit\" value='Sell house to the bank'\n");
+        s.append("                  class=\"btn btn-primary\" />\n");
+        s.append("              </div>\n");
+        s.append("            </div>\n");
+        s.append("          </form>\n");
+        s.append("        </div>\n");
+        s.append("      </div>\n");
+
+        data.getContentHtml().put("facilitator/house-allocation", s.toString());
+    }
+
+    public static void makeHouseBuyingTable(final FacilitatorData data)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         StringBuilder s = new StringBuilder();
