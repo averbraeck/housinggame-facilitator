@@ -472,7 +472,8 @@ public class FacilitatorServlet extends HttpServlet
             content += "<br>All players have completed the survey";
         content += "<br>Do you really want to move to dice rolls?<br>";
 
-        ModalWindowUtils.make2ButtonModalWindow(data, "Move to dice rolls?", content, "YES", "complete-survey-ok", "NO", "", "");
+        ModalWindowUtils.make2ButtonModalWindow(data, "Move to dice rolls?", content, "YES", "complete-survey-ok", "NO", "",
+                "");
         data.setShowModalWindow(1);
     }
 
@@ -564,47 +565,35 @@ public class FacilitatorServlet extends HttpServlet
                 s.append("                    <td>" + prr.getPlayerState() + "</td>\n");
 
                 HouseRecord house = data.getHouseForPlayerRound(prr);
-                int mortgage;
-                int taxes;
                 if (house == null)
                 {
                     s.append("                    <td>--</td>\n");
                     s.append("                    <td>--</td>\n");
-                    mortgage = 0;
-                    taxes = 0;
                 }
                 else
                 {
                     s.append("                    <td>" + house.getCode() + "</td>\n");
                     s.append("                    <td>" + data.k(data.getExpectedTaxes(house)) + "</td>\n");
-                    mortgage = data.getExpectedMortgage(house);
-                    taxes = data.getExpectedTaxes(house);
                 }
-                int improvements = prr.getCostMeasuresBought();
-                int damageCost = prr.getCostFluvialDamage() + prr.getCostFluvialDamage();
-                int spendableIncome = prr.getRoundIncome() + prr.getStartSavings() - prr.getLivingCosts() - mortgage - taxes
-                        - improvements - damageCost;
-                s.append("                    <td>" + data.k(spendableIncome) + "</td>\n");
-                s.append("                    <td>" + prr.getStartPersonalSatisfaction() + "</td>\n");
-                int totalSatisfaction = prr.getStartPersonalSatisfaction();
+                s.append("                    <td>" + data.k(prr.getCurrentSpendableIncome()) + "</td>\n");
+                int netSatisfaction = prr.getCurrentPersonalSatisfaction() - prr.getSatisfactionFluvialPenalty()
+                        - prr.getSatisfactionPluvialPenalty() - prr.getSatisfactionDebtPenalty();
+                s.append("                    <td>" + netSatisfaction + "</td>\n");
                 if (house == null)
-                {
                     s.append("                    <td>--</td>\n");
-                }
                 else
-                {
-                    s.append("                    <td>" + prr.getStartHouseSatisfaction() + "</td>\n");
-                    totalSatisfaction += prr.getStartHouseSatisfaction();
-                }
+                    s.append("                    <td>" + prr.getCurrentHouseSatisfaction() + "</td>\n");
                 if (prr.getStartDebt() == 0)
                     s.append("                    <td>-</td>\n");
                 else
-                {
                     s.append("                    <td>-" + spr.getSatisfactionDebtPenalty() + "</td>\n");
-                    totalSatisfaction -= spr.getSatisfactionDebtPenalty();
-                }
-                s.append("                    <td>?</td>\n"); // TODO
-                s.append("                    <td>" + totalSatisfaction + "</td>\n");
+                if (prr.getSatisfactionFluvialPenalty() + prr.getSatisfactionPluvialPenalty() == 0)
+                    s.append("                    <td>--</td>\n");
+                else
+                    s.append("                    <td>"
+                            + (prr.getSatisfactionFluvialPenalty() + prr.getSatisfactionPluvialPenalty()) + "</td>\n");
+                s.append("                    <td>" + (prr.getCurrentPersonalSatisfaction() + prr.getCurrentHouseSatisfaction())
+                        + "</td>\n");
             }
             s.append("                  </tr>\n");
         }
@@ -737,7 +726,7 @@ public class FacilitatorServlet extends HttpServlet
                     s.append("                    <td>" + "--" + "</td>\n");
                 else
                 {
-                    s.append("                    <td>");
+                    s.append("                    <td style=\"text-align:left;\">");
                     boolean first = true;
                     for (MeasuretypeRecord measureType : measureMap.get(house.getId()))
                     {
