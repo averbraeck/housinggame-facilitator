@@ -81,6 +81,7 @@ public class FacilitatorServlet extends HttpServlet
 
         data.readDynamicData();
         handlePressedButton(data, this.button, request);
+        prepareAccordionButtons(data, request); // dependent on NEW state
         handleTopMenu(data); // dependent on NEW state
 
         response.sendRedirect("jsp/facilitator/facilitator.jsp");
@@ -127,13 +128,6 @@ public class FacilitatorServlet extends HttpServlet
 
     public void handlePressedButton(final FacilitatorData data, final String button, final HttpServletRequest request)
     {
-        for (String b : new String[] {"start-new-round", "announce-news", "show-houses", "allow-selling", "finish-selling",
-                "allow-buying", "finish-buying", "allow-improvements", "show-survey", "complete-survey", "roll-dice",
-                "show-summary"})
-            data.putContentHtml("button/" + b, "btn btn-inactive");
-        for (String a : new String[] {"round", "news", "houses", "improvements", "survey", "dice", "summary"})
-            data.putContentHtml("accordion/" + a, "");
-
         if (button.equals("start-new-round"))
             popupNewRound(data);
         else if (button.equals("start-new-round-ok"))
@@ -141,29 +135,25 @@ public class FacilitatorServlet extends HttpServlet
             newRound(data);
             data.getCurrentGroupRound().setRoundState(RoundState.NEW_ROUND.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/announce-news", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/news", "in");
+            data.setMenuState("Player");
         }
         else if (button.equals("announce-news"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.ANNOUNCE_NEWS.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/show-houses", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/houses", "in");
+            data.setMenuState("News");
         }
         else if (button.equals("show-houses"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.SHOW_HOUSES.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/allow-selling", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/houses", "in");
+            data.setMenuState("House");
         }
         else if (button.equals("allow-selling"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.ALLOW_SELLING.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/finish-selling", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/houses", "in");
+            data.setMenuState("House");
         }
         else if (button.equals("finish-selling"))
         {
@@ -173,15 +163,13 @@ public class FacilitatorServlet extends HttpServlet
         {
             data.getCurrentGroupRound().setRoundState(RoundState.SELLING_FINISHED.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/allow-buying", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/houses", "in");
+            data.setMenuState("House");
         }
         else if (button.equals("allow-buying"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.ALLOW_BUYING.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/finish-buying", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/houses", "in");
+            data.setMenuState("House");
         }
         else if (button.equals("finish-buying"))
         {
@@ -192,22 +180,18 @@ public class FacilitatorServlet extends HttpServlet
             calculateTaxes();
             data.getCurrentGroupRound().setRoundState(RoundState.BUYING_FINISHED.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/improvements", "in");
+            data.setMenuState("House");
         }
         else if (button.equals("allow-improvements"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.ALLOW_IMPROVEMENTS.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/show-survey", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/survey", "in");
         }
         else if (button.equals("show-survey"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.SHOW_SURVEY.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/complete-survey", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/survey", "in");
+            data.setMenuState("Player");
         }
         else if (button.equals("complete-survey"))
         {
@@ -217,8 +201,6 @@ public class FacilitatorServlet extends HttpServlet
         {
             data.getCurrentGroupRound().setRoundState(RoundState.SURVEY_COMPLETED.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/roll-dice", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/dice", "in");
         }
         else if (button.equals("roll-dice"))
         {
@@ -226,27 +208,96 @@ public class FacilitatorServlet extends HttpServlet
             // TODO: calculate the damage
             data.getCurrentGroupRound().setRoundState(RoundState.ROLLED_DICE.toString());
             data.getCurrentGroupRound().store();
-            data.putContentHtml("button/show-summary", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/summary", "in");
+            data.setMenuState("Flood");
         }
         else if (button.equals("show-summary"))
         {
             data.getCurrentGroupRound().setRoundState(RoundState.SHOW_SUMMARY.toString());
             data.getCurrentGroupRound().store();
+            data.setMenuState("Player");
+        }
+    }
+
+    public void prepareAccordionButtons(final FacilitatorData data, final HttpServletRequest request)
+    {
+        for (String b : new String[] {"start-new-round", "announce-news", "show-houses", "allow-selling", "finish-selling",
+                "allow-buying", "finish-buying", "allow-improvements", "show-survey", "complete-survey", "roll-dice",
+                "show-summary"})
+            data.putContentHtml("button/" + b, "btn btn-inactive");
+        for (String a : new String[] {"round", "news", "houses", "improvements", "survey", "dice", "summary"})
+            data.putContentHtml("accordion/" + a, "");
+
+        if (data.getRoundState().eq(RoundState.LOGIN))
+        {
+            data.putContentHtml("button/start-new-round", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/round", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.NEW_ROUND))
+        {
+            data.putContentHtml("button/announce-news", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/news", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.ANNOUNCE_NEWS))
+        {
+            data.putContentHtml("button/show-houses", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.SHOW_HOUSES))
+        {
+            if (data.getCurrentRoundNumber() == 1)
+                data.putContentHtml("button/allow-buying", "btn btn-primary btn-active");
+            else
+                data.putContentHtml("button/allow-selling", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.ALLOW_SELLING))
+        {
+            data.putContentHtml("button/finish-selling", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.SELLING_FINISHED))
+        {
+            data.putContentHtml("button/allow-buying", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.ALLOW_BUYING))
+        {
+            data.putContentHtml("button/finish-buying", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.BUYING_FINISHED))
+        {
+            data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/improvements", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.ALLOW_IMPROVEMENTS))
+        {
+            data.putContentHtml("button/show-survey", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/survey", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.SHOW_SURVEY))
+        {
+            data.putContentHtml("button/complete-survey", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/survey", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.SURVEY_COMPLETED))
+        {
+            data.putContentHtml("button/roll-dice", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/dice", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.ROLLED_DICE))
+        {
+            data.putContentHtml("button/show-summary", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/summary", "in");
+        }
+        else if (data.getRoundState().eq(RoundState.SHOW_SUMMARY))
+        {
             if (data.getCurrentRoundNumber() < data.getScenario().getHighestRoundNumber())
             {
                 data.putContentHtml("button/start-new-round", "btn btn-primary btn-active");
                 data.putContentHtml("accordion/round", "in");
             }
         }
-
-        // there could be no button press in the "LOGIN" state
-        if (data.getCurrentGroupRound().getRoundState().equals(RoundState.LOGIN.toString()))
-        {
-            data.putContentHtml("button/start-new-round", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/round", "in");
-        }
-
     }
 
     public void popupNewRound(final FacilitatorData data)
@@ -293,7 +344,8 @@ public class FacilitatorServlet extends HttpServlet
         }
         content += "<br>Do you really want to move to the next round?<br>";
 
-        ModalWindowUtils.make2ButtonModalWindow(data, "Move to next round?", content, "YES", "new-round-ok", "NO", "", "");
+        ModalWindowUtils.make2ButtonModalWindow(data, "Move to next round?", content, "YES", "start-new-round-ok", "NO", "",
+                "");
         data.setShowModalWindow(1);
     }
 
@@ -420,7 +472,7 @@ public class FacilitatorServlet extends HttpServlet
             content += "<br>All players have completed the survey";
         content += "<br>Do you really want to move to dice rolls?<br>";
 
-        ModalWindowUtils.make2ButtonModalWindow(data, "Move to dice rolls?", content, "YES", "new-round-ok", "NO", "", "");
+        ModalWindowUtils.make2ButtonModalWindow(data, "Move to dice rolls?", content, "YES", "complete-survey-ok", "NO", "", "");
         data.setShowModalWindow(1);
     }
 

@@ -238,6 +238,13 @@ public class FacilitatorData
         return this.groupRoundList.isEmpty() ? null : this.groupRoundList.get(this.currentRoundNumber);
     }
 
+    public RoundState getRoundState()
+    {
+        if (getCurrentGroupRound() == null)
+            return RoundState.LOGIN;
+        return RoundState.valueOf(getCurrentGroupRound().getRoundState());
+    }
+
     public int getCurrentRoundNumber()
     {
         return this.currentRoundNumber;
@@ -323,7 +330,7 @@ public class FacilitatorData
 
     public boolean isState(final RoundState state)
     {
-        return RoundState.eq(state.toString(), getCurrentGroupRound().getRoundState());
+        return getRoundState().eq(state);
     }
 
     public HouseRecord getHouseForPlayerRound(final PlayerroundRecord playerRound)
