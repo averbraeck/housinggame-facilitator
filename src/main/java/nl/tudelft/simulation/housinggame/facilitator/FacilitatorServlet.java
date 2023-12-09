@@ -685,8 +685,8 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                  <tr>\n");
         s.append("                    <th>Address</th>\n");
         s.append("                    <th>Available round</th>\n");
-        s.append("                    <th>Initial price</th>\n");
         s.append("                    <th>Rating</th>\n");
+        s.append("                    <th>Initial price</th>\n");
         s.append("                    <th>Adjusted price</th>\n");
         s.append("                    <th>Owner</th>\n");
         s.append("                    <th>Measures</th>\n");
@@ -714,9 +714,9 @@ public class FacilitatorServlet extends HttpServlet
                 s.append("                  <tr>\n");
                 s.append("                    <td>" + house.getCode() + "</td>\n");
                 s.append("                    <td>" + house.getAvailableRound() + "</td>\n");
-                s.append("                    <td>" + data.k(house.getPrice()) + "</td>\n");
                 s.append("                    <td>" + house.getRating() + "</td>\n");
-                // TODO
+                s.append("                    <td>" + data.k(house.getPrice()) + "</td>\n");
+                // TODO adjusted price (bidding, sales between players, reduced price due to damage)
                 s.append("                    <td>" + "--" + "</td>\n");
                 if (ownedHouses.containsKey(house.getId()))
                     s.append("                    <td>" + ownedHouses.get(house.getId()).getCode() + "</td>\n");
