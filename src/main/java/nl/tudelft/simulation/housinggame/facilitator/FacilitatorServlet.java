@@ -145,7 +145,10 @@ public class FacilitatorServlet extends HttpServlet
         }
         else if (button.equals("show-houses"))
         {
-            data.getCurrentGroupRound().setRoundState(RoundState.SHOW_HOUSES.toString());
+            if (data.getCurrentRoundNumber() == 1)
+                data.getCurrentGroupRound().setRoundState(RoundState.SHOW_HOUSES_BUY.toString());
+            else
+                data.getCurrentGroupRound().setRoundState(RoundState.SHOW_HOUSES_SELL.toString());
             data.getCurrentGroupRound().store();
             data.setMenuState("House");
         }
@@ -161,7 +164,7 @@ public class FacilitatorServlet extends HttpServlet
         }
         else if (button.equals("finish-selling-ok"))
         {
-            data.getCurrentGroupRound().setRoundState(RoundState.SELLING_FINISHED.toString());
+            data.getCurrentGroupRound().setRoundState(RoundState.SHOW_HOUSES_BUY.toString());
             data.getCurrentGroupRound().store();
             data.setMenuState("House");
         }
@@ -242,12 +245,9 @@ public class FacilitatorServlet extends HttpServlet
             data.putContentHtml("button/show-houses", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
         }
-        else if (data.getRoundState().eq(RoundState.SHOW_HOUSES))
+        else if (data.getRoundState().eq(RoundState.SHOW_HOUSES_SELL))
         {
-            if (data.getCurrentRoundNumber() == 1)
-                data.putContentHtml("button/allow-buying", "btn btn-primary btn-active");
-            else
-                data.putContentHtml("button/allow-selling", "btn btn-primary btn-active");
+            data.putContentHtml("button/allow-selling", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
         }
         else if (data.getRoundState().eq(RoundState.ALLOW_SELLING))
@@ -255,7 +255,7 @@ public class FacilitatorServlet extends HttpServlet
             data.putContentHtml("button/finish-selling", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
         }
-        else if (data.getRoundState().eq(RoundState.SELLING_FINISHED))
+        else if (data.getRoundState().eq(RoundState.SHOW_HOUSES_BUY))
         {
             data.putContentHtml("button/allow-buying", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
