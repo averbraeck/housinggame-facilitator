@@ -363,9 +363,11 @@ body {
                     ROLL DICE button to show <br /> the players the effects of <br /> the rain/flood on their houses.
                   </div>
                   <form action="/housinggame-facilitator/facilitator" method="post">
-                    <input type="hidden" name="button" value="roll-dice" /> <label for="pluvial">Pluvial dice
-                      roll:</label><br> <input type="number" id="pluvial" name="pluvial"><br> <label
-                      for="fluvial">Fluvial dice roll:</label><br> <input type="number" id="fluvial" name="fluvial"><br>
+                    <input type="hidden" name="button" value="roll-dice" /> 
+                    <label for="pluvial">Pluvial dice roll:</label><br> 
+                    <input type="number" id="pluvial" name="pluvial"><br> 
+                    <label for="fluvial">Fluvial dice roll:</label><br> 
+                    <input type="number" id="fluvial" name="fluvial"><br>
                     <div class="hg-button">
                       <input type="submit" value="ROLL DICE"
                         class='${facilitatorData.getContentHtml("button/roll-dice") }' />
