@@ -105,4 +105,25 @@ public final class SqlUtils
         }
         return null;
     }
+
+    public static PlayerroundRecord getPrevPlayerRound(final FacilitatorData data, final int playerId)
+    {
+        List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, playerId);
+        if (!playerRoundList.isEmpty())
+        {
+            PlayerroundRecord prr = playerRoundList.get(0);
+            PlayerroundRecord prrPrev = playerRoundList.get(0);
+            for (int i = 0; i < playerRoundList.size(); i++)
+            {
+                if (playerRoundList.get(i) != null)
+                {
+                    prrPrev = prr;
+                    prr = playerRoundList.get(i);
+                }
+            }
+            return prrPrev;
+        }
+        return null;
+    }
+
 }

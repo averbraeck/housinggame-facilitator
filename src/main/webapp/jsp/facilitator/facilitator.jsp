@@ -147,7 +147,7 @@ body {
             <div class="panel-heading" role="tab" id="heading1">
               <h4 class="panel-title">
                 <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse1" aria-expanded="true"
-                  aria-controls="collapse1" data-expandable="false"> Rounds <i
+                  aria-controls="collapse1" data-expandable="false">1. Rounds <i
                   class="material-icons md-dark pmd-sm pmd-accordion-arrow"> keyboard_arrow_down </i>
                 </a>
               </h4>
@@ -178,7 +178,7 @@ body {
             <div class="panel-heading" role="tab" id="heading2">
               <h4 class="panel-title">
                 <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse2" aria-expanded="false"
-                  aria-controls="collapse2" data-expandable="false"> News <i
+                  aria-controls="collapse2" data-expandable="false">2. News <i
                   class="material-icons md-dark pmd-sm pmd-accordion-arrow"> keyboard_arrow_down </i>
                 </a>
               </h4>
@@ -208,7 +208,7 @@ body {
             <div class="panel-heading" role="tab" id="heading3">
               <h4 class="panel-title">
                 <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse3" aria-expanded="false"
-                  aria-controls="collapse3" data-expandable="false"> House market <i
+                  aria-controls="collapse3" data-expandable="false">3. House market <i
                   class="material-icons md-dark pmd-sm pmd-accordion-arrow"> keyboard_arrow_down </i>
                 </a>
               </h4>
@@ -277,7 +277,7 @@ body {
             <div class="panel-heading" role="tab" id="heading4">
               <h4 class="panel-title">
                 <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse4" aria-expanded="false"
-                  aria-controls="collapse4" data-expandable="false"> House improvements <i
+                  aria-controls="collapse4" data-expandable="false">4. House improvements <i
                   class="material-icons md-dark pmd-sm pmd-accordion-arrow"> keyboard_arrow_down </i>
                 </a>
               </h4>
@@ -308,7 +308,7 @@ body {
             <div class="panel-heading" role="tab" id="heading5">
               <h4 class="panel-title">
                 <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse5" aria-expanded="false"
-                  aria-controls="collapse5" data-expandable="false"> Player perceptions <i
+                  aria-controls="collapse5" data-expandable="false">5. Player perceptions <i
                   class="material-icons md-dark pmd-sm pmd-accordion-arrow"> keyboard_arrow_down </i>
                 </a>
               </h4>
@@ -349,7 +349,7 @@ body {
             <div class="panel-heading" role="tab" id="heading6">
               <h4 class="panel-title">
                 <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse6" aria-expanded="false"
-                  aria-controls="collapse6" data-expandable="false"> Floods <i
+                  aria-controls="collapse6" data-expandable="false">6. Floods and Damage<i
                   class="material-icons md-dark pmd-sm pmd-accordion-arrow"> keyboard_arrow_down </i>
                 </a>
               </h4>
@@ -369,7 +369,7 @@ body {
                     <label for="fluvial">Fluvial dice roll:</label><br> 
                     <input type="number" id="fluvial" name="fluvial"><br>
                     <div class="hg-button">
-                      <input type="submit" value="ROLL DICE"
+                      <input type="submit" value="ROLL DICE, SHOW DAMAGE"
                         class='${facilitatorData.getContentHtml("button/roll-dice") }' />
                     </div>
                   </form>
@@ -383,7 +383,7 @@ body {
             <div class="panel-heading" role="tab" id="heading7">
               <h4 class="panel-title">
                 <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse7" aria-expanded="false"
-                  aria-controls="collapse7" data-expandable="false"> Damage <i
+                  aria-controls="collapse7" data-expandable="false">7. Summary <i
                   class="material-icons md-dark pmd-sm pmd-accordion-arrow"> keyboard_arrow_down </i>
                 </a>
               </h4>

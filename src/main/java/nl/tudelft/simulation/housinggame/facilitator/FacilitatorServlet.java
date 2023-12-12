@@ -238,12 +238,12 @@ public class FacilitatorServlet extends HttpServlet
         else if (data.getRoundState().eq(RoundState.NEW_ROUND))
         {
             data.putContentHtml("button/announce-news", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/news", "in");
+            data.putContentHtml("accordion/round", "in");
         }
         else if (data.getRoundState().eq(RoundState.ANNOUNCE_NEWS))
         {
             data.putContentHtml("button/show-houses", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/houses", "in");
+            data.putContentHtml("accordion/news", "in");
         }
         else if (data.getRoundState().eq(RoundState.SHOW_HOUSES_SELL))
         {
@@ -268,12 +268,12 @@ public class FacilitatorServlet extends HttpServlet
         else if (data.getRoundState().eq(RoundState.BUYING_FINISHED))
         {
             data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/improvements", "in");
+            data.putContentHtml("accordion/houses", "in");
         }
         else if (data.getRoundState().eq(RoundState.ALLOW_IMPROVEMENTS))
         {
             data.putContentHtml("button/show-survey", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/survey", "in");
+            data.putContentHtml("accordion/improvements", "in");
         }
         else if (data.getRoundState().eq(RoundState.SHOW_SURVEY))
         {
@@ -283,19 +283,19 @@ public class FacilitatorServlet extends HttpServlet
         else if (data.getRoundState().eq(RoundState.SURVEY_COMPLETED))
         {
             data.putContentHtml("button/roll-dice", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/dice", "in");
+            data.putContentHtml("accordion/survey", "in");
         }
         else if (data.getRoundState().eq(RoundState.ROLLED_DICE))
         {
             data.putContentHtml("button/show-summary", "btn btn-primary btn-active");
-            data.putContentHtml("accordion/summary", "in");
+            data.putContentHtml("accordion/dice", "in");
         }
         else if (data.getRoundState().eq(RoundState.SHOW_SUMMARY))
         {
             if (data.getCurrentRoundNumber() < data.getScenario().getHighestRoundNumber())
             {
                 data.putContentHtml("button/start-new-round", "btn btn-primary btn-active");
-                data.putContentHtml("accordion/round", "in");
+                data.putContentHtml("accordion/summary", "in");
             }
         }
     }
@@ -540,9 +540,7 @@ public class FacilitatorServlet extends HttpServlet
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
-                int spendableIncome =
-                        welfareType.getRoundIncome() + welfareType.getInitialMoney() - welfareType.getLivingCosts();
-                s.append("                    <td>" + data.k(spendableIncome) + "</td>\n");
+                s.append("                    <td>" + data.k(welfareType.getInitialMoney()) + "</td>\n");
                 s.append("                    <td>" + welfareType.getInitialSatisfaction() + "</td>\n");
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
@@ -553,14 +551,28 @@ public class FacilitatorServlet extends HttpServlet
             {
                 int highestRound = 0;
                 PlayerroundRecord prr = playerRoundList.get(0);
+                PlayerroundRecord prrPrev = playerRoundList.get(0);
                 for (int i = 0; i < playerRoundList.size(); i++)
                 {
                     if (playerRoundList.get(i) != null)
                     {
+                        prrPrev = prr;
                         prr = playerRoundList.get(i);
                         highestRound = i;
                     }
                 }
+                int currentHouseSatisfaction = 0;
+                if (prr.getFinalHouseroundId() != null)
+                {
+                    HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, prr.getFinalHouseroundId());
+                    currentHouseSatisfaction = hrr.getHouseSatisfaction();
+                }
+                else if (prr.getStartHouseroundId() != null)
+                {
+                    HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, prr.getStartHouseroundId());
+                    currentHouseSatisfaction = hrr.getHouseSatisfaction();
+                }
+
                 s.append("                    <td>" + highestRound + "</td>\n");
                 s.append("                    <td>" + prr.getPlayerState() + "</td>\n");
 
@@ -575,15 +587,15 @@ public class FacilitatorServlet extends HttpServlet
                     s.append("                    <td>" + house.getCode() + "</td>\n");
                     s.append("                    <td>" + data.k(data.getExpectedTaxes(house)) + "</td>\n");
                 }
-                s.append("                    <td>" + data.k(prr.getCurrentSpendableIncome()) + "</td>\n");
-                int netSatisfaction = prr.getCurrentPersonalSatisfaction() - prr.getSatisfactionFluvialPenalty()
+                s.append("                    <td>" + data.k(prr.getSpendableIncome()) + "</td>\n");
+                int netSatisfaction = prr.getPersonalSatisfaction() - prr.getSatisfactionFluvialPenalty()
                         - prr.getSatisfactionPluvialPenalty() - prr.getSatisfactionDebtPenalty();
                 s.append("                    <td>" + netSatisfaction + "</td>\n");
                 if (house == null)
                     s.append("                    <td>--</td>\n");
                 else
-                    s.append("                    <td>" + prr.getCurrentHouseSatisfaction() + "</td>\n");
-                if (prr.getStartDebt() == 0)
+                    s.append("                    <td>" + currentHouseSatisfaction + "</td>\n");
+                if (prrPrev.getSpendableIncome() >= 0)
                     s.append("                    <td>-</td>\n");
                 else
                     s.append("                    <td>-" + spr.getSatisfactionDebtPenalty() + "</td>\n");
@@ -592,7 +604,7 @@ public class FacilitatorServlet extends HttpServlet
                 else
                     s.append("                    <td>"
                             + (prr.getSatisfactionFluvialPenalty() + prr.getSatisfactionPluvialPenalty()) + "</td>\n");
-                s.append("                    <td>" + (prr.getCurrentPersonalSatisfaction() + prr.getCurrentHouseSatisfaction())
+                s.append("                    <td>" + (prr.getPersonalSatisfaction() + currentHouseSatisfaction)
                         + "</td>\n");
             }
             s.append("                  </tr>\n");
@@ -610,8 +622,8 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                    <th>Income</th>\n");
         s.append("                    <th>Living<br/>costs</th>\n");
         s.append("                    <th>Maximun<br/>mortgage</th>\n");
-        s.append("                    <th>Savings</th>\n");
-        s.append("                    <th>Debt</th>\n");
+        s.append("                    <th>Start<br/>savings</th>\n");
+        s.append("                    <th>Start<br/>debt</th>\n");
         s.append("                    <th>Increase<br/>satisf</th>\n");
         s.append("                    <th>Preferred<br/>rating</th>\n");
         s.append("                  </tr>\n");
@@ -636,16 +648,22 @@ public class FacilitatorServlet extends HttpServlet
             else
             {
                 PlayerroundRecord prr = playerRoundList.get(0);
+                PlayerroundRecord prrPrev = playerRoundList.get(0);
                 for (int i = 0; i < playerRoundList.size(); i++)
                 {
                     if (playerRoundList.get(i) != null)
+                    {
+                        prrPrev = prr;
                         prr = playerRoundList.get(i);
+                    }
                 }
                 s.append("                    <td>" + data.k(prr.getRoundIncome()) + "</td>\n");
                 s.append("                    <td>" + data.k(prr.getLivingCosts()) + "</td>\n");
                 s.append("                    <td>" + data.k(prr.getMaximumMortgage()) + "</td>\n");
-                s.append("                    <td>" + data.k(prr.getStartSavings()) + "</td>\n");
-                s.append("                    <td>" + data.k(prr.getStartDebt()) + "</td>\n");
+                s.append("                    <td>"
+                        + data.k(prrPrev.getSpendableIncome() > 0 ? prrPrev.getSpendableIncome() : 0) + "</td>\n");
+                s.append("                    <td>"
+                        + data.k(prrPrev.getSpendableIncome() < 0 ? -prrPrev.getSpendableIncome() : 0) + "</td>\n");
                 s.append("                    <td>" + data.k(welfareType.getSatisfactionCostPerPoint()) + "</td>\n");
                 s.append("                    <td>" + prr.getPreferredHouseRating() + "</td>\n");
             }
@@ -1102,7 +1120,7 @@ public class FacilitatorServlet extends HttpServlet
         String content = "";
         if (Math.abs(buyPrice - marketPrice) > marketPrice * 0.1)
             content += "Buying price " + buyPrice + " is more than 10% different from market price: " + marketPrice + "<br />";
-        int maxSpend = prr.getMaximumMortgage() + prr.getStartSavings();
+        int maxSpend = prr.getMaximumMortgage() + prr.getSpendableIncome();
         if (buyPrice > maxSpend)
             content += "Buying price " + buyPrice + " is more than the max mortgage + savings of the player: " + maxSpend
                     + "<br />";
