@@ -20,7 +20,7 @@ import org.jooq.impl.DSL;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import nl.tudelft.simulation.housinggame.common.HouseRoundStatus;
+import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
@@ -356,7 +356,7 @@ public class FacilitatorData
         if (playerRound.getFinalHousegroupId() != null)
         {
             HousegroupRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
-            if (Set.of(HouseRoundStatus.APPROVED_BUY, HouseRoundStatus.APPROVED_STAY, HouseRoundStatus.COPIED)
+            if (Set.of(TransactionStatus.APPROVED_BUY, TransactionStatus.APPROVED_STAY, TransactionStatus.COPIED)
                     .contains(hrr.getStatus()))
                 return hrr;
         }
@@ -368,7 +368,7 @@ public class FacilitatorData
         if (playerRound.getFinalHousegroupId() != null)
         {
             HousegroupRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
-            if (Set.of(HouseRoundStatus.UNAPPROVED_BUY, HouseRoundStatus.UNAPPROVED_STAY).contains(hrr.getStatus()))
+            if (Set.of(TransactionStatus.UNAPPROVED_BUY, TransactionStatus.UNAPPROVED_STAY).contains(hrr.getStatus()))
                 return hrr;
         }
         return null;

@@ -18,7 +18,7 @@ import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
-import nl.tudelft.simulation.housinggame.common.HouseRoundStatus;
+import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.common.PlayerState;
 import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
@@ -1009,7 +1009,7 @@ public class FacilitatorServlet extends HttpServlet
                     if (prr.getFinalHousegroupId() != null)
                     {
                         HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
-                        if (hrr.getStatus().equals(HouseRoundStatus.UNAPPROVED_BUY))
+                        if (hrr.getStatus().equals(TransactionStatus.UNAPPROVED_BUY))
                             playerRoundsUnapprovedBuy.add(prr);
                     }
                 }
@@ -1037,8 +1037,8 @@ public class FacilitatorServlet extends HttpServlet
                     if (prr.getFinalHousegroupId() != null)
                     {
                         HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
-                        if (hrr.getStatus().equals(HouseRoundStatus.UNAPPROVED_SELL)
-                                || hrr.getStatus().equals(HouseRoundStatus.UNAPPROVED_STAY))
+                        if (hrr.getStatus().equals(TransactionStatus.UNAPPROVED_SELL)
+                                || hrr.getStatus().equals(TransactionStatus.UNAPPROVED_STAY))
                             playerRoundsUnapprovedSellStay.add(prr);
                     }
                 }

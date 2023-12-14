@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import nl.tudelft.simulation.housinggame.common.HouseRoundStatus;
+import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
@@ -51,7 +51,7 @@ public class ApproveBuyServlet extends HttpServlet
                 {
                     hgr.setBidExplanation(comment);
                     hgr.setHousePriceBought(hgr.getBidPrice());
-                    hgr.setStatus(HouseRoundStatus.APPROVED_BUY);
+                    hgr.setStatus(TransactionStatus.APPROVED_BUY);
                     hgr.store();
 
                     PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, hgr.getPlayerroundId());
@@ -78,7 +78,7 @@ public class ApproveBuyServlet extends HttpServlet
                 else
                 {
                     hgr.setBidExplanation(comment);
-                    hgr.setStatus(HouseRoundStatus.REJECTED_BUY);
+                    hgr.setStatus(TransactionStatus.REJECTED_BUY);
                     hgr.store();
                 }
                 return;
