@@ -341,24 +341,24 @@ public class FacilitatorData
 
     public HouseRecord getApprovedHouseForPlayerRound(final PlayerroundRecord playerRound)
     {
-        HousegroupRecord hrr = getApprovedHouseRoundForPlayerRound(playerRound);
-        return hrr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
+        HousegroupRecord hgr = getApprovedHouseRoundForPlayerRound(playerRound);
+        return hgr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hgr.getHouseId());
     }
 
     public HouseRecord getUnapprovedHouseForPlayerRound(final PlayerroundRecord playerRound)
     {
-        HousegroupRecord hrr = getUnapprovedHouseRoundForPlayerRound(playerRound);
-        return hrr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
+        HousegroupRecord hgr = getUnapprovedHouseRoundForPlayerRound(playerRound);
+        return hgr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hgr.getHouseId());
     }
 
     public HousegroupRecord getApprovedHouseRoundForPlayerRound(final PlayerroundRecord playerRound)
     {
         if (playerRound.getFinalHousegroupId() != null)
         {
-            HousegroupRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
             if (Set.of(TransactionStatus.APPROVED_BUY, TransactionStatus.APPROVED_STAY, TransactionStatus.COPIED)
-                    .contains(hrr.getStatus()))
-                return hrr;
+                    .contains(hgr.getStatus()))
+                return hgr;
         }
         return null;
     }
@@ -367,9 +367,9 @@ public class FacilitatorData
     {
         if (playerRound.getFinalHousegroupId() != null)
         {
-            HousegroupRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
-            if (Set.of(TransactionStatus.UNAPPROVED_BUY, TransactionStatus.UNAPPROVED_STAY).contains(hrr.getStatus()))
-                return hrr;
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+            if (Set.of(TransactionStatus.UNAPPROVED_BUY, TransactionStatus.UNAPPROVED_STAY).contains(hgr.getStatus()))
+                return hgr;
         }
         return null;
     }

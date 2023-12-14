@@ -500,20 +500,20 @@ body {
 					setTimeout(reloadTables, 5000);
 				});
 			}
-			function approveBuy(playerCode, hrrId) {
+			function approveBuy(playerCode, hgrId) {
          var $comment=$("#comment-" + playerCode).val();
          $.post("/housinggame-facilitator/approve-buy", {
              playerCode : JSON.stringify(playerCode),
-             hrrId : JSON.stringify(hrrId),
+             hgrId : JSON.stringify(hgrId),
              comment: JSON.stringify($comment),
              approve: 'APPROVE'
            });
       }
-      function rejectBuy(playerCode, hrrId) {
+      function rejectBuy(playerCode, hgrId) {
           var $comment=$("#comment-" + playerCode).val();
           $.post("/housinggame-facilitator/approve-buy", {
               playerCode : JSON.stringify(playerCode),
-              hrrId : JSON.stringify(hrrId),
+              hgrId : JSON.stringify(hgrId),
               comment: JSON.stringify($comment),
               approve: 'REJECT'
             });

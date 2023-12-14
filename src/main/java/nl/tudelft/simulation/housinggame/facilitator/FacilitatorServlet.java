@@ -562,13 +562,13 @@ public class FacilitatorServlet extends HttpServlet
                 int currentHouseSatisfaction = 0;
                 if (prr.getFinalHousegroupId() != null)
                 {
-                    HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
-                    currentHouseSatisfaction = hrr.getHouseSatisfaction();
+                    HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+                    currentHouseSatisfaction = hgr.getHouseSatisfaction();
                 }
                 else if (prr.getStartHousegroupId() != null)
                 {
-                    HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getStartHousegroupId());
-                    currentHouseSatisfaction = hrr.getHouseSatisfaction();
+                    HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getStartHousegroupId());
+                    currentHouseSatisfaction = hgr.getHouseSatisfaction();
                 }
 
                 s.append("                    <td>" + highestRound + "</td>\n");
@@ -805,8 +805,8 @@ public class FacilitatorServlet extends HttpServlet
 
         for (PlayerroundRecord prr : playerRoundUnapprovedList)
         {
-            HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hrr.getHouseId());
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
             PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, prr.getPlayerId());
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
@@ -817,13 +817,13 @@ public class FacilitatorServlet extends HttpServlet
             s.append("                    <td>" + house.getCode() + "</td>\n");
             int marketPrice = data.getMarketPrice(house);
             s.append("                    <td>" + data.k(marketPrice) + "</td>\n");
-            s.append("                    <td>" + data.k(hrr.getBidPrice()) + "</td>\n");
+            s.append("                    <td>" + data.k(hgr.getBidPrice()) + "</td>\n");
             s.append("                    <td><input type='text' class='buy-comment' name='comment-" + player.getCode()
                     + "' id='comment-" + player.getCode() + "' /></td>\n");
             s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
-                    + "' onclick='approveBuy(\"" + player.getCode() + "\", " + hrr.getId() + ")'>APPROVE</button></td>\n");
+                    + "' onclick='approveBuy(\"" + player.getCode() + "\", " + hgr.getId() + ")'>APPROVE</button></td>\n");
             s.append("                    <td><button name='reject-" + player.getCode() + "' id='reject-" + player.getCode()
-                    + "' onclick='rejectBuy(\"" + player.getCode() + "\", " + hrr.getId() + ")'>REJECT</button></td>\n");
+                    + "' onclick='rejectBuy(\"" + player.getCode() + "\", " + hgr.getId() + ")'>REJECT</button></td>\n");
             s.append("                  </tr>\n");
         }
         s.append("                </tbody>\n");
@@ -863,8 +863,8 @@ public class FacilitatorServlet extends HttpServlet
 
         for (PlayerroundRecord prr : playerRoundUnapprovedList)
         {
-            HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hrr.getHouseId());
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
             PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, prr.getPlayerId());
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
@@ -873,15 +873,15 @@ public class FacilitatorServlet extends HttpServlet
             int maxHousePrice = prr.getMaximumMortgage() + prr.getSpendableIncome();
             s.append("                    <td>" + data.k(maxHousePrice) + "</td>\n");
             s.append("                    <td>" + house.getCode() + "</td>\n");
-            // s.append(" <td>" + data.k(hrr.getMarketPrice()) + "</td>\n");
+            // s.append(" <td>" + data.k(hgr.getMarketPrice()) + "</td>\n");
             s.append("                    <td>" + "???" + "</td>\n");
-            s.append("                    <td>" + hrr.getBidPrice() + "</td>\n");
+            s.append("                    <td>" + hgr.getBidPrice() + "</td>\n");
             s.append("                    <td><input type='text' name='comment-" + player.getCode() + "' id='comment-"
                     + player.getCode() + "' /></td>\n");
             s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
-                    + "' onclick='approveSell(\"" + player.getCode() + "\", " + hrr.getId() + ")'>APPROVE</button></td>\n");
+                    + "' onclick='approveSell(\"" + player.getCode() + "\", " + hgr.getId() + ")'>APPROVE</button></td>\n");
             s.append("                    <td><button name='reject-" + player.getCode() + "' id='reject-" + player.getCode()
-                    + "' onclick='rejectSell(\"" + player.getCode() + "\", " + hrr.getId() + ")'>REJECT</button></td>\n");
+                    + "' onclick='rejectSell(\"" + player.getCode() + "\", " + hgr.getId() + ")'>REJECT</button></td>\n");
             s.append("                  </tr>\n");
         }
         s.append("                </tbody>\n");
@@ -1008,8 +1008,8 @@ public class FacilitatorServlet extends HttpServlet
                     }
                     if (prr.getFinalHousegroupId() != null)
                     {
-                        HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
-                        if (hrr.getStatus().equals(TransactionStatus.UNAPPROVED_BUY))
+                        HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+                        if (hgr.getStatus().equals(TransactionStatus.UNAPPROVED_BUY))
                             playerRoundsUnapprovedBuy.add(prr);
                     }
                 }
@@ -1036,9 +1036,9 @@ public class FacilitatorServlet extends HttpServlet
                     }
                     if (prr.getFinalHousegroupId() != null)
                     {
-                        HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
-                        if (hrr.getStatus().equals(TransactionStatus.UNAPPROVED_SELL)
-                                || hrr.getStatus().equals(TransactionStatus.UNAPPROVED_STAY))
+                        HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+                        if (hgr.getStatus().equals(TransactionStatus.UNAPPROVED_SELL)
+                                || hgr.getStatus().equals(TransactionStatus.UNAPPROVED_STAY))
                             playerRoundsUnapprovedSellStay.add(prr);
                     }
                 }

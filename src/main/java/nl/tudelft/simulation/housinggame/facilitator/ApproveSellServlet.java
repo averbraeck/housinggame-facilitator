@@ -36,10 +36,10 @@ public class ApproveSellServlet extends HttpServlet
             try
             {
                 System.out.println("SELL/STAY - " + request.getParameter("approve") + " player "
-                        + request.getParameter("playerCode") + ", comment: " + request.getParameter("comment") + ", hrrId = "
-                        + request.getParameter("hrrId"));
-                int hrrId = Integer.valueOf(request.getParameter("hrrId"));
-                HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, hrrId);
+                        + request.getParameter("playerCode") + ", comment: " + request.getParameter("comment") + ", hgrId = "
+                        + request.getParameter("hgrId"));
+                int hgrId = Integer.valueOf(request.getParameter("hgrId"));
+                HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, hgrId);
 
                 return;
             }
