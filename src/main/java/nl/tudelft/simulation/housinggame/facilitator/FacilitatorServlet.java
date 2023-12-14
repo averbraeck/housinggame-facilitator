@@ -23,6 +23,7 @@ import nl.tudelft.simulation.housinggame.common.PlayerState;
 import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
+import nl.tudelft.simulation.housinggame.data.tables.records.CommunityRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
@@ -352,6 +353,8 @@ public class FacilitatorServlet extends HttpServlet
     public void newRound(final FacilitatorData data)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+
+        // make a new groupround
         GrouproundRecord groupRound = dslContext.newRecord(Tables.GROUPROUND);
         groupRound.setRoundState(RoundState.NEW_ROUND.toString());
         groupRound.setRoundNumber(data.getCurrentRoundNumber() + 1);
@@ -359,6 +362,62 @@ public class FacilitatorServlet extends HttpServlet
         groupRound.setPluvialFloodIntensity(null);
         groupRound.setFluvialFloodIntensity(null);
         groupRound.store();
+
+        // make houses that are not used unavailable for this round
+        List<HousegroupRecord> currentHouseGroupList =
+                dslContext.selectFrom(Tables.HOUSEGROUP).where(Tables.HOUSEGROUP.GROUP_ID.eq(data.getGroup().getId())).fetch();
+        for (var houseGroup : currentHouseGroupList)
+        {
+            if (HouseGroupStatus.AVAILABLE.equals(houseGroup.getStatus()))
+            {
+                houseGroup.setStatus(HouseGroupStatus.NOT_AVAILABLE);
+                houseGroup.store();
+            }
+        }
+
+        // make the new houses available for this round
+        List<Integer> houseIdList = dslContext
+                .selectFrom(Tables.HOUSE.innerJoin(Tables.COMMUNITY).on(Tables.HOUSE.COMMUNITY_ID.eq(Tables.COMMUNITY.ID)))
+                .where(Tables.COMMUNITY.GAMEVERSION_ID.eq(data.getGameVersion().getId()))
+                .and(Tables.HOUSE.AVAILABLE_ROUND.eq(groupRound.getRoundNumber())).fetch(Tables.HOUSE.ID);
+        for (int houseId : houseIdList)
+        {
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseId);
+            HousegroupRecord houseGroup = dslContext.newRecord(Tables.HOUSEGROUP);
+            CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+            houseGroup.setCode(house.getCode());
+            houseGroup.setAdress(house.getAddress());
+            houseGroup.setRating(house.getRating());
+            houseGroup.setOriginalPrice(house.getPrice());
+            houseGroup.setDamageReduction(0);
+            houseGroup.setMarketValue(house.getPrice());
+            houseGroup.setLastSoldPrice(null);
+            houseGroup.setHouseSatisfaction(0);
+            houseGroup.setStatus(HouseGroupStatus.AVAILABLE);
+            houseGroup.setFluvialBaseProtection(community.getFluvialProtection());
+            houseGroup.setPluvialBaseProtection(community.getPluvialProtection());
+            houseGroup.setFluvialHouseProtection(0);
+            houseGroup.setPluvialHouseProtection(0);
+            houseGroup.setLastRoundCommFluvial(null);
+            houseGroup.setLastRoundCommPluvial(null);
+            houseGroup.setLastRoundHouseFluvial(null);
+            houseGroup.setLastRoundHousePluvial(null);
+            houseGroup.setHouseId(house.getId());
+            houseGroup.setGroupId(data.getGroup().getId());
+            houseGroup.setOwnerId(null);
+            houseGroup.store();
+            List<InitialhousemeasureRecord> initialMeasureList = dslContext.selectFrom(Tables.INITIALHOUSEMEASURE)
+                    .where(Tables.INITIALHOUSEMEASURE.HOUSE_ID.eq(house.getId())).fetch();
+            for (InitialhousemeasureRecord initialMeasure : initialMeasureList)
+            {
+                if (initialMeasure.getRoundNumber() <= groupRound.getRoundNumber())
+                {
+                    var measureType = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, initialMeasure.getMeasuretypeId());
+                    createMeasureForHouse(data, houseGroup, measureType, groupRound.getRoundNumber());
+                }
+            }
+        }
+
         data.readDynamicData();
     }
 
@@ -727,8 +786,8 @@ public class FacilitatorServlet extends HttpServlet
                 s.append("                    <td>" + house.getRating() + "</td>\n");
                 int marketPrice = houseGroup.getMarketValue();
                 s.append("                    <td>" + data.k(marketPrice) + "</td>\n");
-                int buyPrice = houseGroup.getLastSoldPrice();
-                if (buyPrice == 0)
+                Integer buyPrice = houseGroup.getLastSoldPrice();
+                if (buyPrice == null)
                     s.append("                    <td>" + "--" + "</td>\n");
                 else
                     s.append("                    <td>" + data.k(buyPrice) + "</td>\n");
@@ -804,7 +863,6 @@ public class FacilitatorServlet extends HttpServlet
         for (HousetransactionRecord transaction : unapprovedBuyTransactions)
         {
             HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
             PlayerroundRecord playerRound = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
             PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
             s.append("                  <tr>\n");
@@ -813,15 +871,15 @@ public class FacilitatorServlet extends HttpServlet
             s.append("                    <td>" + data.k(playerRound.getSpendableIncome()) + "</td>\n");
             int maxHousePrice = playerRound.getMaximumMortgage() + playerRound.getSpendableIncome();
             s.append("                    <td>" + data.k(maxHousePrice) + "</td>\n");
-            s.append("                    <td>" + house.getCode() + "</td>\n");
+            s.append("                    <td>" + hgr.getCode() + "</td>\n");
             s.append("                    <td>" + data.k(hgr.getMarketValue()) + "</td>\n");
             s.append("                    <td>" + data.k(transaction.getPrice()) + "</td>\n");
             s.append("                    <td><input type='text' class='buy-comment' name='comment-" + player.getCode()
                     + "' id='comment-" + player.getCode() + "' /></td>\n");
             s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
-                    + "' onclick='approveBuy(\"" + player.getCode() + "\", " + hgr.getId() + ")'>APPROVE</button></td>\n");
+                    + "' onclick='approveBuy(\"" + player.getCode() + "\", " + transaction.getId() + ")'>APPROVE</button></td>\n");
             s.append("                    <td><button name='reject-" + player.getCode() + "' id='reject-" + player.getCode()
-                    + "' onclick='rejectBuy(\"" + player.getCode() + "\", " + hgr.getId() + ")'>REJECT</button></td>\n");
+                    + "' onclick='rejectBuy(\"" + player.getCode() + "\", " + transaction.getId() + ")'>REJECT</button></td>\n");
             s.append("                  </tr>\n");
         }
         s.append("                </tbody>\n");
@@ -862,7 +920,6 @@ public class FacilitatorServlet extends HttpServlet
         for (HousetransactionRecord transaction : unapprovedSellStayTransactions)
         {
             HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
             PlayerroundRecord playerRound = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
             PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
             s.append("                  <tr>\n");
@@ -871,16 +928,15 @@ public class FacilitatorServlet extends HttpServlet
             s.append("                    <td>" + data.k(playerRound.getSpendableIncome()) + "</td>\n");
             int maxHousePrice = playerRound.getMaximumMortgage() + playerRound.getSpendableIncome();
             s.append("                    <td>" + data.k(maxHousePrice) + "</td>\n");
-            s.append("                    <td>" + house.getCode() + "</td>\n");
-            // s.append(" <td>" + data.k(hgr.getMarketPrice()) + "</td>\n");
-            s.append("                    <td>" + "???" + "</td>\n");
+            s.append("                    <td>" + hgr.getCode() + "</td>\n");
+            s.append("                    <td>" + data.k(hgr.getMarketValue()) + "</td>\n");
             s.append("                    <td>" + transaction.getPrice() + "</td>\n");
             s.append("                    <td><input type='text' name='comment-" + player.getCode() + "' id='comment-"
                     + player.getCode() + "' /></td>\n");
             s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
-                    + "' onclick='approveSell(\"" + player.getCode() + "\", " + hgr.getId() + ")'>APPROVE</button></td>\n");
+                    + "' onclick='approveSell(\"" + player.getCode() + "\", " + transaction.getId() + ")'>APPROVE</button></td>\n");
             s.append("                    <td><button name='reject-" + player.getCode() + "' id='reject-" + player.getCode()
-                    + "' onclick='rejectSell(\"" + player.getCode() + "\", " + hgr.getId() + ")'>REJECT</button></td>\n");
+                    + "' onclick='rejectSell(\"" + player.getCode() + "\", " + transaction.getId() + ")'>REJECT</button></td>\n");
             s.append("                  </tr>\n");
         }
         s.append("                </tbody>\n");
@@ -1285,6 +1341,30 @@ public class FacilitatorServlet extends HttpServlet
         }
 
         */
+    }
+
+    private static void createMeasureForHouse(final FacilitatorData data, final HousegroupRecord houseGroup,
+            final MeasuretypeRecord measureType, final int roundNumber)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        MeasureRecord measure = dslContext.newRecord(Tables.MEASURE);
+        measure.setRoundNumber(roundNumber);
+        measure.setConsumedInRound(null);
+        measure.setMeasuretypeId(measureType.getId());
+        measure.setHousegroupId(houseGroup.getId());
+        measure.store();
+
+        houseGroup.setFluvialHouseProtection(houseGroup.getFluvialHouseProtection() + measureType.getFluvialProtectionDelta());
+        houseGroup.setPluvialHouseProtection(houseGroup.getPluvialHouseProtection() + measureType.getPluvialProtectionDelta());
+        houseGroup.setHouseSatisfaction(houseGroup.getHouseSatisfaction() + measureType.getSatisfactionDelta());
+        houseGroup.store();
+    }
+
+    public static void createMeasureForHouse(final FacilitatorData data, final HousegroupRecord houseGroup,
+            final InitialhousemeasureRecord ihmr)
+    {
+        MeasuretypeRecord measureType = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, ihmr.getMeasuretypeId());
+        createMeasureForHouse(data, houseGroup, measureType, ihmr.getRoundNumber());
     }
 
     @Override

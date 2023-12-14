@@ -35,7 +35,7 @@ public class ApproveBuyServlet extends HttpServlet
             return;
         }
 
-        if (request.getParameter("playerCode") != null)
+        if (request.getParameter("playerCode") != null && request.getParameter("transactionId") != null)
         {
             System.out.println(
                     "BUY - " + request.getParameter("approve") + " player " + request.getParameter("playerCode") + ", comment: "
@@ -56,28 +56,35 @@ public class ApproveBuyServlet extends HttpServlet
                     transaction.setTransactionStatus(TransactionStatus.APPROVED_BUY);
                     transaction.store();
 
+                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+
                     hgr.setLastSoldPrice(transaction.getPrice());
+                    hgr.setOwnerId(prr.getPlayerId());
                     hgr.store();
 
-                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
                     int price = transaction.getPrice();
+                    prr.setHousePriceBought(price);
                     if (price > prr.getMaximumMortgage())
                     {
+                        prr.setMortgageHouseEnd(prr.getMaximumMortgage());
                         prr.setMortgageLeftEnd(prr.getMaximumMortgage());
                         prr.setSpentSavingsForBuyingHouse(price - prr.getMaximumMortgage());
                         prr.setSpendableIncome(prr.getSpendableIncome() - prr.getSpentSavingsForBuyingHouse());
                     }
                     else
                     {
+                        prr.setMortgageHouseEnd(price);
                         prr.setMortgageLeftEnd(price);
                         prr.setSpentSavingsForBuyingHouse(0);
                     }
                     prr.setMortgagePayment((int) (prr.getMortgageLeftEnd() * data.getMortgagePercentage() / 100.0));
+                    prr.setMortgageLeftEnd(prr.getMortgageLeftEnd() - prr.getMortgagePayment());
                     prr.setSpendableIncome(prr.getSpendableIncome() - prr.getMortgagePayment());
                     int phr = prr.getPreferredHouseRating();
                     int hr = house.getRating();
                     prr.setSatisfactionHouseRatingDelta(hr - phr);
                     prr.setPersonalSatisfaction(prr.getPersonalSatisfaction() + hr - phr);
+                    prr.setFinalHousegroupId(hgr.getId());
                     prr.store();
                 }
                 else
@@ -94,7 +101,7 @@ public class ApproveBuyServlet extends HttpServlet
             }
         }
 
-        System.err.println("approve-buy called, but no playerCode");
+        System.err.println("approve-buy called, but no playerCode or transactionId");
 
         response.sendRedirect("jsp/facilitator/facilitator.jsp");
     }
