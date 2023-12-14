@@ -356,7 +356,7 @@ public class FacilitatorData
         if (playerRound.getFinalHousegroupId() != null)
         {
             HousegroupRecord hgr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
-            if (Set.of(TransactionStatus.APPROVED_BUY, TransactionStatus.APPROVED_STAY, TransactionStatus.COPIED)
+            if (Set.of(TransactionStatus.APPROVED_BUY, TransactionStatus.APPROVED_STAY)
                     .contains(hgr.getStatus()))
                 return hgr;
         }
