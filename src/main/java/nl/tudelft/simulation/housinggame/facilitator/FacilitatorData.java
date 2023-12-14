@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -19,6 +20,7 @@ import org.jooq.impl.DSL;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import nl.tudelft.simulation.housinggame.common.HouseRoundStatus;
 import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
@@ -57,7 +59,7 @@ public class FacilitatorData
     /** Group that the facilitator is responsible for (static during session). */
     private GroupRecord group;
 
-    /** List of all players of the session (static during session). */
+    /** List of the players of the group (static during session). */
     private List<PlayerRecord> playerList;
 
     /** The current round. This is DYNAMIC. */
@@ -250,6 +252,10 @@ public class FacilitatorData
         return this.currentRoundNumber;
     }
 
+    /**
+     * Return a List of the players of the group (static during session).
+     * @return List&lt;PlayerRecord&gt;>; a list of the players of the group (static during session).
+     */
     public List<PlayerRecord> getPlayerList()
     {
         return this.playerList;
@@ -322,7 +328,7 @@ public class FacilitatorData
      */
     public String k(final int nr)
     {
-        if (nr < 1000)
+        if (Math.abs(nr) < 1000)
             return Integer.toString(nr);
         else
             return Integer.toString(nr / 1000) + " k";
@@ -333,17 +339,37 @@ public class FacilitatorData
         return getRoundState().eq(state);
     }
 
-    public HouseRecord getHouseForPlayerRound(final PlayerroundRecord playerRound)
+    public HouseRecord getApprovedHouseForPlayerRound(final PlayerroundRecord playerRound)
+    {
+        HouseroundRecord hrr = getApprovedHouseRoundForPlayerRound(playerRound);
+        return hrr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
+    }
+
+    public HouseRecord getUnapprovedHouseForPlayerRound(final PlayerroundRecord playerRound)
+    {
+        HouseroundRecord hrr = getUnapprovedHouseRoundForPlayerRound(playerRound);
+        return hrr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
+    }
+
+    public HouseroundRecord getApprovedHouseRoundForPlayerRound(final PlayerroundRecord playerRound)
     {
         if (playerRound.getFinalHouseroundId() != null)
         {
             HouseroundRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEROUND, playerRound.getFinalHouseroundId());
-            return SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
+            if (Set.of(HouseRoundStatus.APPROVED_BUY, HouseRoundStatus.APPROVED_STAY, HouseRoundStatus.COPIED)
+                    .contains(hrr.getStatus()))
+                return hrr;
         }
-        if (playerRound.getStartHouseroundId() != null)
+        return null;
+    }
+
+    public HouseroundRecord getUnapprovedHouseRoundForPlayerRound(final PlayerroundRecord playerRound)
+    {
+        if (playerRound.getFinalHouseroundId() != null)
         {
-            HouseroundRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEROUND, playerRound.getStartHouseroundId());
-            return SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
+            HouseroundRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEROUND, playerRound.getFinalHouseroundId());
+            if (Set.of(HouseRoundStatus.UNAPPROVED_BUY, HouseRoundStatus.UNAPPROVED_STAY).contains(hrr.getStatus()))
+                return hrr;
         }
         return null;
     }
@@ -371,5 +397,28 @@ public class FacilitatorData
         ScenarioparametersRecord spr =
                 SqlUtils.readRecordFromId(this, Tables.SCENARIOPARAMETERS, this.scenario.getScenarioparametersId());
         return spr.getMortgagePercentage().intValue();
+    }
+
+    /**
+     * @param house house
+     * @return the market price minus discounts after flooding (relating to the news)
+     */
+    public int getMarketPrice(final HouseRecord house)
+    {
+        int marketPrice = house.getPrice();
+        // TODO: see in the news and the flood table whether discounts apply
+        // TODO it is about the AREA flooding, not the HOUSE flooding
+        // TODO AND the newseffects
+        return marketPrice;
+    }
+
+    /**
+     * @param house house
+     * @return the latest buy price for this house
+     */
+    public int getBuyPrice(final HouseRecord house)
+    {
+        // TODO: get the bid price for the house...
+        return house.getPrice();
     }
 }

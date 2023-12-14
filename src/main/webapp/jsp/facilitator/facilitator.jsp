@@ -462,10 +462,10 @@ body {
         </div>
       </div>
 
-      <div id="facilitator-tables">${facilitatorData.getContentHtml("facilitator/tables") }</div>
-
-      <div>${facilitatorData.getContentHtml("facilitator/house-allocation") }</div>
-
+      <div id="facilitator-tables">
+        ${facilitatorData.getContentHtml("facilitator/tables") }
+      </div>
+      
     </div>
   </div>
 
@@ -476,15 +476,48 @@ body {
 				reloadTables();
 			});
 			function reloadTables() {
+        // store input values before reloading
+        var comments = new Array();
+        var ids = new Array();
+        $(".buy-comment").map(
+        		 function() {
+                comments.push($(this).val());
+                ids.push($(this).attr('id'));
+        		 });
+        var active = document.activeElement;
+        console.log("comments: " + comments + ", ids: " + ids);
 				$.post("/housinggame-facilitator/reload-tables", {
 					reloadTables : 'true'
 				}, function(data, status) {
 					var tableDiv = document
 							.getElementById("facilitator-tables");
 					tableDiv.innerHTML = data;
+					// return input values after relaoding
+					for (let i = 0; i < ids.length; i++) {
+						  $("#" + ids[i]).val(comments[i]);
+					}
+					active.focus();
 					setTimeout(reloadTables, 5000);
 				});
-			};
+			}
+			function approveBuy(playerCode, hrrId) {
+         var $comment=$("#comment-" + playerCode).val();
+         $.post("/housinggame-facilitator/approve-buy", {
+             playerCode : JSON.stringify(playerCode),
+             hrrId : JSON.stringify(hrrId),
+             comment: JSON.stringify($comment),
+             approve: 'APPROVE'
+           });
+      }
+      function rejectBuy(playerCode, hrrId) {
+          var $comment=$("#comment-" + playerCode).val();
+          $.post("/housinggame-facilitator/approve-buy", {
+              playerCode : JSON.stringify(playerCode),
+              hrrId : JSON.stringify(hrrId),
+              comment: JSON.stringify($comment),
+              approve: 'REJECT'
+            });
+		  }
 		</script>
 
 </body>

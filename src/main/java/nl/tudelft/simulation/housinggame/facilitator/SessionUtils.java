@@ -22,4 +22,15 @@ public final class SessionUtils
         return data;
     }
 
+    public static String stripQuotes(final String s)
+    {
+        String ret = s.strip();
+        if (ret.startsWith("\""))
+            ret = ret.substring(1);
+        if (ret.endsWith("\""))
+            ret = ret.substring(0, ret.length() - 1);
+        System.out.println(ret);
+        return ret.strip();
+    }
+
 }
