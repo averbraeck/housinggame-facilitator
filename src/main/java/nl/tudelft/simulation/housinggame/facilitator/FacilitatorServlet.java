@@ -24,7 +24,7 @@ import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.HouseroundRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.InitialhousemeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
@@ -376,7 +376,7 @@ public class FacilitatorServlet extends HttpServlet
                 if (playerRound != null && playerRound.getGrouproundId().equals(data.getCurrentGroupRound().getId()))
                 {
                     nrActivePlayers++;
-                    if (playerRound.getStartHouseroundId() != null)
+                    if (playerRound.getStartHousegroupId() != null)
                         nrPlayersWithHouse++;
                 }
             }
@@ -414,7 +414,7 @@ public class FacilitatorServlet extends HttpServlet
                 if (playerRound != null && playerRound.getGrouproundId().equals(data.getCurrentGroupRound().getId()))
                 {
                     nrActivePlayers++;
-                    if (playerRound.getFinalHouseroundId() != null)
+                    if (playerRound.getFinalHousegroupId() != null)
                         nrPlayersWithHouse++;
                 }
             }
@@ -560,14 +560,14 @@ public class FacilitatorServlet extends HttpServlet
                     }
                 }
                 int currentHouseSatisfaction = 0;
-                if (prr.getFinalHouseroundId() != null)
+                if (prr.getFinalHousegroupId() != null)
                 {
-                    HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, prr.getFinalHouseroundId());
+                    HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
                     currentHouseSatisfaction = hrr.getHouseSatisfaction();
                 }
-                else if (prr.getStartHouseroundId() != null)
+                else if (prr.getStartHousegroupId() != null)
                 {
-                    HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, prr.getStartHouseroundId());
+                    HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getStartHousegroupId());
                     currentHouseSatisfaction = hrr.getHouseSatisfaction();
                 }
 
@@ -805,7 +805,7 @@ public class FacilitatorServlet extends HttpServlet
 
         for (PlayerroundRecord prr : playerRoundUnapprovedList)
         {
-            HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, prr.getFinalHouseroundId());
+            HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hrr.getHouseId());
             PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, prr.getPlayerId());
             s.append("                  <tr>\n");
@@ -863,7 +863,7 @@ public class FacilitatorServlet extends HttpServlet
 
         for (PlayerroundRecord prr : playerRoundUnapprovedList)
         {
-            HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, prr.getFinalHouseroundId());
+            HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hrr.getHouseId());
             PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, prr.getPlayerId());
             s.append("                  <tr>\n");
@@ -982,7 +982,7 @@ public class FacilitatorServlet extends HttpServlet
                         if (playerRoundList.get(i) != null)
                             prr = playerRoundList.get(i);
                     }
-                    if (prr.getFinalHouseroundId() == null)
+                    if (prr.getFinalHousegroupId() == null)
                         playersWithoutHouse.add(player);
                 }
             }
@@ -1006,9 +1006,9 @@ public class FacilitatorServlet extends HttpServlet
                         if (playerRoundList.get(i) != null)
                             prr = playerRoundList.get(i);
                     }
-                    if (prr.getFinalHouseroundId() != null)
+                    if (prr.getFinalHousegroupId() != null)
                     {
-                        HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, prr.getFinalHouseroundId());
+                        HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
                         if (hrr.getStatus().equals(HouseRoundStatus.UNAPPROVED_BUY))
                             playerRoundsUnapprovedBuy.add(prr);
                     }
@@ -1034,9 +1034,9 @@ public class FacilitatorServlet extends HttpServlet
                         if (playerRoundList.get(i) != null)
                             prr = playerRoundList.get(i);
                     }
-                    if (prr.getFinalHouseroundId() != null)
+                    if (prr.getFinalHousegroupId() != null)
                     {
-                        HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, prr.getFinalHouseroundId());
+                        HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
                         if (hrr.getStatus().equals(HouseRoundStatus.UNAPPROVED_SELL)
                                 || hrr.getStatus().equals(HouseRoundStatus.UNAPPROVED_STAY))
                             playerRoundsUnapprovedSellStay.add(prr);
@@ -1063,7 +1063,7 @@ public class FacilitatorServlet extends HttpServlet
                         if (playerRoundList.get(i) != null)
                             prr = playerRoundList.get(i);
                     }
-                    if (prr.getFinalHouseroundId() == null)
+                    if (prr.getFinalHousegroupId() == null)
                         playersWithoutHouse.add(player);
                 }
             }
@@ -1131,17 +1131,14 @@ public class FacilitatorServlet extends HttpServlet
             int houseId = Integer.valueOf(record.get(0).toString());
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseId);
             List<MeasureRecord> measureList = new ArrayList<>();
-            for (GrouproundRecord groupRound : data.getGroupRoundList())
+            HousegroupRecord houseRound =
+                    dslContext.selectFrom(Tables.HOUSEGROUP).where(Tables.HOUSEGROUP.GROUP_ID.eq(data.getGroup().getId()))
+                            .and(Tables.HOUSEGROUP.HOUSE_ID.eq(houseId)).fetchAny();
+            if (houseRound != null)
             {
-                HouseroundRecord houseRound =
-                        dslContext.selectFrom(Tables.HOUSEROUND).where(Tables.HOUSEROUND.GROUPROUND_ID.eq(groupRound.getId()))
-                                .and(Tables.HOUSEROUND.HOUSE_ID.eq(houseId)).fetchAny();
-                if (houseRound != null)
-                {
-                    List<MeasureRecord> mtrList = dslContext.selectFrom(Tables.MEASURE)
-                            .where(Tables.MEASURE.HOUSEROUND_ID.eq(houseRound.getId())).fetch();
-                    measureList.addAll(mtrList);
-                }
+                List<MeasureRecord> mtrList = dslContext.selectFrom(Tables.MEASURE)
+                        .where(Tables.MEASURE.HOUSEGROUP_ID.eq(houseRound.getId())).fetch();
+                measureList.addAll(mtrList);
             }
             List<InitialhousemeasureRecord> initialMeasureList = dslContext.selectFrom(Tables.INITIALHOUSEMEASURE)
                     .where(Tables.INITIALHOUSEMEASURE.HOUSE_ID.eq(house.getId())).fetch();

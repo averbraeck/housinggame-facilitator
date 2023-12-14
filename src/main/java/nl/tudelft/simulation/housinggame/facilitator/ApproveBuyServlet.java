@@ -12,7 +12,7 @@ import javax.servlet.http.HttpSession;
 import nl.tudelft.simulation.housinggame.common.HouseRoundStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.HouseroundRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 
 @WebServlet("/approve-buy")
@@ -37,25 +37,25 @@ public class ApproveBuyServlet extends HttpServlet
         if (request.getParameter("playerCode") != null)
         {
             System.out.println("BUY - " + request.getParameter("approve") + " player " + request.getParameter("playerCode")
-                    + ", comment: " + request.getParameter("comment") + ", hrrId = " + request.getParameter("hrrId"));
+                    + ", comment: " + request.getParameter("comment") + ", hgrId = " + request.getParameter("hgrId"));
             try
             {
                 // String playerCode = SessionUtils.stripQuotes(request.getParameter("playerCode"));
-                String hrrIdStr = SessionUtils.stripQuotes(request.getParameter("hrrId"));
-                int hrrId = Integer.valueOf(hrrIdStr);
+                String hgrIdStr = SessionUtils.stripQuotes(request.getParameter("hgrId"));
+                int hgrId = Integer.valueOf(hgrIdStr);
                 String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
                 String comment = SessionUtils.stripQuotes(request.getParameter("comment"));
-                HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, hrrId);
-                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hrr.getHouseId());
+                HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, hgrId);
+                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
                 if (approve.equals("APPROVE"))
                 {
-                    hrr.setBidExplanation(comment);
-                    hrr.setHousePriceBought(hrr.getBidPrice());
-                    hrr.setStatus(HouseRoundStatus.APPROVED_BUY);
-                    hrr.store();
+                    hgr.setBidExplanation(comment);
+                    hgr.setHousePriceBought(hgr.getBidPrice());
+                    hgr.setStatus(HouseRoundStatus.APPROVED_BUY);
+                    hgr.store();
 
-                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, hrr.getPlayerroundId());
-                    int price = hrr.getBidPrice();
+                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, hgr.getPlayerroundId());
+                    int price = hgr.getBidPrice();
                     if (price > prr.getMaximumMortgage())
                     {
                         prr.setMortgageLeftEnd(prr.getMaximumMortgage());
@@ -77,9 +77,9 @@ public class ApproveBuyServlet extends HttpServlet
                 }
                 else
                 {
-                    hrr.setBidExplanation(comment);
-                    hrr.setStatus(HouseRoundStatus.REJECTED_BUY);
-                    hrr.store();
+                    hgr.setBidExplanation(comment);
+                    hgr.setStatus(HouseRoundStatus.REJECTED_BUY);
+                    hgr.store();
                 }
                 return;
             }

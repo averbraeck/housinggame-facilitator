@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import nl.tudelft.simulation.housinggame.data.Tables;
-import nl.tudelft.simulation.housinggame.data.tables.records.HouseroundRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 
 @WebServlet("/approve-sell")
 public class ApproveSellServlet extends HttpServlet
@@ -39,7 +39,7 @@ public class ApproveSellServlet extends HttpServlet
                         + request.getParameter("playerCode") + ", comment: " + request.getParameter("comment") + ", hrrId = "
                         + request.getParameter("hrrId"));
                 int hrrId = Integer.valueOf(request.getParameter("hrrId"));
-                HouseroundRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEROUND, hrrId);
+                HousegroupRecord hrr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, hrrId);
 
                 return;
             }

@@ -28,7 +28,7 @@ import nl.tudelft.simulation.housinggame.data.tables.records.GameversionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.HouseroundRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioRecord;
@@ -341,21 +341,21 @@ public class FacilitatorData
 
     public HouseRecord getApprovedHouseForPlayerRound(final PlayerroundRecord playerRound)
     {
-        HouseroundRecord hrr = getApprovedHouseRoundForPlayerRound(playerRound);
+        HousegroupRecord hrr = getApprovedHouseRoundForPlayerRound(playerRound);
         return hrr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
     }
 
     public HouseRecord getUnapprovedHouseForPlayerRound(final PlayerroundRecord playerRound)
     {
-        HouseroundRecord hrr = getUnapprovedHouseRoundForPlayerRound(playerRound);
+        HousegroupRecord hrr = getUnapprovedHouseRoundForPlayerRound(playerRound);
         return hrr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hrr.getHouseId());
     }
 
-    public HouseroundRecord getApprovedHouseRoundForPlayerRound(final PlayerroundRecord playerRound)
+    public HousegroupRecord getApprovedHouseRoundForPlayerRound(final PlayerroundRecord playerRound)
     {
-        if (playerRound.getFinalHouseroundId() != null)
+        if (playerRound.getFinalHousegroupId() != null)
         {
-            HouseroundRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEROUND, playerRound.getFinalHouseroundId());
+            HousegroupRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
             if (Set.of(HouseRoundStatus.APPROVED_BUY, HouseRoundStatus.APPROVED_STAY, HouseRoundStatus.COPIED)
                     .contains(hrr.getStatus()))
                 return hrr;
@@ -363,11 +363,11 @@ public class FacilitatorData
         return null;
     }
 
-    public HouseroundRecord getUnapprovedHouseRoundForPlayerRound(final PlayerroundRecord playerRound)
+    public HousegroupRecord getUnapprovedHouseRoundForPlayerRound(final PlayerroundRecord playerRound)
     {
-        if (playerRound.getFinalHouseroundId() != null)
+        if (playerRound.getFinalHousegroupId() != null)
         {
-            HouseroundRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEROUND, playerRound.getFinalHouseroundId());
+            HousegroupRecord hrr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
             if (Set.of(HouseRoundStatus.UNAPPROVED_BUY, HouseRoundStatus.UNAPPROVED_STAY).contains(hrr.getStatus()))
                 return hrr;
         }
