@@ -13,6 +13,7 @@ import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 
 @WebServlet("/approve-buy")
@@ -36,26 +37,30 @@ public class ApproveBuyServlet extends HttpServlet
 
         if (request.getParameter("playerCode") != null)
         {
-            System.out.println("BUY - " + request.getParameter("approve") + " player " + request.getParameter("playerCode")
-                    + ", comment: " + request.getParameter("comment") + ", hgrId = " + request.getParameter("hgrId"));
+            System.out.println(
+                    "BUY - " + request.getParameter("approve") + " player " + request.getParameter("playerCode") + ", comment: "
+                            + request.getParameter("comment") + ", transactionId = " + request.getParameter("transactionId"));
             try
             {
                 // String playerCode = SessionUtils.stripQuotes(request.getParameter("playerCode"));
-                String hgrIdStr = SessionUtils.stripQuotes(request.getParameter("hgrId"));
-                int hgrId = Integer.valueOf(hgrIdStr);
+                String transactionIdStr = SessionUtils.stripQuotes(request.getParameter("transactionId"));
+                int transactionId = Integer.valueOf(transactionIdStr);
                 String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
                 String comment = SessionUtils.stripQuotes(request.getParameter("comment"));
-                HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, hgrId);
+                HousetransactionRecord transaction = SqlUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
+                HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
                 HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
                 if (approve.equals("APPROVE"))
                 {
-                    hgr.setBidExplanation(comment);
-                    hgr.setHousePriceBought(hgr.getBidPrice());
-                    hgr.setStatus(TransactionStatus.APPROVED_BUY);
+                    transaction.setComment(comment);
+                    transaction.setTransactionStatus(TransactionStatus.APPROVED_BUY);
+                    transaction.store();
+
+                    hgr.setLastSoldPrice(transaction.getPrice());
                     hgr.store();
 
-                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, hgr.getPlayerroundId());
-                    int price = hgr.getBidPrice();
+                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+                    int price = transaction.getPrice();
                     if (price > prr.getMaximumMortgage())
                     {
                         prr.setMortgageLeftEnd(prr.getMaximumMortgage());
@@ -67,7 +72,7 @@ public class ApproveBuyServlet extends HttpServlet
                         prr.setMortgageLeftEnd(price);
                         prr.setSpentSavingsForBuyingHouse(0);
                     }
-                    prr.setMortgagePayment(prr.getMortgageLeftEnd() * data.getMortgagePercentage() / 100);
+                    prr.setMortgagePayment((int) (prr.getMortgageLeftEnd() * data.getMortgagePercentage() / 100.0));
                     prr.setSpendableIncome(prr.getSpendableIncome() - prr.getMortgagePayment());
                     int phr = prr.getPreferredHouseRating();
                     int hr = house.getRating();
@@ -77,9 +82,9 @@ public class ApproveBuyServlet extends HttpServlet
                 }
                 else
                 {
-                    hgr.setBidExplanation(comment);
-                    hgr.setStatus(TransactionStatus.REJECTED_BUY);
-                    hgr.store();
+                    transaction.setComment(comment);
+                    transaction.setTransactionStatus(TransactionStatus.REJECTED_BUY);
+                    transaction.store();
                 }
                 return;
             }
