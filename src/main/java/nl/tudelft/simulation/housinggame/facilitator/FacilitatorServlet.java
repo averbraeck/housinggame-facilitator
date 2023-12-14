@@ -18,13 +18,15 @@ import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
-import nl.tudelft.simulation.housinggame.common.TransactionStatus;
+import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
 import nl.tudelft.simulation.housinggame.common.PlayerState;
 import nl.tudelft.simulation.housinggame.common.RoundState;
+import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.InitialhousemeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
@@ -711,30 +713,21 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                </thead>\n");
         s.append("                <tbody>\n");
 
-        // get the players with a house (approved)
-        Map<Integer, PlayerRecord> ownedHouses = getPlayersForApprovedHouseIds(data);
-
-        // get the initial and implemented measures for all houses
-        Map<Integer, List<MeasuretypeRecord>> measureMap = getMeasuresPerHouse(data);
-
-        // get the houses
-        Result<org.jooq.Record> resultList =
-                dslContext.fetch("SELECT house.id FROM house INNER JOIN community ON house.community_id=community.id "
-                        + "WHERE community.gameversion_id=" + data.getGameVersion().getId()
-                        + " ORDER BY available_round, code ASC;");
-        for (org.jooq.Record record : resultList)
+        var houseGroupList = data.getHouseGroupList();
+        for (var houseGroup : houseGroupList)
         {
-            int id = Integer.valueOf(record.get(0).toString());
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, id);
-            if (house.getAvailableRound() == data.getCurrentRoundNumber() || ownedHouses.containsKey(house.getId()))
+            if (HouseGroupStatus.isAvailableOrOccupied(houseGroup.getStatus()))
             {
+                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+                List<MeasureRecord> measureList = dslContext.selectFrom(Tables.MEASURE)
+                        .where(Tables.MEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch();
                 s.append("                  <tr style=\"text-align:center;\">\n");
                 s.append("                    <td>" + house.getCode() + "</td>\n");
                 s.append("                    <td>" + house.getAvailableRound() + "</td>\n");
                 s.append("                    <td>" + house.getRating() + "</td>\n");
-                int marketPrice = data.getMarketPrice(house);
+                int marketPrice = houseGroup.getMarketValue();
                 s.append("                    <td>" + data.k(marketPrice) + "</td>\n");
-                int buyPrice = data.getBuyPrice(house);
+                int buyPrice = houseGroup.getLastSoldPrice();
                 if (buyPrice == 0)
                     s.append("                    <td>" + "--" + "</td>\n");
                 else
@@ -743,14 +736,16 @@ public class FacilitatorServlet extends HttpServlet
                 s.append("                    <td>" + comment + "</td>\n");
                 int houseSatisfaction = 0; // TODO
                 s.append("                    <td>" + houseSatisfaction + "</td>\n");
-                if (measureMap.get(house.getId()).size() == 0)
+                if (measureList.size() == 0)
                     s.append("                    <td>" + "--" + "</td>\n");
                 else
                 {
                     s.append("                    <td style=\"text-align:left;\">");
                     boolean first = true;
-                    for (MeasuretypeRecord measureType : measureMap.get(house.getId()))
+                    for (MeasureRecord measure : measureList)
                     {
+                        MeasuretypeRecord measureType =
+                                SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
                         if (!first)
                             s.append("<br />");
                         first = false;
@@ -758,8 +753,11 @@ public class FacilitatorServlet extends HttpServlet
                     }
                     s.append("</td>\n");
                 }
-                if (ownedHouses.containsKey(house.getId())) // owner
-                    s.append("                    <td>" + ownedHouses.get(house.getId()).getCode() + "</td>\n");
+                if (houseGroup.getOwnerId() != null)
+                {
+                    PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, houseGroup.getOwnerId());
+                    s.append("                    <td>" + player.getCode() + "</td>\n");
+                }
                 else
                     s.append("                    <td>" + "--" + "</td>\n");
                 s.append("                  </tr>\n");
@@ -777,8 +775,8 @@ public class FacilitatorServlet extends HttpServlet
     public static String makeHouseBuyDecisionTable(final FacilitatorData data)
     {
         // get the players with an unapproved buy for a house
-        List<PlayerroundRecord> playerRoundUnapprovedList = getPlayerRoundsWithUnapprovedBuy(data);
-        if (playerRoundUnapprovedList.size() == 0)
+        List<HousetransactionRecord> unapprovedBuyTransactions = getUnapprovedBuyTransactions(data);
+        if (unapprovedBuyTransactions.size() == 0)
             return "";
 
         StringBuilder s = new StringBuilder();
@@ -803,21 +801,21 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                </thead>\n");
         s.append("                <tbody>\n");
 
-        for (PlayerroundRecord prr : playerRoundUnapprovedList)
+        for (HousetransactionRecord transaction : unapprovedBuyTransactions)
         {
-            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
-            PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, prr.getPlayerId());
+            PlayerroundRecord playerRound = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+            PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
-            s.append("                    <td>" + data.k(prr.getMaximumMortgage()) + "</td>\n");
-            s.append("                    <td>" + data.k(prr.getSpendableIncome()) + "</td>\n");
-            int maxHousePrice = prr.getMaximumMortgage() + prr.getSpendableIncome();
+            s.append("                    <td>" + data.k(playerRound.getMaximumMortgage()) + "</td>\n");
+            s.append("                    <td>" + data.k(playerRound.getSpendableIncome()) + "</td>\n");
+            int maxHousePrice = playerRound.getMaximumMortgage() + playerRound.getSpendableIncome();
             s.append("                    <td>" + data.k(maxHousePrice) + "</td>\n");
             s.append("                    <td>" + house.getCode() + "</td>\n");
-            int marketPrice = data.getMarketPrice(house);
-            s.append("                    <td>" + data.k(marketPrice) + "</td>\n");
-            s.append("                    <td>" + data.k(hgr.getBidPrice()) + "</td>\n");
+            s.append("                    <td>" + data.k(hgr.getMarketValue()) + "</td>\n");
+            s.append("                    <td>" + data.k(transaction.getPrice()) + "</td>\n");
             s.append("                    <td><input type='text' class='buy-comment' name='comment-" + player.getCode()
                     + "' id='comment-" + player.getCode() + "' /></td>\n");
             s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
@@ -835,8 +833,8 @@ public class FacilitatorServlet extends HttpServlet
     public static String makeHouseSellDecisionTable(final FacilitatorData data)
     {
         // get the players with an unapproved buy for a house
-        List<PlayerroundRecord> playerRoundUnapprovedList = getPlayerRoundsWithUnapprovedSellStay(data);
-        if (playerRoundUnapprovedList.size() == 0)
+        List<HousetransactionRecord> unapprovedSellStayTransactions = getUnapprovedSellStayTransactions(data);
+        if (unapprovedSellStayTransactions.size() == 0)
             return "";
 
         StringBuilder s = new StringBuilder();
@@ -861,21 +859,22 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                </thead>\n");
         s.append("                <tbody>\n");
 
-        for (PlayerroundRecord prr : playerRoundUnapprovedList)
+        for (HousetransactionRecord transaction : unapprovedSellStayTransactions)
         {
-            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
-            PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, prr.getPlayerId());
+            PlayerroundRecord playerRound = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+            PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
-            s.append("                    <td>" + data.k(prr.getMaximumMortgage()) + "</td>\n");
-            s.append("                    <td>" + data.k(prr.getSpendableIncome()) + "</td>\n");
-            int maxHousePrice = prr.getMaximumMortgage() + prr.getSpendableIncome();
+            s.append("                    <td>" + data.k(playerRound.getMaximumMortgage()) + "</td>\n");
+            s.append("                    <td>" + data.k(playerRound.getSpendableIncome()) + "</td>\n");
+            int maxHousePrice = playerRound.getMaximumMortgage() + playerRound.getSpendableIncome();
             s.append("                    <td>" + data.k(maxHousePrice) + "</td>\n");
             s.append("                    <td>" + house.getCode() + "</td>\n");
             // s.append(" <td>" + data.k(hgr.getMarketPrice()) + "</td>\n");
             s.append("                    <td>" + "???" + "</td>\n");
-            s.append("                    <td>" + hgr.getBidPrice() + "</td>\n");
+            s.append("                    <td>" + transaction.getPrice() + "</td>\n");
             s.append("                    <td><input type='text' name='comment-" + player.getCode() + "' id='comment-"
                     + player.getCode() + "' /></td>\n");
             s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
@@ -930,6 +929,32 @@ public class FacilitatorServlet extends HttpServlet
         // TODO flood table.
 
         data.getContentHtml().put("facilitator/tables", s.toString());
+    }
+
+    private static List<HousetransactionRecord> getUnapprovedBuyTransactions(final FacilitatorData data)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        return dslContext.selectFrom(Tables.HOUSETRANSACTION)
+                .where(Tables.HOUSETRANSACTION.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())
+                        .and(Tables.HOUSETRANSACTION.TRANSACTION_STATUS.eq(TransactionStatus.UNAPPROVED_BUY)))
+                .fetch();
+    }
+
+    private static List<HousetransactionRecord> getUnapprovedSellStayTransactions(final FacilitatorData data)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        var sellList = dslContext.selectFrom(Tables.HOUSETRANSACTION)
+                .where(Tables.HOUSETRANSACTION.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())
+                        .and(Tables.HOUSETRANSACTION.TRANSACTION_STATUS.eq(TransactionStatus.UNAPPROVED_SELL)))
+                .fetch();
+        var stayList = dslContext.selectFrom(Tables.HOUSETRANSACTION)
+                .where(Tables.HOUSETRANSACTION.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())
+                        .and(Tables.HOUSETRANSACTION.TRANSACTION_STATUS.eq(TransactionStatus.UNAPPROVED_STAY)))
+                .fetch();
+        List<HousetransactionRecord> sellStayList = new ArrayList<>();
+        sellStayList.addAll(sellList);
+        sellStayList.addAll(stayList);
+        return sellStayList;
     }
 
     /**
