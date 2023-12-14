@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -20,8 +19,8 @@ import org.jooq.impl.DSL;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.common.RoundState;
+import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GameversionRecord;
@@ -29,6 +28,7 @@ import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioRecord;
@@ -52,6 +52,9 @@ public class FacilitatorData
 
     /** The scenario (static during session). */
     private ScenarioRecord scenario;
+
+    /** The scenario parameters. */
+    private ScenarioparametersRecord scenarioParameters;
 
     /** Gamesession for the facilitator (static during session). */
     private GamesessionRecord gameSession;
@@ -175,6 +178,8 @@ public class FacilitatorData
         this.gameVersion = SqlUtils.readRecordFromId(this, Tables.GAMEVERSION, this.scenario.getGameversionId());
         this.playerList = dslContext.selectFrom(Tables.PLAYER).where(Tables.PLAYER.GROUP_ID.eq(group.getId())).fetch()
                 .sortAsc(Tables.PLAYER.CODE);
+        this.scenarioParameters =
+                SqlUtils.readRecordFromId(this, Tables.SCENARIOPARAMETERS, this.scenario.getScenarioparametersId());
         readDynamicData();
     }
 
@@ -339,49 +344,52 @@ public class FacilitatorData
         return getRoundState().eq(state);
     }
 
+    public HousegroupRecord getApprovedHouseGroupForPlayerRound(final PlayerroundRecord playerRound)
+    {
+        if (playerRound.getFinalHousegroupId() != null)
+        {
+            return SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+        }
+        if (playerRound.getActiveTransactionId() != null)
+        {
+            HousetransactionRecord transaction =
+                    SqlUtils.readRecordFromId(this, Tables.HOUSETRANSACTION, playerRound.getActiveTransactionId());
+            if (transaction.getTransactionStatus().equals(TransactionStatus.APPROVED_BUY))
+                return SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, transaction.getHousegroupId());
+        }
+        return null;
+    }
+
     public HouseRecord getApprovedHouseForPlayerRound(final PlayerroundRecord playerRound)
     {
-        HousegroupRecord hgr = getApprovedHouseRoundForPlayerRound(playerRound);
-        return hgr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hgr.getHouseId());
-    }
-
-    public HouseRecord getUnapprovedHouseForPlayerRound(final PlayerroundRecord playerRound)
-    {
-        HousegroupRecord hgr = getUnapprovedHouseRoundForPlayerRound(playerRound);
-        return hgr == null ? null : SqlUtils.readRecordFromId(this, Tables.HOUSE, hgr.getHouseId());
-    }
-
-    public HousegroupRecord getApprovedHouseRoundForPlayerRound(final PlayerroundRecord playerRound)
-    {
-        if (playerRound.getFinalHousegroupId() != null)
-        {
-            HousegroupRecord hgr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
-            if (Set.of(TransactionStatus.APPROVED_BUY, TransactionStatus.APPROVED_STAY)
-                    .contains(hgr.getStatus()))
-                return hgr;
-        }
+        HousegroupRecord hgr = getApprovedHouseGroupForPlayerRound(playerRound);
+        if (hgr != null)
+            return SqlUtils.readRecordFromId(this, Tables.HOUSE, hgr.getHouseId());
         return null;
     }
 
-    public HousegroupRecord getUnapprovedHouseRoundForPlayerRound(final PlayerroundRecord playerRound)
+    /**
+     * When the house is known, the expected mortgage is the actual mortgage. Otherwise, take the expected round mortgage as the
+     * mortgage percentage of 80% of the maximum mortgage.
+     * @param playerRound the player to estimate the mortgage for
+     * @return int; the expected mortgage payment
+     */
+    public int getExpectedMortgagePayment(final PlayerroundRecord playerRound)
     {
         if (playerRound.getFinalHousegroupId() != null)
         {
-            HousegroupRecord hgr = SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
-            if (Set.of(TransactionStatus.UNAPPROVED_BUY, TransactionStatus.UNAPPROVED_STAY).contains(hgr.getStatus()))
-                return hgr;
+            HousegroupRecord houseGroup =
+                    SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+            return (int) (houseGroup.getLastSoldPrice() * getMortgagePercentage() / 100.0);
         }
-        return null;
-    }
-
-    public int getExpectedMortgage(final HouseRecord house)
-    {
-        if (house == null)
-            return 0;
-        // TODO: bid?
-        ScenarioparametersRecord spr =
-                SqlUtils.readRecordFromId(this, Tables.SCENARIOPARAMETERS, this.scenario.getScenarioparametersId());
-        return (int) (house.getPrice() / spr.getMortgagePercentage());
+        if (playerRound.getActiveTransactionId() != null)
+        {
+            HousetransactionRecord transaction =
+                    SqlUtils.readRecordFromId(this, Tables.HOUSETRANSACTION, playerRound.getActiveTransactionId());
+            if (TransactionStatus.isBuy(transaction.getTransactionStatus()))
+                return (int) (transaction.getPrice() * getMortgagePercentage() / 100.0);
+        }
+        return (int) (0.8 * playerRound.getMaximumMortgage() * getMortgagePercentage() / 100.0);
     }
 
     public int getExpectedTaxes(final HouseRecord house)
@@ -392,33 +400,14 @@ public class FacilitatorData
         return 15000;
     }
 
-    public int getMortgagePercentage()
+    public double getMortgagePercentage()
     {
-        ScenarioparametersRecord spr =
-                SqlUtils.readRecordFromId(this, Tables.SCENARIOPARAMETERS, this.scenario.getScenarioparametersId());
-        return spr.getMortgagePercentage().intValue();
+        return this.scenarioParameters.getMortgagePercentage();
     }
 
-    /**
-     * @param house house
-     * @return the market price minus discounts after flooding (relating to the news)
-     */
-    public int getMarketPrice(final HouseRecord house)
+    public List<HousegroupRecord> getHouseGroupList()
     {
-        int marketPrice = house.getPrice();
-        // TODO: see in the news and the flood table whether discounts apply
-        // TODO it is about the AREA flooding, not the HOUSE flooding
-        // TODO AND the newseffects
-        return marketPrice;
-    }
-
-    /**
-     * @param house house
-     * @return the latest buy price for this house
-     */
-    public int getBuyPrice(final HouseRecord house)
-    {
-        // TODO: get the bid price for the house...
-        return house.getPrice();
+        DSLContext dslContext = DSL.using(getDataSource(), SQLDialect.MYSQL);
+        return dslContext.selectFrom(Tables.HOUSEGROUP).where(Tables.HOUSEGROUP.GROUP_ID.eq(this.group.getId())).fetch();
     }
 }
