@@ -264,6 +264,7 @@ body {
                       <div class="hg-button">
                         <input type="submit" value="FINISH BUYING"
                           class='${facilitatorData.getContentHtml("button/finish-buying") }' />
+                        <br/>&amp; calculate taxes
                       </div>
                     </form>
                   </div>
@@ -472,35 +473,35 @@ body {
   ${facilitatorData.getModalWindowHtml()}
 
   <script type="text/javascript">
-			$(document).ready(function() {
-				reloadTables();
-			});
-			function reloadTables() {
+      $(document).ready(function() {
+        reloadTables();
+      });
+      function reloadTables() {
         // store input values before reloading
         var comments = new Array();
         var ids = new Array();
         $(".buy-comment").map(
-        		 function() {
+             function() {
                 comments.push($(this).val());
                 ids.push($(this).attr('id'));
-        		 });
+             });
         var active = document.activeElement;
         console.log("comments: " + comments + ", ids: " + ids);
-				$.post("/housinggame-facilitator/reload-tables", {
-					reloadTables : 'true'
-				}, function(data, status) {
-					var tableDiv = document
-							.getElementById("facilitator-tables");
-					tableDiv.innerHTML = data;
-					// return input values after relaoding
-					for (let i = 0; i < ids.length; i++) {
-						  $("#" + ids[i]).val(comments[i]);
-					}
-					active.focus();
-					setTimeout(reloadTables, 5000);
-				});
-			}
-			function approveBuy(playerCode, transactionId) {
+        $.post("/housinggame-facilitator/reload-tables", {
+          reloadTables : 'true'
+        }, function(data, status) {
+          var tableDiv = document
+              .getElementById("facilitator-tables");
+          tableDiv.innerHTML = data;
+          // return input values after relaoding
+          for (let i = 0; i < ids.length; i++) {
+              $("#" + ids[i]).val(comments[i]);
+          }
+          active.focus();
+          setTimeout(reloadTables, 5000);
+        });
+      }
+      function approveBuy(playerCode, transactionId) {
          var $comment=$("#comment-" + playerCode).val();
          $.post("/housinggame-facilitator/approve-buy", {
              playerCode : JSON.stringify(playerCode),
@@ -517,8 +518,8 @@ body {
               comment: JSON.stringify($comment),
               approve: 'REJECT'
             });
-		  }
-		</script>
+      }
+    </script>
 
 </body>
 

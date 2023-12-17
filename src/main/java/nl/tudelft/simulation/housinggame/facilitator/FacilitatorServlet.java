@@ -35,6 +35,7 @@ import nl.tudelft.simulation.housinggame.data.tables.records.NewsitemRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioparametersRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.TaxRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.WelfaretypeRecord;
 
 @WebServlet("/facilitator")
@@ -181,7 +182,7 @@ public class FacilitatorServlet extends HttpServlet
         }
         else if (button.equals("finish-buying-ok"))
         {
-            calculateTaxes();
+            calculateTaxes(data);
             data.getCurrentGroupRound().setRoundState(RoundState.BUYING_FINISHED.toString());
             data.getCurrentGroupRound().store();
             data.setMenuState("House");
@@ -536,9 +537,56 @@ public class FacilitatorServlet extends HttpServlet
         data.setShowModalWindow(1);
     }
 
-    public void calculateTaxes()
+    public void calculateTaxes(final FacilitatorData data)
     {
-        // TODO make the tax calculations
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        Map<CommunityRecord, Integer> communityMap = new HashMap<>();
+        Map<CommunityRecord, Integer> taxMap = new HashMap<>();
+        for (var playerRound : data.getPlayerRoundList())
+        {
+            if (playerRound.getFinalHousegroupId() != null)
+            {
+                HousegroupRecord houseGroup =
+                        SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+                CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+                if (communityMap.containsKey(community))
+                    communityMap.put(community, communityMap.get(community) + 1);
+                else
+                    communityMap.put(community, 1);
+            }
+        }
+
+        for (var community : communityMap.keySet())
+        {
+            List<TaxRecord> taxList =
+                    dslContext.selectFrom(Tables.TAX).where(Tables.TAX.COMMUNITY_ID.eq(community.getId())).fetch();
+            taxMap.put(community, 1000);
+            for (TaxRecord tax : taxList)
+            {
+                int nr = communityMap.get(community);
+                if (nr >= tax.getMinimumInhabitants() && nr <= tax.getMaximumInhabitants())
+                {
+                    taxMap.put(community, tax.getTaxCost().intValue());
+                    break;
+                }
+            }
+        }
+
+        for (var playerRound : data.getPlayerRoundList())
+        {
+            if (playerRound.getFinalHousegroupId() != null)
+            {
+                HousegroupRecord houseGroup =
+                        SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+                CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+                int taxCost = taxMap.get(community);
+                playerRound.setCostTaxes(taxCost);
+                playerRound.setSpendableIncome(playerRound.getSpendableIncome() - taxCost);
+                playerRound.store();
+            }
+        }
     }
 
     public static String makePlayerStateTable(final FacilitatorData data)
@@ -644,7 +692,7 @@ public class FacilitatorServlet extends HttpServlet
                 else
                 {
                     s.append("                    <td>" + house.getCode() + "</td>\n");
-                    s.append("                    <td>" + data.k(data.getExpectedTaxes(house)) + "</td>\n");
+                    s.append("                    <td>" + data.k(prr.getCostTaxes()) + "</td>\n");
                 }
                 s.append("                    <td>" + data.k(prr.getSpendableIncome()) + "</td>\n");
                 int netSatisfaction = prr.getPersonalSatisfaction() - prr.getSatisfactionFluvialPenalty()
@@ -877,9 +925,11 @@ public class FacilitatorServlet extends HttpServlet
             s.append("                    <td><input type='text' class='buy-comment' name='comment-" + player.getCode()
                     + "' id='comment-" + player.getCode() + "' /></td>\n");
             s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
-                    + "' onclick='approveBuy(\"" + player.getCode() + "\", " + transaction.getId() + ")'>APPROVE</button></td>\n");
+                    + "' onclick='approveBuy(\"" + player.getCode() + "\", " + transaction.getId()
+                    + ")'>APPROVE</button></td>\n");
             s.append("                    <td><button name='reject-" + player.getCode() + "' id='reject-" + player.getCode()
-                    + "' onclick='rejectBuy(\"" + player.getCode() + "\", " + transaction.getId() + ")'>REJECT</button></td>\n");
+                    + "' onclick='rejectBuy(\"" + player.getCode() + "\", " + transaction.getId()
+                    + ")'>REJECT</button></td>\n");
             s.append("                  </tr>\n");
         }
         s.append("                </tbody>\n");
@@ -934,9 +984,11 @@ public class FacilitatorServlet extends HttpServlet
             s.append("                    <td><input type='text' name='comment-" + player.getCode() + "' id='comment-"
                     + player.getCode() + "' /></td>\n");
             s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
-                    + "' onclick='approveSell(\"" + player.getCode() + "\", " + transaction.getId() + ")'>APPROVE</button></td>\n");
+                    + "' onclick='approveSell(\"" + player.getCode() + "\", " + transaction.getId()
+                    + ")'>APPROVE</button></td>\n");
             s.append("                    <td><button name='reject-" + player.getCode() + "' id='reject-" + player.getCode()
-                    + "' onclick='rejectSell(\"" + player.getCode() + "\", " + transaction.getId() + ")'>REJECT</button></td>\n");
+                    + "' onclick='rejectSell(\"" + player.getCode() + "\", " + transaction.getId()
+                    + ")'>REJECT</button></td>\n");
             s.append("                  </tr>\n");
         }
         s.append("                </tbody>\n");

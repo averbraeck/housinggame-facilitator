@@ -266,6 +266,13 @@ public class FacilitatorData
         return this.playerList;
     }
 
+    public List<PlayerroundRecord> getPlayerRoundList()
+    {
+        DSLContext dslContext = DSL.using(getDataSource(), SQLDialect.MYSQL);
+        return dslContext.selectFrom(Tables.PLAYERROUND)
+                .where(Tables.PLAYERROUND.GROUPROUND_ID.eq(getCurrentGroupRound().getId())).fetch();
+    }
+
     public List<GrouproundRecord> getGroupRoundList()
     {
         return this.groupRoundList;
