@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
@@ -60,6 +61,7 @@ public class ApproveBuyServlet extends HttpServlet
 
                     hgr.setLastSoldPrice(transaction.getPrice());
                     hgr.setOwnerId(prr.getPlayerId());
+                    hgr.setStatus(HouseGroupStatus.OCCUPIED);
                     hgr.store();
 
                     int price = transaction.getPrice();
