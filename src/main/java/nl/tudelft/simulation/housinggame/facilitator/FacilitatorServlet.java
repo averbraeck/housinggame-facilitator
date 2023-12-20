@@ -946,7 +946,7 @@ public class FacilitatorServlet extends HttpServlet
             }
             else if (transaction.getPrice() > playerRound.getMaximumMortgage() + playerRound.getSpendableIncome())
                 note = "PLAYER CANNOT AFFORD!";
-            else if (transaction.getPrice() != hgr.getMarketValue())
+            else if (transaction.getPrice().intValue() != hgr.getMarketValue().intValue())
                 note = "PRICE/BID CHANGE!";
 
             s.append("                  <tr>\n");

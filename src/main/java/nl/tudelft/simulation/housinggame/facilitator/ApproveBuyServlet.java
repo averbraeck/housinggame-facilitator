@@ -1,6 +1,9 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -9,13 +12,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
+
 import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
+import nl.tudelft.simulation.housinggame.common.RoundState;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
+import nl.tudelft.simulation.housinggame.data.tables.records.CommunityRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.TaxRecord;
 
 @WebServlet("/approve-buy")
 public class ApproveBuyServlet extends HttpServlet
@@ -88,6 +98,10 @@ public class ApproveBuyServlet extends HttpServlet
                     prr.setPersonalSatisfaction(prr.getPersonalSatisfaction() + hr - phr);
                     prr.setFinalHousegroupId(hgr.getId());
                     prr.store();
+
+                    // calculate taxes if round has already moved beyond tax calculation
+                    if (RoundState.valueOf(data.getCurrentGroupRound().getRoundState()).nr >= RoundState.BUYING_FINISHED.nr)
+                        calculateTaxes(data, prr);
                 }
                 else
                 {
@@ -113,6 +127,54 @@ public class ApproveBuyServlet extends HttpServlet
             throws ServletException, IOException
     {
         doPost(request, response);
+    }
+
+    public void calculateTaxes(final FacilitatorData data, final PlayerroundRecord prr)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        Map<CommunityRecord, Integer> communityMap = new HashMap<>();
+        Map<CommunityRecord, Integer> taxMap = new HashMap<>();
+        for (var playerRound : data.getPlayerRoundList())
+        {
+            if (playerRound.getFinalHousegroupId() != null)
+            {
+                HousegroupRecord houseGroup =
+                        SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+                CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+                if (communityMap.containsKey(community))
+                    communityMap.put(community, communityMap.get(community) + 1);
+                else
+                    communityMap.put(community, 1);
+            }
+        }
+
+        for (var community : communityMap.keySet())
+        {
+            List<TaxRecord> taxList =
+                    dslContext.selectFrom(Tables.TAX).where(Tables.TAX.COMMUNITY_ID.eq(community.getId())).fetch();
+            taxMap.put(community, 1000);
+            for (TaxRecord tax : taxList)
+            {
+                int nr = communityMap.get(community);
+                if (nr >= tax.getMinimumInhabitants() && nr <= tax.getMaximumInhabitants())
+                {
+                    taxMap.put(community, tax.getTaxCost().intValue());
+                    break;
+                }
+            }
+        }
+
+        if (prr.getFinalHousegroupId() != null)
+        {
+            HousegroupRecord houseGroup = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+            CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+            int taxCost = taxMap.get(community);
+            prr.setCostTaxes(taxCost);
+            prr.setSpendableIncome(prr.getSpendableIncome() - taxCost);
+            prr.store();
+        }
     }
 
 }
