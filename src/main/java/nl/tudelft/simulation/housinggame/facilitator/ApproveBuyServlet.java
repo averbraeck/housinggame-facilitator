@@ -41,9 +41,9 @@ public class ApproveBuyServlet extends HttpServlet
             System.out.println(
                     "BUY - " + request.getParameter("approve") + " player " + request.getParameter("playerCode") + ", comment: "
                             + request.getParameter("comment") + ", transactionId = " + request.getParameter("transactionId"));
+
             try
             {
-                // String playerCode = SessionUtils.stripQuotes(request.getParameter("playerCode"));
                 String transactionIdStr = SessionUtils.stripQuotes(request.getParameter("transactionId"));
                 int transactionId = Integer.valueOf(transactionIdStr);
                 String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
@@ -99,7 +99,7 @@ public class ApproveBuyServlet extends HttpServlet
             }
             catch (Exception e)
             {
-                System.err.println("Error in approve-sell: " + e.getMessage());
+                System.err.println("Error in approve-buy: " + e.getMessage());
             }
         }
 

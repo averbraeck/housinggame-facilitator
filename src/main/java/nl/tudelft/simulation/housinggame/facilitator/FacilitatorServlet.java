@@ -3,8 +3,10 @@ package nl.tudelft.simulation.housinggame.facilitator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -61,8 +63,16 @@ public class FacilitatorServlet extends HttpServlet
             return;
         }
 
-        data.setShowModalWindow(0);
-        data.setModalWindowHtml("");
+        // If showModalWindow has value 2, it means: refresh (once) INCLUDING modal window.
+        if (data.getShowModalWindow() == 2)
+        {
+            data.setShowModalWindow(1); // wipe next time!
+        }
+        else
+        {
+            data.setShowModalWindow(0);
+            data.setModalWindowHtml("");
+        }
 
         if (request.getParameter("menu") != null)
             data.setMenuState(request.getParameter("menu"));
@@ -348,7 +358,6 @@ public class FacilitatorServlet extends HttpServlet
 
         ModalWindowUtils.make2ButtonModalWindow(data, "Move to next round?", content, "YES", "start-new-round-ok", "NO", "",
                 "");
-        data.setShowModalWindow(1);
     }
 
     public void newRound(final FacilitatorData data)
@@ -387,7 +396,7 @@ public class FacilitatorServlet extends HttpServlet
             HousegroupRecord houseGroup = dslContext.newRecord(Tables.HOUSEGROUP);
             CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
             houseGroup.setCode(house.getCode());
-            houseGroup.setAdress(house.getAddress());
+            houseGroup.setAddress(house.getAddress());
             houseGroup.setRating(house.getRating());
             houseGroup.setOriginalPrice(house.getPrice());
             houseGroup.setDamageReduction(0);
@@ -457,7 +466,6 @@ public class FacilitatorServlet extends HttpServlet
 
         ModalWindowUtils.make2ButtonModalWindow(data, "Finish the selling / staying process?", content, "YES",
                 "finish-selling-ok", "NO", "", "");
-        data.setShowModalWindow(1);
     }
 
     public void popupBuyHouses(final FacilitatorData data)
@@ -495,7 +503,6 @@ public class FacilitatorServlet extends HttpServlet
 
         ModalWindowUtils.make2ButtonModalWindow(data, "Finish the buying process?", content, "YES", "finish-buying-ok", "NO",
                 "", "");
-        data.setShowModalWindow(1);
     }
 
     public void popupSurvey(final FacilitatorData data)
@@ -534,7 +541,6 @@ public class FacilitatorServlet extends HttpServlet
 
         ModalWindowUtils.make2ButtonModalWindow(data, "Move to dice rolls?", content, "YES", "complete-survey-ok", "NO", "",
                 "");
-        data.setShowModalWindow(1);
     }
 
     public void calculateTaxes(final FacilitatorData data)
@@ -888,8 +894,8 @@ public class FacilitatorServlet extends HttpServlet
 
         StringBuilder s = new StringBuilder();
         s.append("        <h1>Buying requests</h1>");
-        s.append("        <p>Ensure all players have sufficient time to send their requests before handling them.</p>");
-        s.append("        <p>This way, requests that need the facilitator's attention can be flagged in red.</p>");
+        s.append("        <p>Ensure all players have sufficient time to send their requests before handling them.<br />");
+        s.append("        This way, requests that need the facilitator's attention can be flagged as a note in red.</p>");
         s.append("        <div class=\"hg-fac-table\">\n");
         s.append("          <table class=\"pmd table table-striped\" style=\"text-align:center;\">\n");
         s.append("                <thead>\n");
@@ -901,18 +907,48 @@ public class FacilitatorServlet extends HttpServlet
         s.append("                    <th>Selected<br/>house</th>\n");
         s.append("                    <th>Market<br/>price</th>\n");
         s.append("                    <th>Player's buy<br/>/bid price</th>\n");
-        s.append("                    <th>Comment</th>\n");
+        s.append("                    <th>Note</th>\n");
         s.append("                    <th>Approval</th>\n");
         s.append("                    <th>Rejection</th>\n");
         s.append("                  </tr>\n");
         s.append("                </thead>\n");
         s.append("                <tbody>\n");
 
+        Set<String> houseCodes = new HashSet<>();
+        Set<String> doubleHouseCodes = new HashSet<>();
+        for (HousetransactionRecord transaction : unapprovedBuyTransactions)
+        {
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+            if (houseCodes.contains(hgr.getCode()))
+                doubleHouseCodes.add(hgr.getCode());
+            else
+                houseCodes.add(hgr.getCode());
+        }
+
         for (HousetransactionRecord transaction : unapprovedBuyTransactions)
         {
             HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
             PlayerroundRecord playerRound = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
             PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
+
+            // check if there is anything wrong
+            String note = "";
+            boolean noApprove = false;
+            if (!hgr.getStatus().equals(HouseGroupStatus.AVAILABLE.toString()))
+            {
+                note = "HOUSE NOT AVAILABLE!";
+                noApprove = true;
+            }
+            else if (doubleHouseCodes.contains(hgr.getCode()))
+            {
+                note = "HOUSE BOUGHT TWICE!";
+                noApprove = true;
+            }
+            else if (transaction.getPrice() > playerRound.getMaximumMortgage() + playerRound.getSpendableIncome())
+                note = "PLAYER CANNOT AFFORD!";
+            else if (transaction.getPrice() != hgr.getMarketValue())
+                note = "PRICE/BID CHANGE!";
+
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
             s.append("                    <td>" + data.k(playerRound.getMaximumMortgage()) + "</td>\n");
@@ -922,20 +958,32 @@ public class FacilitatorServlet extends HttpServlet
             s.append("                    <td>" + hgr.getCode() + "</td>\n");
             s.append("                    <td>" + data.k(hgr.getMarketValue()) + "</td>\n");
             s.append("                    <td>" + data.k(transaction.getPrice()) + "</td>\n");
-            s.append("                    <td><input type='text' class='buy-comment' name='comment-" + player.getCode()
-                    + "' id='comment-" + player.getCode() + "' /></td>\n");
-            s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
-                    + "' onclick='approveBuy(\"" + player.getCode() + "\", " + transaction.getId()
-                    + ")'>APPROVE</button></td>\n");
-            s.append("                    <td><button name='reject-" + player.getCode() + "' id='reject-" + player.getCode()
-                    + "' onclick='rejectBuy(\"" + player.getCode() + "\", " + transaction.getId()
-                    + ")'>REJECT</button></td>\n");
+            if (note.length() == 0)
+                s.append("                    <td style=\"color:green; text-align:left;\">OK</td>\n");
+            else
+                s.append("                    <td style=\"color:red; text-align:left;\">" + note + "</td>\n");
+            if (noApprove)
+                s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-"
+                        + player.getCode() + "' style=\"color:grey;\" disabled>APPROVE</button></td>\n");
+            else
+                s.append("                    <td><button name=\"approve-" + player.getCode() + "\" id=\"approve-"
+                        + player.getCode() + "\" onclick=\"popupApproveBuy('" + player.getCode() + "', " + transaction.getId()
+                        + ");\">APPROVE</button></td>\n");
+            s.append("                    <td><button name=\"reject-" + player.getCode() + "\" id=\"reject-" + player.getCode()
+                    + "\" onclick=\"popupRejectBuy('" + player.getCode() + "', " + transaction.getId()
+                    + ");\">REJECT</button></td>\n");
             s.append("                  </tr>\n");
         }
         s.append("                </tbody>\n");
         s.append("           </table>\n");
         s.append("        </div>\n");
         return s.toString();
+    }
+
+    public static void makeHouseBuyDecisionPopup(final FacilitatorData data)
+    {
+        // s.append(" <td><input type='text' class='buy-comment' name='comment-" + player.getCode()
+        // + "' id='comment-" + player.getCode() + "' /></td>\n");
     }
 
     public static String makeHouseSellDecisionTable(final FacilitatorData data)
@@ -947,8 +995,8 @@ public class FacilitatorServlet extends HttpServlet
 
         StringBuilder s = new StringBuilder();
         s.append("        <h1>Selling / staying requests</h1>");
-        s.append("        <p>Ensure all players have sufficient time to send their requests before handling them.</p>");
-        s.append("        <p>This way, requests that need the facilitator's attention can be flagged in red.</p>");
+        s.append("        <p>Ensure all players have sufficient time to send their requests before handling them.<br />");
+        s.append("        This way, requests that need the facilitator's attention can be flagged as a note in red.</p>");
         s.append("        <div class=\"hg-fac-table\">\n");
         s.append("          <table class=\"pmd table table-striped\" style=\"text-align:center;\">\n");
         s.append("                <thead>\n");
@@ -1039,7 +1087,7 @@ public class FacilitatorServlet extends HttpServlet
         data.getContentHtml().put("facilitator/tables", s.toString());
     }
 
-    private static List<HousetransactionRecord> getUnapprovedBuyTransactions(final FacilitatorData data)
+    public static List<HousetransactionRecord> getUnapprovedBuyTransactions(final FacilitatorData data)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         return dslContext.selectFrom(Tables.HOUSETRANSACTION)
@@ -1048,7 +1096,7 @@ public class FacilitatorServlet extends HttpServlet
                 .fetch();
     }
 
-    private static List<HousetransactionRecord> getUnapprovedSellStayTransactions(final FacilitatorData data)
+    public static List<HousetransactionRecord> getUnapprovedSellStayTransactions(final FacilitatorData data)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         var sellList = dslContext.selectFrom(Tables.HOUSETRANSACTION)
@@ -1332,7 +1380,6 @@ public class FacilitatorServlet extends HttpServlet
         parameterMap.put("buy-price", "" + buyPrice);
         ModalWindowUtils.make2ButtonModalWindow(data, "Confirm house allocation?", content, "YES", "buy-house-ok", "NO", "", "",
                 parameterMap);
-        data.setShowModalWindow(1);
     }
 
     public static void handleHouseBuy(final FacilitatorData data, final HttpServletRequest request)

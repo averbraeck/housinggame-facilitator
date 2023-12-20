@@ -469,57 +469,86 @@ body {
       
     </div>
   </div>
+  
+  
+  <!-- modal window for approval / rejection -->
 
   ${facilitatorData.getModalWindowHtml()}
 
+  <!-- div class="hg-modal" id="hg-modal" style="display:none;">
+    <div class="hg-modal">");
+      <div class="hg-modal-window" id="hg-modal-window">
+      </div>
+    </div>
+  </div>
+  <script>
+    dragElement(document.getElementById("hg-modal-window"));
+  </script -->
+
+
+  <!-- ---------------------------- scripts ---------------------------- -->
+
   <script type="text/javascript">
-      $(document).ready(function() {
-        reloadTables();
+
+  $(document).ready(function() {
+      reloadTables();
+    });
+    
+    function reloadTables() {
+      $.post("/housinggame-facilitator/reload-tables", {
+        reloadTables : 'true'
+      }, function(data, status) {
+        var tableDiv = document.getElementById("facilitator-tables");
+        tableDiv.innerHTML = data;
+        setTimeout(reloadTables, 2500);
       });
-      function reloadTables() {
-        // store input values before reloading
-        var comments = new Array();
-        var ids = new Array();
-        $(".buy-comment").map(
-             function() {
-                comments.push($(this).val());
-                ids.push($(this).attr('id'));
-             });
-        var active = document.activeElement;
-        console.log("comments: " + comments + ", ids: " + ids);
-        $.post("/housinggame-facilitator/reload-tables", {
-          reloadTables : 'true'
-        }, function(data, status) {
-          var tableDiv = document
-              .getElementById("facilitator-tables");
-          tableDiv.innerHTML = data;
-          // return input values after relaoding
-          for (let i = 0; i < ids.length; i++) {
-              $("#" + ids[i]).val(comments[i]);
-          }
-          active.focus();
-          setTimeout(reloadTables, 5000);
-        });
-      }
-      function approveBuy(playerCode, transactionId) {
-         var $comment=$("#comment-" + playerCode).val();
-         $.post("/housinggame-facilitator/approve-buy", {
-             playerCode : JSON.stringify(playerCode),
-             transactionId : JSON.stringify(transactionId),
-             comment: JSON.stringify($comment),
-             approve: 'APPROVE'
-           });
-      }
-      function rejectBuy(playerCode, transactionId) {
-          var $comment=$("#comment-" + playerCode).val();
-          $.post("/housinggame-facilitator/approve-buy", {
-              playerCode : JSON.stringify(playerCode),
-              transactionId : JSON.stringify(transactionId),
-              comment: JSON.stringify($comment),
-              approve: 'REJECT'
-            });
-      }
-    </script>
+    }
+
+    function popupApproveBuy(playerCode, transactionId) {
+      $.post("/housinggame-facilitator/popup-buy", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        approve: 'APPROVE'
+      }, function(status) {
+    	  window.location.reload();
+      });
+    }
+
+    function popupRejectBuy(playerCode, transactionId) {
+      $.post("/housinggame-facilitator/popup-buy", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        approve: 'REJECT'
+      }, function(status) {
+          window.location.reload();
+      });
+    }
+
+    function approveBuy(playerCode, transactionId) {
+      var comment=$("#comment-buy").val();
+      $.post("/housinggame-facilitator/approve-buy", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        comment: JSON.stringify(comment),
+        approve: 'APPROVE'
+      }, function(status) {
+          window.location.href="/housinggame-facilitator/facilitator";
+      });
+    }
+
+    function rejectBuy(playerCode, transactionId) {
+      var comment=$("#comment-buy").val();
+      $.post("/housinggame-facilitator/approve-buy", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        comment: JSON.stringify(comment),
+        approve: 'REJECT'
+      }, function(status) {
+          window.location.href="/housinggame-facilitator/facilitator";
+      });
+    }
+
+  </script>
 
 </body>
 

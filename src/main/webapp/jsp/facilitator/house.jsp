@@ -126,23 +126,23 @@ body {
         
         
         <div class="hg-fac-accordion">
-			    <div class="panel-group pmd-accordion" id="facilitator-accordion" role="tablist" aria-multiselectable="true" > 
-			      
-			      <div class="panel panel-default"> 
-			        <div class="panel-heading" role="tab" id="heading1">
-			          <h4 class="panel-title">
-			            <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse1" aria-expanded="true" 
-			              aria-controls="collapse1" data-expandable="false">
-			              Rounds
-			              <i class="material-icons md-dark pmd-sm pmd-accordion-arrow">
-			                keyboard_arrow_down
-			              </i>
-			            </a>
-			          </h4>
-			        </div>
-			        <div id="collapse1" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading1">
-			          <div class="panel-body">
-			            <div class="hg-grid2-left">
+          <div class="panel-group pmd-accordion" id="facilitator-accordion" role="tablist" aria-multiselectable="true" > 
+            
+            <div class="panel panel-default"> 
+              <div class="panel-heading" role="tab" id="heading1">
+                <h4 class="panel-title">
+                  <a data-toggle="collapse" data-parent="#facilitator-accordion" href="#collapse1" aria-expanded="true" 
+                    aria-controls="collapse1" data-expandable="false">
+                    Rounds
+                    <i class="material-icons md-dark pmd-sm pmd-accordion-arrow">
+                      keyboard_arrow_down
+                    </i>
+                  </a>
+                </h4>
+              </div>
+              <div id="collapse1" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading1">
+                <div class="panel-body">
+                  <div class="hg-grid2-left">
                      <div>
                        Allow the minimum <br/>
                        number of players to <br/> 
@@ -152,10 +152,10 @@ body {
                      <div>
                        <button disabled="disabled">START NEW ROUND</button>
                      </div>
-			            </div>
-			          </div>
-			        </div>
-			      </div> <!-- item 1: Round -->
+                  </div>
+                </div>
+              </div>
+            </div> <!-- item 1: Round -->
 
              <div class="panel panel-default"> 
                <div class="panel-heading" role="tab" id="heading2">
@@ -390,10 +390,10 @@ body {
             </div>
             <div class="hg-fac-item">
               <form action="/housinggame-facilitator/jsp/facilitator/login.jsp" method="post">
-					      <div class="hg-button">
-					        <input type="submit" value='logout' class="btn" />
-					      </div>
-					    </form>
+                <div class="hg-button">
+                  <input type="submit" value='logout' class="btn" />
+                </div>
+              </form>
             </div>
           </div>
         </div>
