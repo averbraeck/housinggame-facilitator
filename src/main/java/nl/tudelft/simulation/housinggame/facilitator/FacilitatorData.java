@@ -78,7 +78,7 @@ public class FacilitatorData
     /** Content that ready for the jsp page to display. */
     private Map<String, String> contentHtmlMap = new HashMap<>();
 
-    /** when 0, do not show popup; when 1: show popup. filled and updated by RoundServlet. */
+    /** when 0, do not show popup; when 1: show popup; when 2: refresh screen INCLUDING modal window. See ModalWindowUtils. */
     private int showModalWindow = 0;
 
     /** client info (dynamic) for popup. */
