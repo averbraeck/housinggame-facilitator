@@ -155,7 +155,7 @@ html, body {
 
 <%
   if(session.getAttribute("facilitatorData") == null) {
-	  FacilitatorData facilitatorData = SessionUtils.getData(session);
+    FacilitatorData facilitatorData = SessionUtils.getData(session);
   }
 %>
 
