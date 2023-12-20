@@ -82,22 +82,29 @@ public class PopupBuyServlet extends HttpServlet
 
                 StringBuilder s = new StringBuilder();
 
-                s.append("Player code: " + player.getCode() + "<br/>\n");
-                s.append("Maximum mortgage: " + data.k(playerRound.getMaximumMortgage()) + "<br/>\n");
-                s.append("Spendable inclme: " + data.k(playerRound.getSpendableIncome()) + "<br/>\n");
+                s.append("<table style=\"border:none; width:100%;\"><tr>\n");
+                s.append("  <td style=\"align:left; width:50%;\">\n");
+                s.append("    Player code: " + player.getCode() + "<br/>\n");
+                s.append("    Maximum mortgage: " + data.k(playerRound.getMaximumMortgage()) + "<br/>\n");
+                s.append("    Spendable income: " + data.k(playerRound.getSpendableIncome()) + "<br/>\n");
                 int maxHousePrice = playerRound.getMaximumMortgage() + playerRound.getSpendableIncome();
-                s.append("Maximum house price: " + data.k(maxHousePrice) + "<br/>\n");
-                s.append("House address: " + hgr.getCode() + "<br/>\n");
-                s.append("House market value: " + data.k(hgr.getMarketValue()) + "<br/>\n");
-                s.append("Entered price: " + data.k(transaction.getPrice()) + "<br/>\n");
+                s.append("    Maximum house price: " + data.k(maxHousePrice) + "<br/>\n");
+                s.append("  </td>\n");
+                s.append("  <td style=\"align:left; width:50%;\">\n");
+                s.append("    House address: " + hgr.getCode() + "<br/>\n");
+                s.append("    House market value: " + data.k(hgr.getMarketValue()) + "<br/>\n");
+                s.append("    Entered price: " + data.k(transaction.getPrice()) + "<br/>\n");
+                s.append("  </td>\n");
+                s.append("</tr></table>\n");
 
                 if (note.length() > 0)
                 {
-                    s.append("<p style=\"color:red;\">\n");
+                    s.append("<p style=\"color:red; text-align:left;\">\n");
                     s.append(note);
                     s.append("</p>\n");
                 }
 
+                s.append("<br/>\n");
                 s.append("<div class=\"form-group pmd-textfield\">\n");
                 s.append("  <label for=\"comment-buy\">Comment:</label>\n");
                 s.append("  <input type=\"text\" id=\"comment-buy\" name=\"comment-buy\" class=\"form-control\" "
