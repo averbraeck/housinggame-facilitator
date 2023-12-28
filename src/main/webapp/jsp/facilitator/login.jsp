@@ -8,6 +8,9 @@
 <meta charset="ISO-8859-1">
 <title>Housing Game Facilitator Login</title>
 
+<!--  favicon -->
+<link rel="shortcut icon" href="/housinggame-facilitator/favicon.ico" type="image/x-icon">
+
 <style>
 html, body {
   font-family: Roboto, Arial, Helvetica, sans-serif;
