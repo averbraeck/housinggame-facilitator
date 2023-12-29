@@ -133,7 +133,7 @@ body {
           <div>Round:</div>
           <div>${facilitatorData.getCurrentRoundNumber() }</div>
           <div>State:</div>
-          <div>${facilitatorData.getCurrentGroupRound().getRoundState() }</div>
+          <div>${facilitatorData.getCurrentGroupRound().getGroupState() }</div>
         </div>
         <br />
       </div>
