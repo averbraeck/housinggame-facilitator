@@ -19,7 +19,7 @@ import org.jooq.impl.DSL;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import nl.tudelft.simulation.housinggame.common.RoundState;
+import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
@@ -208,7 +208,7 @@ public class FacilitatorData
                 groupRound.setRoundNumber(0);
                 groupRound.setFluvialFloodIntensity(0);
                 groupRound.setPluvialFloodIntensity(0);
-                groupRound.setRoundState(RoundState.LOGIN.toString());
+                groupRound.setGroupState(GroupState.LOGIN.toString());
                 groupRound.store();
                 this.groupRoundList.add(groupRound);
                 this.currentRoundNumber = 0;
@@ -245,11 +245,11 @@ public class FacilitatorData
         return this.groupRoundList.isEmpty() ? null : this.groupRoundList.get(this.currentRoundNumber);
     }
 
-    public RoundState getRoundState()
+    public GroupState getGroupState()
     {
         if (getCurrentGroupRound() == null)
-            return RoundState.LOGIN;
-        return RoundState.valueOf(getCurrentGroupRound().getRoundState());
+            return GroupState.LOGIN;
+        return GroupState.valueOf(getCurrentGroupRound().getGroupState());
     }
 
     public int getCurrentRoundNumber()
@@ -346,9 +346,9 @@ public class FacilitatorData
             return Integer.toString(nr / 1000) + " k";
     }
 
-    public boolean isState(final RoundState state)
+    public boolean isState(final GroupState state)
     {
-        return getRoundState().eq(state);
+        return getGroupState().eq(state);
     }
 
     public HousegroupRecord getApprovedHouseGroupForPlayerRound(final PlayerroundRecord playerRound)

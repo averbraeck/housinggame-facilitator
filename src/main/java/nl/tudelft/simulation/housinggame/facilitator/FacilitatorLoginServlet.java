@@ -13,7 +13,7 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
-import nl.tudelft.simulation.housinggame.common.RoundState;
+import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
@@ -96,12 +96,12 @@ public class FacilitatorLoginServlet extends HttpServlet
                 else
                 {
                     data.readFacilitatorData(user, groupRecord);
-                    if (data.isState(RoundState.LOGIN))
+                    if (data.isState(GroupState.LOGIN))
                     {
                         if (data.getCurrentRoundNumber() == 0)
-                            data.getCurrentGroupRound().setRoundState(RoundState.LOGIN.toString());
+                            data.getCurrentGroupRound().setGroupState(GroupState.LOGIN.toString());
                         else
-                            data.getCurrentGroupRound().setRoundState(RoundState.NEW_ROUND.toString());
+                            data.getCurrentGroupRound().setGroupState(GroupState.NEW_ROUND.toString());
                         data.getCurrentGroupRound().store();
                     }
                 }

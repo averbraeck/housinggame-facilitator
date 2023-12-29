@@ -17,7 +17,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
 import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
-import nl.tudelft.simulation.housinggame.common.RoundState;
+import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.CommunityRecord;
@@ -100,7 +100,7 @@ public class ApproveBuyServlet extends HttpServlet
                     prr.store();
 
                     // calculate taxes if round has already moved beyond tax calculation
-                    if (RoundState.valueOf(data.getCurrentGroupRound().getRoundState()).nr >= RoundState.BUYING_FINISHED.nr)
+                    if (GroupState.valueOf(data.getCurrentGroupRound().getGroupState()).nr >= GroupState.BUYING_FINISHED.nr)
                         calculateTaxes(data, prr);
                 }
                 else
