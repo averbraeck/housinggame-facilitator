@@ -589,6 +589,8 @@ public class FacilitatorServlet extends HttpServlet
             }
         }
 
+        // TODO: tax increases based on measures
+
         for (var playerRound : data.getPlayerRoundList())
         {
             if (playerRound.getFinalHousegroupId() != null)

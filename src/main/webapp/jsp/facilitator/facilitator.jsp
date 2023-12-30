@@ -297,7 +297,7 @@ body {
                 <div class="hg-grid2-left-right">
                   <div>
                     Explain that they can buy <br /> satisfaction or flood <br /> measures to protect their <br />
-                    property. Explore the measures on the table.<br /> When ready, press <br /> ALLOW IMPROVEMENTS.
+                    property. Explore the <br />measures on the table.<br /> When ready, press <br /> ALLOW IMPROVEMENTS.
                   </div>
                   <form action="/housinggame-facilitator/facilitator" method="post">
                     <input type="hidden" name="button" value="allow-improvements" />
