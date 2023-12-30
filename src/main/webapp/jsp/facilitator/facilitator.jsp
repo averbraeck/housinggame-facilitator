@@ -264,7 +264,14 @@ body {
                       <div class="hg-button">
                         <input type="submit" value="FINISH BUYING"
                           class='${facilitatorData.getContentHtml("button/finish-buying") }' />
-                        <br/>&amp; calculate taxes
+                      </div>
+                    </form>
+                    <form action="/housinggame-facilitator/facilitator" method="post"
+                      style="margin-top: 10px; margin-bottom: 10px;">
+                      <input type="hidden" name="button" value="show-taxes" />
+                      <div class="hg-button">
+                        <input type="submit" value="CALCULATE TAXES"
+                          class='${facilitatorData.getContentHtml("button/show-taxes") }' />
                       </div>
                     </form>
                   </div>

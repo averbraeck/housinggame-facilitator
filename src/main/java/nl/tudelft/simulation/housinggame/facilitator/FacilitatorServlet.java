@@ -192,10 +192,15 @@ public class FacilitatorServlet extends HttpServlet
         }
         else if (button.equals("finish-buying-ok"))
         {
-            calculateTaxes(data);
             data.getCurrentGroupRound().setGroupState(GroupState.BUYING_FINISHED.toString());
             data.getCurrentGroupRound().store();
             data.setMenuState("House");
+        }
+        else if (button.equals("show-taxes"))
+        {
+            calculateTaxes(data);
+            data.getCurrentGroupRound().setGroupState(GroupState.SHOW_TAXES.toString());
+            data.getCurrentGroupRound().store();
         }
         else if (button.equals("allow-improvements"))
         {
@@ -236,8 +241,8 @@ public class FacilitatorServlet extends HttpServlet
     public void prepareAccordionButtons(final FacilitatorData data, final HttpServletRequest request)
     {
         for (String b : new String[] {"start-new-round", "announce-news", "show-houses", "allow-selling", "finish-selling",
-                "allow-buying", "finish-buying", "allow-improvements", "show-survey", "complete-survey", "roll-dice",
-                "show-summary"})
+                "allow-buying", "finish-buying", "show-taxes", "allow-improvements", "show-survey", "complete-survey",
+                "roll-dice", "show-summary"})
             data.putContentHtml("button/" + b, "btn btn-inactive");
         for (String a : new String[] {"round", "news", "houses", "improvements", "survey", "dice", "summary"})
             data.putContentHtml("accordion/" + a, "");
@@ -280,6 +285,11 @@ public class FacilitatorServlet extends HttpServlet
         else if (data.getGroupState().eq(GroupState.BUYING_FINISHED))
         {
             data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
+            data.putContentHtml("accordion/houses", "in");
+        }
+        else if (data.getGroupState().eq(GroupState.SHOW_TAXES))
+        {
+            data.putContentHtml("button/show-taxes", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
         }
         else if (data.getGroupState().eq(GroupState.ALLOW_IMPROVEMENTS))
