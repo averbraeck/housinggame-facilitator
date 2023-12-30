@@ -284,12 +284,12 @@ public class FacilitatorServlet extends HttpServlet
         }
         else if (data.getGroupState().eq(GroupState.BUYING_FINISHED))
         {
-            data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
+            data.putContentHtml("button/show-taxes", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
         }
         else if (data.getGroupState().eq(GroupState.SHOW_TAXES))
         {
-            data.putContentHtml("button/show-taxes", "btn btn-primary btn-active");
+            data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
         }
         else if (data.getGroupState().eq(GroupState.ALLOW_IMPROVEMENTS))
