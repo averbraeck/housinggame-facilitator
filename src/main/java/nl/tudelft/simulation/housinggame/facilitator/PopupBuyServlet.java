@@ -41,9 +41,6 @@ public class PopupBuyServlet extends HttpServlet
 
         if (request.getParameter("playerCode") != null && request.getParameter("transactionId") != null)
         {
-            System.out.println("POPUP BUY - " + request.getParameter("approve") + " player "
-                    + request.getParameter("playerCode") + ", comment: " + request.getParameter("comment")
-                    + ", transactionId = " + request.getParameter("transactionId"));
             try
             {
                 List<HousetransactionRecord> unapprovedBuyTransactions = FacilitatorServlet.getUnapprovedBuyTransactions(data);

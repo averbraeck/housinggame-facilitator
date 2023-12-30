@@ -48,10 +48,6 @@ public class ApproveBuyServlet extends HttpServlet
 
         if (request.getParameter("playerCode") != null && request.getParameter("transactionId") != null)
         {
-            System.out.println(
-                    "BUY - " + request.getParameter("approve") + " player " + request.getParameter("playerCode") + ", comment: "
-                            + request.getParameter("comment") + ", transactionId = " + request.getParameter("transactionId"));
-
             try
             {
                 String transactionIdStr = SessionUtils.stripQuotes(request.getParameter("transactionId"));
