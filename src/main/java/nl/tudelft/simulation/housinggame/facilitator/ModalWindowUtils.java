@@ -43,7 +43,6 @@ public class ModalWindowUtils
         s.append("        </div>\n"); // hg-hg-modal-body
         s.append("      </div>\n"); // hg-modal-window
         s.append("    </div>\n"); // hg-modal
-        s.append("  </form>\n");
         s.append("  <script>");
         s.append("    dragElement(document.getElementById(\"hg-modal-window\"));");
         s.append("  </script>");
@@ -106,7 +105,6 @@ public class ModalWindowUtils
         s.append("        </div>\n"); // hg-hg-modal-body
         s.append("      </div>\n"); // hg-modal-window
         s.append("    </div>\n"); // hg-modal
-        s.append("  </form>\n");
         s.append("  <script>");
         s.append("    dragElement(document.getElementById(\"hg-modal-window\"));");
         s.append("  </script>");
@@ -121,6 +119,46 @@ public class ModalWindowUtils
     {
         make2ButtonModalWindow(data, title, content, buttonText1, buttonReturn1, buttonText2, buttonReturn2, closeReturn,
                 new HashMap<>());
+    }
+
+    public static void makeErrorModalWindow(final FacilitatorData data, final String title, final String content)
+    {
+        StringBuilder s = new StringBuilder();
+        s.append("  <div class=\"hg-modal\">\n");
+        s.append("    <div class=\"hg-modal-window\" id=\"hg-modal-window\">\n");
+        s.append("      <div class=\"hg-modal-window-header\">");
+        // TODO close button at the right
+        s.append("        <p>");
+        s.append(title);
+        s.append("</p>\n");
+        s.append("      </div>\n"); // hg-modal-window-header
+        s.append("      <div class=\"hg-modal-body\">");
+        s.append("        <div class=\"hg-modal-text\">\n");
+        s.append("          <p>\n");
+        s.append(content);
+        s.append("          </p>\n");
+        s.append("        </div>\n"); // hg-modal-text
+        s.append("        <div class=\"hg-modal-button-row\">\n");
+
+        s.append("          <div>\n");
+        s.append("            <form action=\"/housinggame-facilitator/facilitator\" method=\"post\">\n");
+        s.append("              <div class=\"hg-button\">\n");
+        s.append("                <input type=\"submit\" value=\"OK\" class=\"btn btn-primary\" />\n");
+        s.append("              </div>\n");
+        s.append("            </form>\n");
+        s.append("          </div>\n");
+
+        s.append("          <div>\n");
+        s.append("        </div>\n"); // hg-modal-button-row
+        s.append("      </div>\n"); // hg-hg-modal-body
+        s.append("    </div>\n"); // hg-modal-window
+        s.append("  </div>\n"); // hg-modal
+        s.append("  <script>");
+        s.append("    dragElement(document.getElementById(\"hg-modal-window\"));");
+        s.append("  </script>");
+
+        data.setModalWindowHtml(s.toString());
+        data.setShowModalWindow(1);
     }
 
 }
