@@ -288,6 +288,11 @@ public class FacilitatorData
         return this.gameVersion;
     }
 
+    public ScenarioparametersRecord getScenarioParameters()
+    {
+        return this.scenarioParameters;
+    }
+
     public String getContentHtml(final String key)
     {
         return this.contentHtmlMap.containsKey(key) ? this.contentHtmlMap.get(key) : "";
