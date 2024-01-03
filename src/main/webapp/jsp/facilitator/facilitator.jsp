@@ -372,9 +372,13 @@ body {
                   </div>
                   <form action="/housinggame-facilitator/facilitator" method="post">
                     <input type="hidden" name="button" value="roll-dice" /> 
-                    <label for="pluvial">Pluvial dice roll:</label><br> 
+                    <label for="pluvial">
+                      Pluvial dice roll (1-" + ${facilitatorData.getScenarioParameters().getHighestPluvialScore() } + "):
+                    </label><br> 
                     <input type="number" id="pluvial" name="pluvial"><br> 
-                    <label for="fluvial">Fluvial dice roll:</label><br> 
+                    <label for="fluvial">
+                      Fluvial dice roll (1-" + ${facilitatorData.getScenarioParameters().getHighestFluvialScore() } + "):
+                    </label><br> 
                     <input type="number" id="fluvial" name="fluvial"><br>
                     <div class="hg-button">
                       <input type="submit" value="ROLL DICE, SHOW DAMAGE"
@@ -482,7 +486,8 @@ body {
 
   ${facilitatorData.getModalWindowHtml()}
 
-  <!-- div class="hg-modal" id="hg-modal" style="display:none;">
+  <!-- 
+  <div class="hg-modal" id="hg-modal" style="display:none;">
     <div class="hg-modal">");
       <div class="hg-modal-window" id="hg-modal-window">
       </div>
@@ -490,7 +495,8 @@ body {
   </div>
   <script>
     dragElement(document.getElementById("hg-modal-window"));
-  </script -->
+  </script>
+   -->
 
 
   <!-- ---------------------------- scripts ---------------------------- -->

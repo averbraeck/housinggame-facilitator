@@ -224,10 +224,7 @@ public class FacilitatorServlet extends HttpServlet
         }
         else if (button.equals("roll-dice"))
         {
-            // TODO: read dice values; check if dice values are valid. Popup if not -- ask to resubmit
-            // TODO: calculate the damage
-            data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
-            data.getCurrentGroupRound().store();
+            handleDiceRoll(data, request);
             data.setMenuState("Flood");
         }
         else if (button.equals("show-summary"))
@@ -1476,6 +1473,58 @@ public class FacilitatorServlet extends HttpServlet
     {
         MeasuretypeRecord measureType = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, ihmr.getMeasuretypeId());
         createMeasureForHouse(data, houseGroup, measureType, ihmr.getRoundNumber());
+    }
+
+    private static void handleDiceRoll(final FacilitatorData data, final HttpServletRequest request)
+    {
+        // read dice values; check if dice values are valid. Popup if incorrect -- ask to resubmit
+        String pluvialStr = request.getParameter("pluvial");
+        String fluvialStr = request.getParameter("fluvial");
+        if (pluvialStr == null || fluvialStr == null || pluvialStr.length() == 0 || fluvialStr.length() == 0)
+        {
+            ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values", "One or both of the dice values are blank");
+            return;
+        }
+        int pluvial = 0;
+        int fluvial = 0;
+        try
+        {
+            pluvial = Integer.parseInt(pluvialStr);
+            fluvial = Integer.parseInt(fluvialStr);
+        }
+        catch (Exception e)
+        {
+            ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
+                    "One or both of the dice values are incorrecct: " + e.getMessage());
+            return;
+        }
+        if (pluvial < 1 || pluvial > data.getScenarioParameters().getHighestPluvialScore())
+        {
+            ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
+                    "The pluvial dice value is not within the range 1-"
+                            + data.getScenarioParameters().getHighestPluvialScore());
+            return;
+        }
+        if (fluvial < 1 || fluvial > data.getScenarioParameters().getHighestFluvialScore())
+        {
+            ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
+                    "The fluvial dice value is not within the range 1-"
+                            + data.getScenarioParameters().getHighestFluvialScore());
+            return;
+        }
+
+        // store the dice rolls in the groupround
+        data.getCurrentGroupRound().setPluvialFloodIntensity(pluvial);
+        data.getCurrentGroupRound().setFluvialFloodIntensity(fluvial);
+        data.getCurrentGroupRound().store();
+
+        // calculate the damage
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+
+
+        // ok -- state changes to ROLLED_DICE
+        data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
+        data.getCurrentGroupRound().store();
     }
 
     @Override
