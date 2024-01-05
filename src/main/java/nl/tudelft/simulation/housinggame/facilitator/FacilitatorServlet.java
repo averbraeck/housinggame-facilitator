@@ -34,7 +34,6 @@ import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRec
 import nl.tudelft.simulation.housinggame.data.tables.records.InitialhousemeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.NewseffectsRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.NewsitemRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
@@ -1518,7 +1517,7 @@ public class FacilitatorServlet extends HttpServlet
         // store the dice rolls in the groupround
         data.getCurrentGroupRound().setPluvialFloodIntensity(pluvialIntensity);
         data.getCurrentGroupRound().setFluvialFloodIntensity(fluvialIntensity);
-        data.getCurrentGroupRound().store();
+        // data.getCurrentGroupRound().store();
 
         // retrieve the relevant house and player information
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
@@ -1578,19 +1577,123 @@ public class FacilitatorServlet extends HttpServlet
                 playerRound.setPluvialHouseDelta(houseGroup.getPluvialHouseProtection());
                 playerRound.setFluvialHouseDelta(houseGroup.getFluvialHouseProtection());
 
-                // calculate the damage cost and damage satisfaction penalty
+                // calculate the ddamage satisfaction penalties
+                if (pluvialCommunityDamage > 0 && params.getPluvialSatisfactionPenaltyIfAreaFlooded() != null)
+                {
+                    playerRound.setSatisfactionPluvialPenalty(params.getPluvialSatisfactionPenaltyIfAreaFlooded());
+                    playerRound.setPersonalSatisfaction(
+                            playerRound.getPersonalSatisfaction() - params.getPluvialSatisfactionPenaltyIfAreaFlooded());
+                }
 
-            }
+                if (fluvialCommunityDamage > 0 && params.getFluvialSatisfactionPenaltyIfAreaFlooded() != null)
+                {
+                    playerRound.setSatisfactionFluvialPenalty(params.getFluvialSatisfactionPenaltyIfAreaFlooded());
+                    playerRound.setPersonalSatisfaction(
+                            playerRound.getPersonalSatisfaction() - params.getFluvialSatisfactionPenaltyIfAreaFlooded());
+                }
+
+                if (pluvialHouseDamage > 0 && params.getPluvialSatisfactionPenaltyHouseFloodedFixed() != null)
+                {
+                    playerRound.setSatisfactionPluvialPenalty(playerRound.getSatisfactionPluvialPenalty()
+                            + params.getPluvialSatisfactionPenaltyHouseFloodedFixed());
+                    playerRound.setPersonalSatisfaction(
+                            playerRound.getPersonalSatisfaction() - params.getPluvialSatisfactionPenaltyHouseFloodedFixed());
+                }
+
+                if (fluvialHouseDamage > 0 && params.getFluvialSatisfactionPenaltyHouseFloodedFixed() != null)
+                {
+                    playerRound.setSatisfactionFluvialPenalty(playerRound.getSatisfactionFluvialPenalty()
+                            + params.getFluvialSatisfactionPenaltyHouseFloodedFixed());
+                    playerRound.setPersonalSatisfaction(
+                            playerRound.getPersonalSatisfaction() - params.getFluvialSatisfactionPenaltyHouseFloodedFixed());
+                }
+
+                if (pluvialHouseDamage > 0 && params.getPluvialSatisfactionPenaltyPerDamagePoint() != null)
+                {
+                    playerRound.setSatisfactionPluvialPenalty(playerRound.getSatisfactionPluvialPenalty()
+                            + pluvialHouseDamage * params.getPluvialSatisfactionPenaltyPerDamagePoint());
+                    playerRound.setPersonalSatisfaction(playerRound.getPersonalSatisfaction()
+                            - pluvialHouseDamage * params.getPluvialSatisfactionPenaltyPerDamagePoint());
+                }
+
+                if (fluvialHouseDamage > 0 && params.getFluvialSatisfactionPenaltyPerDamagePoint() != null)
+                {
+                    playerRound.setSatisfactionFluvialPenalty(playerRound.getSatisfactionFluvialPenalty()
+                            + fluvialHouseDamage * params.getFluvialSatisfactionPenaltyPerDamagePoint());
+                    playerRound.setPersonalSatisfaction(playerRound.getPersonalSatisfaction()
+                            - fluvialHouseDamage * params.getFluvialSatisfactionPenaltyPerDamagePoint());
+                }
+
+                // normalize the satisfaction scores if so dictated by the parameters
+                if (params.getAllowPersonalSatisfactionNeg() == 0)
+                    playerRound.setPersonalSatisfaction(Math.max(0, playerRound.getPersonalSatisfaction()));
+                if (params.getAllowTotalSatisfactionNeg() == 0)
+                    playerRound.setPersonalSatisfaction(
+                            Math.max(-houseGroup.getHouseSatisfaction(), playerRound.getPersonalSatisfaction()));
+
+                // calculate the damage cost
+                if (pluvialHouseDamage > 0 && params.getPluvialRepairCostsFixed() != null)
+                {
+                    playerRound.setCostPluvialDamage(params.getPluvialRepairCostsFixed());
+                    playerRound.setSpendableIncome(playerRound.getSpendableIncome() - params.getPluvialRepairCostsFixed());
+                }
+
+                if (fluvialHouseDamage > 0 && params.getFluvialRepairCostsFixed() != null)
+                {
+                    playerRound.setCostFluvialDamage(params.getFluvialRepairCostsFixed());
+                    playerRound.setSpendableIncome(playerRound.getSpendableIncome() - params.getFluvialRepairCostsFixed());
+                }
+
+                if (pluvialHouseDamage > 0 && params.getPluvialRepairCostsPerDamagePoint() != null)
+                {
+                    playerRound.setCostPluvialDamage(playerRound.getCostPluvialDamage()
+                            + pluvialHouseDamage * params.getPluvialRepairCostsPerDamagePoint());
+                    playerRound.setSpendableIncome(playerRound.getSpendableIncome()
+                            - pluvialHouseDamage * params.getPluvialRepairCostsPerDamagePoint());
+                }
+
+                if (fluvialHouseDamage > 0 && params.getFluvialRepairCostsPerDamagePoint() != null)
+                {
+                    playerRound.setCostFluvialDamage(playerRound.getCostFluvialDamage()
+                            + fluvialHouseDamage * params.getFluvialRepairCostsPerDamagePoint());
+                    playerRound.setSpendableIncome(playerRound.getSpendableIncome()
+                            - fluvialHouseDamage * params.getFluvialRepairCostsPerDamagePoint());
+                }
+
+                System.out.println(playerRound);
+                // playerRound.store();
+
+            } // if (houseGroup.getOwnerId() != null)
 
             // see if there are one-time measures that have been consumed, and adapt the protection and house satisfaction
             // TODO one-time measures
 
-            // update the market value of (all) houses, also based on damage in previous rounds
+            // update the market value of (all) houses, also based if an area was flooded (fluvial) in previous rounds
+            if (houseGroup.getLastRoundCommFluvial() != null
+                    && data.getCurrentRoundNumber() - houseGroup.getLastRoundCommFluvial().intValue() < 3)
+            {
+                int diff = data.getCurrentRoundNumber() - houseGroup.getLastRoundCommFluvial().intValue() + 1;
+                int discount = diff == 1 ? cumulativeNewsEffects.get(house.getCommunityId()).getDiscountRound1()
+                        : diff == 2 ? cumulativeNewsEffects.get(house.getCommunityId()).getDiscountRound2()
+                                : diff == 3 ? cumulativeNewsEffects.get(house.getCommunityId()).getDiscountRound3() : 0;
+                if (cumulativeNewsEffects.get(house.getCommunityId()).isDiscountEuros())
+                {
+                    houseGroup.setMarketValue(houseGroup.getOriginalPrice() - discount);
+                }
+                else
+                {
+                    houseGroup.setMarketValue((int) ((1.0 - discount / 100.0) * houseGroup.getOriginalPrice()));
+                }
+            }
 
-        }
+            System.out.println(houseGroup);
+            // houseGroup.store();
+
+        } // for (var houseGroup : houseGroupList)
 
         // ok -- state changes to ROLLED_DICE
-        // data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
+        data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
+        System.out.println(data.getCurrentGroupRound());
         // data.getCurrentGroupRound().store();
     }
 
