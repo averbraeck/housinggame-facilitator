@@ -112,6 +112,13 @@ body {
   disabled: true !important;
   cursor: not-allowed !important;
 }
+
+.hg-fac-table thead th {
+  color: white;
+  background-color: darkblue;
+  text-align: center;
+}
+
 </style>
 </head>
 
@@ -559,6 +566,10 @@ body {
       }, function(status) {
           window.location.href="/housinggame-facilitator/facilitator";
       });
+    }
+    
+    function floodRound(round) {
+      $('#hg-flood-round-' + round).submit();
     }
 
   </script>
