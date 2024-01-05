@@ -87,6 +87,9 @@ public class FacilitatorData
     /** the menu state of the facilitator app (right-hand side of the screen). */
     private String menuState = "Player";
 
+    /** the round for which the flood information is shown. */
+    private int floodInfoRoundNumber = -1;
+
     /* ******************* */
     /* GETTERS AND SETTERS */
     /* ******************* */
@@ -213,6 +216,10 @@ public class FacilitatorData
                 this.groupRoundList.add(groupRound);
                 this.currentRoundNumber = 0;
             }
+            if (this.floodInfoRoundNumber <= 0)
+                this.floodInfoRoundNumber = this.currentRoundNumber;
+            else if (!this.menuState.equals("Flood"))
+                this.floodInfoRoundNumber = this.currentRoundNumber;
         }
         finally
         {
@@ -255,6 +262,22 @@ public class FacilitatorData
     public int getCurrentRoundNumber()
     {
         return this.currentRoundNumber;
+    }
+
+    /**
+     * @return floodInfoRoundNumber
+     */
+    public int getFloodInfoRoundNumber()
+    {
+        return this.floodInfoRoundNumber;
+    }
+
+    /**
+     * @param floodInfoRoundNumber set floodInfoRoundNumber
+     */
+    public void setFloodInfoRoundNumber(final int floodInfoRoundNumber)
+    {
+        this.floodInfoRoundNumber = floodInfoRoundNumber;
     }
 
     /**
