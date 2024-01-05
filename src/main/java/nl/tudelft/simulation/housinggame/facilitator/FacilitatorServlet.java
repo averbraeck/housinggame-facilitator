@@ -20,9 +20,10 @@ import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
+import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
+import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
 import nl.tudelft.simulation.housinggame.common.PlayerState;
-import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.CommunityRecord;
@@ -33,6 +34,7 @@ import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRec
 import nl.tudelft.simulation.housinggame.data.tables.records.InitialhousemeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.NewseffectsRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.NewsitemRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
@@ -1485,12 +1487,12 @@ public class FacilitatorServlet extends HttpServlet
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values", "One or both of the dice values are blank");
             return;
         }
-        int pluvial = 0;
-        int fluvial = 0;
+        int pluvialIntensity = 0;
+        int fluvialIntensity = 0;
         try
         {
-            pluvial = Integer.parseInt(pluvialStr);
-            fluvial = Integer.parseInt(fluvialStr);
+            pluvialIntensity = Integer.parseInt(pluvialStr);
+            fluvialIntensity = Integer.parseInt(fluvialStr);
         }
         catch (Exception e)
         {
@@ -1498,14 +1500,14 @@ public class FacilitatorServlet extends HttpServlet
                     "One or both of the dice values are incorrecct: " + e.getMessage());
             return;
         }
-        if (pluvial < 1 || pluvial > data.getScenarioParameters().getHighestPluvialScore())
+        if (pluvialIntensity < 1 || pluvialIntensity > data.getScenarioParameters().getHighestPluvialScore())
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
                     "The pluvial dice value is not within the range 1-"
                             + data.getScenarioParameters().getHighestPluvialScore());
             return;
         }
-        if (fluvial < 1 || fluvial > data.getScenarioParameters().getHighestFluvialScore())
+        if (fluvialIntensity < 1 || fluvialIntensity > data.getScenarioParameters().getHighestFluvialScore())
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
                     "The fluvial dice value is not within the range 1-"
@@ -1514,17 +1516,82 @@ public class FacilitatorServlet extends HttpServlet
         }
 
         // store the dice rolls in the groupround
-        data.getCurrentGroupRound().setPluvialFloodIntensity(pluvial);
-        data.getCurrentGroupRound().setFluvialFloodIntensity(fluvial);
+        data.getCurrentGroupRound().setPluvialFloodIntensity(pluvialIntensity);
+        data.getCurrentGroupRound().setFluvialFloodIntensity(fluvialIntensity);
         data.getCurrentGroupRound().store();
 
-        // calculate the damage
+        // retrieve the relevant house and player information
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        List<HousegroupRecord> houseGroupList = dslContext.selectFrom(Tables.HOUSEGROUP)
+                .where(Tables.HOUSEGROUP.GROUP_ID.eq(data.getCurrentGroupRound().getGroupId())).fetch();
+        Map<Integer, HousegroupRecord> playerHouseGroupMap = new HashMap<>();
+        for (var houseGroup : houseGroupList)
+        {
+            if (houseGroup.getOwnerId() != null)
+                playerHouseGroupMap.put(houseGroup.getOwnerId(), houseGroup);
+        }
+        List<PlayerroundRecord> playerRoundList = dslContext.selectFrom(Tables.PLAYERROUND)
+                .where(Tables.PLAYERROUND.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())).fetch();
+        Map<Integer, PlayerroundRecord> playerRoundMap = new HashMap<>();
+        for (var playerRound : playerRoundList)
+            playerRoundMap.put(playerRound.getPlayerId(), playerRound);
 
+        // get the NewsEffects per community
+        var cumulativeNewsEffects = CumulativeNewsEffects.readCumulativeNewsEffects(data.getDataSource(), data.getScenario(),
+                data.getCurrentRoundNumber());
+        var params = data.getScenarioParameters();
+
+        // check the protection of the communities and houses
+        for (var houseGroup : houseGroupList)
+        {
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+            int ppDelta = cumulativeNewsEffects.get(house.getCommunityId()).getPluvialProtectionDelta();
+            int pluvialCommunityProtection = houseGroup.getPluvialBaseProtection() + ppDelta;
+            int fpDelta = cumulativeNewsEffects.get(house.getCommunityId()).getFluvialProtectionDelta();
+            int fluvialCommunityProtection = houseGroup.getFluvialBaseProtection() + fpDelta;
+            int pluvialHouseProtection = pluvialCommunityProtection + houseGroup.getPluvialHouseProtection();
+            int fluvialHouseProtection = fluvialCommunityProtection + houseGroup.getFluvialHouseProtection();
+
+            int pluvialCommunityDamage = pluvialIntensity - pluvialCommunityProtection;
+            int fluvialCommunityDamage = fluvialIntensity - fluvialCommunityProtection;
+            int pluvialHouseDamage = pluvialIntensity - pluvialHouseProtection;
+            int fluvialHouseDamage = fluvialIntensity - fluvialHouseProtection;
+
+            // set the last round where damage happened
+            if (pluvialCommunityDamage > 0)
+                houseGroup.setLastRoundCommPluvial(data.getCurrentRoundNumber());
+            if (fluvialCommunityDamage > 0)
+                houseGroup.setLastRoundCommFluvial(data.getCurrentRoundNumber());
+            if (pluvialHouseDamage > 0)
+                houseGroup.setLastRoundHousePluvial(data.getCurrentRoundNumber());
+            if (fluvialHouseDamage > 0)
+                houseGroup.setLastRoundHouseFluvial(data.getCurrentRoundNumber());
+
+            // check if a player owns this house in this round, and set the protection data for the playerround
+            if (houseGroup.getOwnerId() != null && playerRoundMap.get(houseGroup.getOwnerId()) != null)
+            {
+                var playerRound = playerRoundMap.get(houseGroup.getOwnerId());
+                playerRound.setPluvialBaseProtection(houseGroup.getPluvialBaseProtection());
+                playerRound.setFluvialBaseProtection(houseGroup.getFluvialBaseProtection());
+                playerRound.setPluvialCommunityDelta(ppDelta);
+                playerRound.setFluvialCommunityDelta(fpDelta);
+                playerRound.setPluvialHouseDelta(houseGroup.getPluvialHouseProtection());
+                playerRound.setFluvialHouseDelta(houseGroup.getFluvialHouseProtection());
+
+                // calculate the damage cost and damage satisfaction penalty
+
+            }
+
+            // see if there are one-time measures that have been consumed, and adapt the protection and house satisfaction
+            // TODO one-time measures
+
+            // update the market value of (all) houses, also based on damage in previous rounds
+
+        }
 
         // ok -- state changes to ROLLED_DICE
-        data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
-        data.getCurrentGroupRound().store();
+        // data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
+        // data.getCurrentGroupRound().store();
     }
 
     @Override

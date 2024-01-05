@@ -373,11 +373,11 @@ body {
                   <form action="/housinggame-facilitator/facilitator" method="post">
                     <input type="hidden" name="button" value="roll-dice" /> 
                     <label for="pluvial">
-                      Pluvial dice roll (1-" + ${facilitatorData.getScenarioParameters().getHighestPluvialScore() } + "):
+                      Pluvial dice roll (1-${facilitatorData.getScenarioParameters().getHighestPluvialScore() }):
                     </label><br> 
                     <input type="number" id="pluvial" name="pluvial"><br> 
                     <label for="fluvial">
-                      Fluvial dice roll (1-" + ${facilitatorData.getScenarioParameters().getHighestFluvialScore() } + "):
+                      Fluvial dice roll (1-${facilitatorData.getScenarioParameters().getHighestFluvialScore() }):
                     </label><br> 
                     <input type="number" id="fluvial" name="fluvial"><br>
                     <div class="hg-button">
