@@ -1793,7 +1793,7 @@ public class FacilitatorServlet extends HttpServlet
                 playerRound.setPluvialHouseDelta(houseGroup.getPluvialHouseProtection());
                 playerRound.setFluvialHouseDelta(houseGroup.getFluvialHouseProtection());
 
-                // calculate the ddamage satisfaction penalties
+                // calculate the damage satisfaction penalties
                 if (pluvialCommunityDamage > 0 && params.getPluvialSatisfactionPenaltyIfAreaFlooded() != null)
                 {
                     playerRound.setSatisfactionPluvialPenalty(params.getPluvialSatisfactionPenaltyIfAreaFlooded());
