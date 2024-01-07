@@ -12,8 +12,8 @@ import javax.servlet.http.HttpSession;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 
-@WebServlet("/approve-sell")
-public class ApproveSellServlet extends HttpServlet
+@WebServlet("/approve-reject-sell")
+public class ApproveRejectSellServlet extends HttpServlet
 {
     /** */
     private static final long serialVersionUID = 1L;
@@ -35,7 +35,7 @@ public class ApproveSellServlet extends HttpServlet
         {
             try
             {
-                System.out.println("SELL/STAY - " + request.getParameter("approve") + " player "
+                System.out.println("SELL - " + request.getParameter("approve") + " player "
                         + request.getParameter("playerCode") + ", comment: " + request.getParameter("comment") + ", hgrId = "
                         + request.getParameter("hgrId"));
                 int hgrId = Integer.valueOf(request.getParameter("hgrId"));
