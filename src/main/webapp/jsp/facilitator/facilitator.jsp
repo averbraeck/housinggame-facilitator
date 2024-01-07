@@ -546,7 +546,7 @@ body {
 
     function approveBuy(playerCode, transactionId) {
       var comment=$("#comment-buy").val();
-      $.post("/housinggame-facilitator/approve-buy", {
+      $.post("/housinggame-facilitator/approve-reject-buy", {
         playerCode : JSON.stringify(playerCode),
         transactionId : JSON.stringify(transactionId),
         comment: JSON.stringify(comment),
@@ -558,7 +558,7 @@ body {
 
     function rejectBuy(playerCode, transactionId) {
       var comment=$("#comment-buy").val();
-      $.post("/housinggame-facilitator/approve-buy", {
+      $.post("/housinggame-facilitator/approve-reject-buy", {
         playerCode : JSON.stringify(playerCode),
         transactionId : JSON.stringify(transactionId),
         comment: JSON.stringify(comment),

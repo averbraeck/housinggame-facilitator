@@ -27,8 +27,8 @@ import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRec
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.TaxRecord;
 
-@WebServlet("/approve-buy")
-public class ApproveBuyServlet extends HttpServlet
+@WebServlet("/approve-reject-buy")
+public class ApproveRejectBuyServlet extends HttpServlet
 {
     /** */
     private static final long serialVersionUID = 1L;
