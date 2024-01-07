@@ -510,7 +510,7 @@ body {
 
   <script type="text/javascript">
 
-  $(document).ready(function() {
+    $(document).ready(function() {
       reloadTables();
     });
     
@@ -524,6 +524,8 @@ body {
       });
     }
 
+    // Buying popups and handling 
+    
     function popupApproveBuy(playerCode, transactionId) {
       $.post("/housinggame-facilitator/popup-buy", {
         playerCode : JSON.stringify(playerCode),
@@ -567,6 +569,100 @@ body {
           window.location.href="/housinggame-facilitator/facilitator";
       });
     }
+    
+    // Staying popups and handling
+    
+    function popupApproveStay(playerCode, transactionId) {
+      $.post("/housinggame-facilitator/popup-stay", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        approve: 'APPROVE'
+      }, function(status) {
+        window.location.reload();
+      });
+    }
+
+    function popupRejectStay(playerCode, transactionId) {
+      $.post("/housinggame-facilitator/popup-stay", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        approve: 'REJECT'
+      }, function(status) {
+          window.location.reload();
+      });
+    }
+
+    function approveStay(playerCode, transactionId) {
+      var comment=$("#comment-stay").val();
+      $.post("/housinggame-facilitator/approve-reject-stay", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        comment: JSON.stringify(comment),
+        approve: 'APPROVE'
+      }, function(status) {
+          window.location.href="/housinggame-facilitator/facilitator";
+      });
+    }
+
+    function rejectStay(playerCode, transactionId) {
+      var comment=$("#comment-stay").val();
+      $.post("/housinggame-facilitator/approve-reject-stay", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        comment: JSON.stringify(comment),
+        approve: 'REJECT'
+      }, function(status) {
+          window.location.href="/housinggame-facilitator/facilitator";
+      });
+    }
+
+    // Selling popup and handling
+    
+    function popupApproveSell(playerCode, transactionId) {
+      $.post("/housinggame-facilitator/popup-sell", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        approve: 'APPROVE'
+      }, function(status) {
+        window.location.reload();
+      });
+    }
+
+    function popupRejectSell(playerCode, transactionId) {
+      $.post("/housinggame-facilitator/popup-sell", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        approve: 'REJECT'
+      }, function(status) {
+          window.location.reload();
+      });
+    }
+
+    function approveSell(playerCode, transactionId) {
+      var comment=$("#comment-sell").val();
+      $.post("/housinggame-facilitator/approve-reject-sell", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        comment: JSON.stringify(comment),
+        approve: 'APPROVE'
+      }, function(status) {
+          window.location.href="/housinggame-facilitator/facilitator";
+      });
+    }
+
+    function rejectSell(playerCode, transactionId) {
+      var comment=$("#comment-sell").val();
+      $.post("/housinggame-facilitator/approve-reject-sell", {
+        playerCode : JSON.stringify(playerCode),
+        transactionId : JSON.stringify(transactionId),
+        comment: JSON.stringify(comment),
+        approve: 'REJECT'
+      }, function(status) {
+          window.location.href="/housinggame-facilitator/facilitator";
+      });
+    }
+
+    // Flooding methods
     
     function floodRound(round) {
       $('#hg-flood-round-' + round).submit();
