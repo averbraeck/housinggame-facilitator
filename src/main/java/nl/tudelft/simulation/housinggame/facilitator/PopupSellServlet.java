@@ -1,9 +1,6 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -43,19 +40,6 @@ public class PopupSellServlet extends HttpServlet
         {
             try
             {
-                List<HousetransactionRecord> unapprovedSellStayTransactions =
-                        FacilitatorServlet.getUnapprovedSellStayTransactions(data);
-                Set<String> houseCodes = new HashSet<>();
-                Set<String> doubleHouseCodes = new HashSet<>();
-                for (HousetransactionRecord transaction : unapprovedSellStayTransactions)
-                {
-                    HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-                    if (houseCodes.contains(hgr.getCode()))
-                        doubleHouseCodes.add(hgr.getCode());
-                    else
-                        houseCodes.add(hgr.getCode());
-                }
-
                 String playerCode = SessionUtils.stripQuotes(request.getParameter("playerCode"));
                 String transactionIdStr = SessionUtils.stripQuotes(request.getParameter("transactionId"));
                 int transactionId = Integer.valueOf(transactionIdStr);

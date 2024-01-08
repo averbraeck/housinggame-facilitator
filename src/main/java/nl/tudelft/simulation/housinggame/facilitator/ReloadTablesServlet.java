@@ -32,13 +32,13 @@ public class ReloadTablesServlet extends HttpServlet
         {
             response.setContentType("text/plain");
             if (data.getMenuState().equals("Player"))
-                FacilitatorServlet.makePlayerTables(data);
+                TablePlayer.makePlayerTables(data);
             else if (data.getMenuState().equals("House"))
-                FacilitatorServlet.makeHouseTable(data);
+                TableHouse.makeHouseTable(data);
             else if (data.getMenuState().equals("News"))
-                FacilitatorServlet.makeNewsTable(data);
+                TableNews.makeNewsTable(data);
             else if (data.getMenuState().equals("Flood"))
-                FacilitatorServlet.makeFloodTable(data);
+                TableFlood.makeFloodTable(data);
             response.getWriter().write(data.getContentHtml("facilitator/tables"));
             return;
         }

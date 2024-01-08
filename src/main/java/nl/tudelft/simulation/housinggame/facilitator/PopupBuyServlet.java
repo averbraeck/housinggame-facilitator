@@ -43,7 +43,7 @@ public class PopupBuyServlet extends HttpServlet
         {
             try
             {
-                List<HousetransactionRecord> unapprovedBuyTransactions = FacilitatorServlet.getUnapprovedBuyTransactions(data);
+                List<HousetransactionRecord> unapprovedBuyTransactions = TableHouse.getUnapprovedBuyTransactions(data);
                 Set<String> houseCodes = new HashSet<>();
                 Set<String> doubleHouseCodes = new HashSet<>();
                 for (HousetransactionRecord transaction : unapprovedBuyTransactions)
