@@ -55,8 +55,6 @@ public class PopupStayServlet extends HttpServlet
                 String note = "";
                 if (!hgr.getStatus().equals(HouseGroupStatus.OCCUPIED.toString()))
                     note = "HOUSE NOT OCCUPIED!<br />";
-                if (transaction.getPrice().intValue() != hgr.getMarketValue().intValue())
-                    note += "PRICE/BID CHANGE!<br />";
 
                 StringBuilder s = new StringBuilder();
 
