@@ -9,8 +9,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
-import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 
 @WebServlet("/approve-reject-stay")
 public class ApproveRejectStayServlet extends HttpServlet
@@ -31,26 +33,44 @@ public class ApproveRejectStayServlet extends HttpServlet
             return;
         }
 
-        if (request.getParameter("playerCode") != null)
+        if (request.getParameter("playerCode") != null && request.getParameter("transactionId") != null)
         {
             try
             {
-                System.out.println("STAY - " + request.getParameter("approve") + " player "
-                        + request.getParameter("playerCode") + ", comment: " + request.getParameter("comment") + ", hgrId = "
-                        + request.getParameter("hgrId"));
-                int hgrId = Integer.valueOf(request.getParameter("hgrId"));
-                HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, hgrId);
+                String transactionIdStr = SessionUtils.stripQuotes(request.getParameter("transactionId"));
+                int transactionId = Integer.valueOf(transactionIdStr);
+                String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
+                String comment = SessionUtils.stripQuotes(request.getParameter("comment"));
+                HousetransactionRecord transaction = SqlUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
+                if (approve.equals("APPROVE"))
+                {
+                    transaction.setComment(comment);
+                    transaction.setTransactionStatus(TransactionStatus.APPROVED_STAY);
+                    transaction.store();
 
+                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+                    prr.setMortgagePayment((int) (prr.getMortgageHouseEnd() * data.getMortgagePercentage() / 100.0));
+                    prr.setMortgageLeftEnd(prr.getMortgageLeftEnd() - prr.getMortgagePayment());
+                    prr.setSpendableIncome(prr.getSpendableIncome() - prr.getMortgagePayment());
+                    prr.store();
+                }
+                else
+                {
+                    transaction.setComment(comment);
+                    transaction.setTransactionStatus(TransactionStatus.REJECTED_STAY);
+                    transaction.store();
+                }
                 return;
             }
             catch (Exception e)
             {
-                System.err.println("Error in approve-sell: " + e.getMessage());
+                System.err.println("Error in approve-buy: " + e.getMessage());
+                response.sendRedirect("jsp/facilitator/facilitator.jsp");
+                return;
             }
         }
 
-        System.err.println("approve-sell called, but no playerCode");
-
+        System.err.println("approve-buy called, but no playerCode or transactionId");
         response.sendRedirect("jsp/facilitator/facilitator.jsp");
     }
 
