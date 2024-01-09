@@ -110,11 +110,12 @@ public class ApproveRejectBuyServlet extends HttpServlet
             catch (Exception e)
             {
                 System.err.println("Error in approve-buy: " + e.getMessage());
+                response.sendRedirect("jsp/facilitator/facilitator.jsp");
+                return;
             }
         }
 
         System.err.println("approve-buy called, but no playerCode or transactionId");
-
         response.sendRedirect("jsp/facilitator/facilitator.jsp");
     }
 
