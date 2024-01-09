@@ -29,7 +29,6 @@ public final class SessionUtils
             ret = ret.substring(1);
         if (ret.endsWith("\""))
             ret = ret.substring(0, ret.length() - 1);
-        System.out.println(ret);
         return ret.strip();
     }
 
