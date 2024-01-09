@@ -17,6 +17,7 @@ import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.MovingreasonRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 
@@ -45,7 +46,6 @@ public class TableHouse
         s.append("                    <th>Rating</th>\n");
         s.append("                    <th>Market<br/>price</th>\n");
         s.append("                    <th>Buy<br/>price</th>\n");
-        s.append("                    <th>Comment</th>\n");
         s.append("                    <th>House<br/>satisf.</th>\n");
         s.append("                    <th>Measures</th>\n");
         s.append("                    <th>Owner</th>\n");
@@ -72,9 +72,7 @@ public class TableHouse
                     s.append("                    <td>" + "--" + "</td>\n");
                 else
                     s.append("                    <td>" + data.k(buyPrice) + "</td>\n");
-                String comment = ""; // TODO
-                s.append("                    <td>" + comment + "</td>\n");
-                int houseSatisfaction = 0; // TODO
+                int houseSatisfaction = houseGroup.getHouseSatisfaction();
                 s.append("                    <td>" + houseSatisfaction + "</td>\n");
                 if (measureList.size() == 0)
                     s.append("                    <td>" + "--" + "</td>\n");
@@ -229,7 +227,6 @@ public class TableHouse
         s.append("                    <th>Bought<br/>price</th>\n");
         s.append("                    <th>Sell<br/>price</th>\n");
         s.append("                    <th>Moving<br/>reason</th>\n");
-        s.append("                    <th>Comment</th>\n");
         s.append("                    <th>Approval</th>\n");
         s.append("                    <th>Rejection</th>\n");
         s.append("                  </tr>\n");
@@ -243,21 +240,34 @@ public class TableHouse
             PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
-            s.append("                    <td>" + data.k(playerRound.getMaximumMortgage()) + "</td>\n");
-            s.append("                    <td>" + data.k(playerRound.getSpendableIncome()) + "</td>\n");
-            int maxHousePrice = playerRound.getMaximumMortgage() + playerRound.getSpendableIncome();
-            s.append("                    <td>" + data.k(maxHousePrice) + "</td>\n");
             s.append("                    <td>" + hgr.getCode() + "</td>\n");
+            String decision = (transaction.getTransactionStatus().equals(TransactionStatus.UNAPPROVED_STAY)) ? "STAY" : "SELL";
+            s.append("                    <td>" + decision + "</td>\n");
             s.append("                    <td>" + data.k(hgr.getMarketValue()) + "</td>\n");
-            s.append("                    <td>" + transaction.getPrice() + "</td>\n");
-            s.append("                    <td><input type='text' name='comment-" + player.getCode() + "' id='comment-"
-                    + player.getCode() + "' /></td>\n");
-            s.append("                    <td><button name='approve-" + player.getCode() + "' id='approve-" + player.getCode()
-                    + "' onclick='approveSell(\"" + player.getCode() + "\", " + transaction.getId()
-                    + ")'>APPROVE</button></td>\n");
-            s.append("                    <td><button name='reject-" + player.getCode() + "' id='reject-" + player.getCode()
-                    + "' onclick='rejectSell(\"" + player.getCode() + "\", " + transaction.getId()
-                    + ")'>REJECT</button></td>\n");
+            s.append("                    <td>" + data.k(hgr.getLastSoldPrice()) + "</td>\n");
+            s.append("                    <td>" + data.k(transaction.getPrice()) + "</td>\n");
+            MovingreasonRecord movingReason = playerRound.getMovingreasonId() == null ? null
+                    : SqlUtils.readRecordFromId(data, Tables.MOVINGREASON, playerRound.getMovingreasonId());
+            String mrString = movingReason == null ? "--" : movingReason.getKey();
+            s.append("                    <td>" + mrString + "</td>\n");
+            if (decision.equals("STAY"))
+            {
+                s.append("                    <td><button name=\"approve-" + player.getCode() + "\" id=\"approve-"
+                        + player.getCode() + "\" onclick=\"popupApproveStay('" + player.getCode() + "', " + transaction.getId()
+                        + ");\">APPROVE STAY</button></td>\n");
+                s.append("                    <td><button name=\"reject-" + player.getCode() + "\" id=\"reject-"
+                        + player.getCode() + "\" onclick=\"popupRejectStay('" + player.getCode() + "', " + transaction.getId()
+                        + ");\">REJECT STAY</button></td>\n");
+            }
+            else
+            {
+                s.append("                    <td><button name=\"approve-" + player.getCode() + "\" id=\"approve-"
+                        + player.getCode() + "\" onclick=\"popupApproveSell('" + player.getCode() + "', " + transaction.getId()
+                        + ");\">APPROVE SELL</button></td>\n");
+                s.append("                    <td><button name=\"reject-" + player.getCode() + "\" id=\"reject-"
+                        + player.getCode() + "\" onclick=\"popupRejectSell('" + player.getCode() + "', " + transaction.getId()
+                        + ");\">REJECT SELL</button></td>\n");
+            }
             s.append("                  </tr>\n");
         }
         s.append("                </tbody>\n");
