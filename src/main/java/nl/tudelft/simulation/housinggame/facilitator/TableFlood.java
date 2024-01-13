@@ -1,5 +1,6 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,22 +36,32 @@ public class TableFlood
 
     public static void makeFloodTable(final FacilitatorData data)
     {
-        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         StringBuilder s = new StringBuilder();
+        makeDiceTable(data, s);
+        makeCommunityTable(data, s);
+        makeHouseTable(data, s);
+        data.getContentHtml().put("facilitator/tables", s.toString());
+    }
 
-        // table with dice rolls for all rounds
+    /**
+     * Table (1) with dice rolls for all rounds.
+     * @param data FacilitatorData
+     * @param s StringBuilder
+     */
+    private static void makeDiceTable(final FacilitatorData data, final StringBuilder s)
+    {
         s.append("  <br/>\n");
         s.append("  <div style=\"display:flex; flex-direction:column; flex-wrap: wrap;\">\n");
         s.append("    <div style=\"display:flex; flex-direction:row; gap:25px;\">\n");
         s.append("      <div class=\"hg-fac-table\">\n");
-        s.append("        <table class=\"pmd table table-striped\" style=\"text-align:center;\">\n");
+        s.append("        <table class=\"hg-flood-table1 pmd table table-striped\" style=\"text-align:center;\">\n");
         s.append("          <thead>\n");
         s.append("            <tr>\n");
-        s.append("              <th>Round</th>\n");
+        s.append("              <th>&nbsp;</th>\n");
         s.append("              <th colspan=\"2\">Dice roll</th>\n");
         s.append("            </tr>\n");
         s.append("            <tr>\n");
-        s.append("              <th>&nbsp;<br/>&nbsp;</th>\n");
+        s.append("              <th>Round<br/>nr.</th>\n");
         s.append("              <th>River<br/>&nbsp;</th>\n");
         s.append("              <th>Rain<br/>&nbsp;</th>\n");
         s.append("            </tr>\n");
@@ -73,32 +84,47 @@ public class TableFlood
         s.append("          </tbody>\n");
         s.append("        </table>\n");
         s.append("      </div>\n");
+    }
 
-        // table with protection and discounts per community per round
+    /**
+     * Table (2) with protection and discounts per community per round.
+     * @param data FacilitatorData
+     * @param s StringBuilder
+     */
+    private static void makeCommunityTable(final FacilitatorData data, final StringBuilder s)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         List<CommunityRecord> communityList = dslContext.selectFrom(Tables.COMMUNITY)
                 .where(Tables.COMMUNITY.GAMEVERSION_ID.eq(data.getScenario().getGameversionId())).fetch();
         s.append("      <div class=\"hg-fac-table\">\n");
-        s.append("        <table class=\"pmd table table-striped\" style=\"text-align:center;\">\n");
+        s.append("        <table class=\"hg-flood-table2 pmd table table-striped\" style=\"text-align:center;\">\n");
         s.append("          <thead>\n");
         s.append("            <tr>\n");
-        s.append("              <th>Round</th>\n");
+        s.append("              <th>&nbsp;</th>\n");
         for (var community : communityList)
         {
             s.append("              <th colspan=\"2\">" + community.getName() + "</th>\n");
         }
-        s.append("              <th>View</th>\n");
+        s.append("              <th>&nbsp;</th>\n");
         s.append("            </tr>\n");
         s.append("            <tr>\n");
-        s.append("              <th>nr.</th>\n");
+        s.append("              <th>Round<br/>nr.</th>\n");
         for (int i = 0; i < communityList.size(); i++)
         {
             s.append("              <th>House<br/>discount</th>\n");
-            s.append("              <th>Public<br/>prot.</th>\n");
+            s.append("              <th>Public<br/>protection</th>\n");
         }
-        s.append("              <th>details</th>\n");
+        s.append("              <th>View<br/>details</th>\n");
         s.append("            </tr>\n");
         s.append("          </thead>\n");
         s.append("          <tbody>\n");
+
+        // make a list (per round) of maps from communityId to CumulativeNewsEffects
+        List<Map<Integer, CumulativeNewsEffects>> cumulativeNewsEffects = new ArrayList<Map<Integer, CumulativeNewsEffects>>();
+        for (int r = 0; r <= data.getCurrentRoundNumber(); r++)
+            cumulativeNewsEffects
+                    .add(CumulativeNewsEffects.readCumulativeNewsEffects(data.getDataSource(), data.getScenario(), r));
+
         for (int round = 1; round <= data.getScenario().getHighestRoundNumber(); round++)
         {
             s.append("            <tr>\n");
@@ -112,13 +138,11 @@ public class TableFlood
                 }
                 else
                 {
-                    var cumulativeNewsEffects =
-                            CumulativeNewsEffects.readCumulativeNewsEffects(data.getDataSource(), data.getScenario(), round);
                     s.append("              <td>" + calcDiscountStr(data, community, cumulativeNewsEffects, round) + "</td>\n");
-                    int pl = community.getPluvialProtection()
-                            + cumulativeNewsEffects.get(community.getId()).getPluvialProtectionDelta();
                     int fl = community.getFluvialProtection()
-                            + cumulativeNewsEffects.get(community.getId()).getFluvialProtectionDelta();
+                            + cumulativeNewsEffects.get(round).get(community.getId()).getFluvialProtectionDelta();
+                    int pl = community.getPluvialProtection()
+                            + cumulativeNewsEffects.get(round).get(community.getId()).getPluvialProtectionDelta();
                     s.append(String.format("              <td> River: %2d, Rain: %2d</td>\n", fl, pl));
                 }
             }
@@ -135,8 +159,16 @@ public class TableFlood
         s.append("        </table>\n");
         s.append("      </div>\n");
         s.append("    </div>\n");
+    }
 
-        // table with house flood information for selected round
+    /**
+     * Table (3) with house flood information for selected round.
+     * @param data FacilitatorData
+     * @param s StringBuilder
+     */
+    private static void makeHouseTable(final FacilitatorData data, final StringBuilder s)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         List<HousegroupRecord> houseGroupList = dslContext.selectFrom(Tables.HOUSEGROUP)
                 .where(Tables.HOUSEGROUP.GROUP_ID.eq(data.getCurrentGroupRound().getGroupId())).fetch();
         Map<Integer, HousegroupRecord> playerHouseGroupMap = new HashMap<>();
@@ -145,22 +177,17 @@ public class TableFlood
             if (houseGroup.getOwnerId() != null)
                 playerHouseGroupMap.put(houseGroup.getOwnerId(), houseGroup);
         }
-        // List<PlayerroundRecord> playerRoundList = dslContext.selectFrom(Tables.PLAYERROUND)
-        // .where(Tables.PLAYERROUND.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())).fetch();
-        // Map<Integer, PlayerroundRecord> playerRoundMap = new HashMap<>();
-        // for (var playerRound : playerRoundList)
-        // playerRoundMap.put(playerRound.getPlayerId(), playerRound);
         s.append("    <div>\n");
         s.append("      <h3>Selected data for round " + data.getFloodInfoRoundNumber() + "</h3>\n");
         s.append("      <div class=\"hg-fac-table\">\n");
-        s.append("        <table class=\"pmd table table-striped\" style=\"text-align:center;\">\n");
+        s.append("        <table class=\"hg-flood-table3 pmd table table-striped\" style=\"text-align:center;\">\n");
         s.append("          <thead>\n");
         s.append("            <tr>\n");
         s.append("              <th>House</th>\n");
         s.append("              <th>From</th>\n");
         s.append("              <th>Owner</th>\n");
         s.append("              <th>Measures</th>\n");
-        s.append("              <th colspan=\"2\">Public protection</th>\n");
+        s.append("              <th colspan=\"2\">Base protection</th>\n");
         s.append("              <th colspan=\"2\">Public delta (news)</th>\n");
         s.append("              <th colspan=\"2\">Private delta (measures)</th>\n");
         s.append("              <th colspan=\"2\">Damage points</th>\n");
@@ -245,42 +272,51 @@ public class TableFlood
 
         s.append("    </div>\n");
         s.append("  </div>\n");
-
-        data.getContentHtml().put("facilitator/tables", s.toString());
     }
 
+    /**
+     * Calculate the discount in the given round number for the given community, based on the rules in the NewsEffects. If the
+     * river caused flooding in 'round - 1', the discount for round1 is applied. If it flooded in 'round - 2', the discount for
+     * round2 is applied. Same for round3.
+     * @param data FacilitatorData
+     * @param community the community record
+     * @param cumulativeNewsEffects List per round of cumulative news effects as a map of cummunityId to news effects
+     * @param round round number
+     * @return String with the discount, if any, otherwise "--"
+     */
     private static String calcDiscountStr(final FacilitatorData data, final CommunityRecord community,
-            final Map<Integer, CumulativeNewsEffects> cumulativeNewsEffects, final int round)
+            final List<Map<Integer, CumulativeNewsEffects>> cumulativeNewsEffects, final int round)
     {
-        int lastRound = -100;
+        int cId = community.getId();
+        boolean[] isFloodedInRound = new boolean[round + 1];
+        isFloodedInRound[0] = false;
         for (int r = 1; r <= round; r++)
         {
+            isFloodedInRound[r] = false;
             GrouproundRecord gr = data.getGroupRoundList().get(r);
             if (gr != null)
             {
                 int fluvialIntensity = gr.getFluvialFloodIntensity() == null ? 0 : gr.getFluvialFloodIntensity();
-                int protection = community.getFluvialProtection()
-                        + cumulativeNewsEffects.get(community.getId()).getFluvialProtectionDelta();
-                if (protection - fluvialIntensity < 0)
-                    lastRound = r;
+                int protection =
+                        community.getFluvialProtection() + cumulativeNewsEffects.get(r).get(cId).getFluvialProtectionDelta();
+                isFloodedInRound[r] = protection - fluvialIntensity < 0;
             }
         }
-        if (round - lastRound < 3)
+        int discount = 0;
+        if (round - 1 > 0 && isFloodedInRound[round - 1])
+            discount = cumulativeNewsEffects.get(round).get(cId).getDiscountRound1();
+        else if (round - 2 > 0 && isFloodedInRound[round - 2])
+            discount = cumulativeNewsEffects.get(round).get(cId).getDiscountRound2();
+        else if (round - 3 > 0 && isFloodedInRound[round - 3])
+            discount = cumulativeNewsEffects.get(round).get(cId).getDiscountRound3();
+        if (cumulativeNewsEffects.get(round).get(cId).isDiscountEuros())
         {
-            int diff = round - lastRound + 1;
-            int discount = diff == 1 ? cumulativeNewsEffects.get(community.getId()).getDiscountRound1()
-                    : diff == 2 ? cumulativeNewsEffects.get(community.getId()).getDiscountRound2()
-                            : diff == 3 ? cumulativeNewsEffects.get(community.getId()).getDiscountRound3() : 0;
-            if (cumulativeNewsEffects.get(community.getId()).isDiscountEuros())
-            {
-                return data.k(discount);
-            }
-            else
-            {
-                return Integer.toString(discount) + "%";
-            }
+            return discount == 0 ? "--" : data.k(discount);
         }
-        return "--";
+        else
+        {
+            return discount == 0 ? "--" : Integer.toString(discount) + "%";
+        }
     }
 
     private static FPRecord fpMeasureProtectionTillRound(final FacilitatorData data, final int round,

@@ -119,6 +119,29 @@ body {
   text-align: center;
 }
 
+.hg-flood-table1 tbody tr td:nth-of-type(3), .hg-flood-table2 tbody tr td:nth-of-type(2n+1),  
+.hg-flood-table2 tbody tr td:nth-of-type(8), .hg-flood-table3 tbody tr td:nth-of-type(2n)  {
+  border-right: 1px solid #4285F4;
+  border-collapse: collapse;
+}
+
+.hg-flood-table1, .hg-flood-table2, .hg-flood-table3 {
+  border: 1px solid #4285F4;
+  border-collapse: collapse;
+}
+
+.hg-flood-table1 thead tr th:first-of-type, .hg-flood-table2 thead tr:first-of-type th, 
+.hg-flood-table2 thead tr:last-of-type th:nth-of-type(2n+1) {
+  border-right: 1px solid #4285F4;
+  border-collapse: collapse;
+}
+
+.hg-flood-table3 thead tr:last-of-type th:nth-of-type(2n), .hg-flood-table3 thead tr:first-of-type th:nth-of-type(2n),
+.hg-flood-table3 thead tr:first-of-type th:nth-of-type(5), .hg-flood-table3 thead tr:first-of-type th:nth-of-type(7) {
+  border-right: 1px solid #4285F4;
+  border-collapse: collapse;
+}
+
 </style>
 </head>
 
