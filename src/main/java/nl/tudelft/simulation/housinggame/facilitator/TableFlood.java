@@ -17,7 +17,6 @@ import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 
 /**
  * TableFlood makes and fills the flood information tables.
@@ -146,11 +145,11 @@ public class TableFlood
             if (houseGroup.getOwnerId() != null)
                 playerHouseGroupMap.put(houseGroup.getOwnerId(), houseGroup);
         }
-        List<PlayerroundRecord> playerRoundList = dslContext.selectFrom(Tables.PLAYERROUND)
-                .where(Tables.PLAYERROUND.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())).fetch();
-        Map<Integer, PlayerroundRecord> playerRoundMap = new HashMap<>();
-        for (var playerRound : playerRoundList)
-            playerRoundMap.put(playerRound.getPlayerId(), playerRound);
+        // List<PlayerroundRecord> playerRoundList = dslContext.selectFrom(Tables.PLAYERROUND)
+        // .where(Tables.PLAYERROUND.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())).fetch();
+        // Map<Integer, PlayerroundRecord> playerRoundMap = new HashMap<>();
+        // for (var playerRound : playerRoundList)
+        // playerRoundMap.put(playerRound.getPlayerId(), playerRound);
         s.append("    <div>\n");
         s.append("      <h3>Selected data for round " + data.getFloodInfoRoundNumber() + "</h3>\n");
         s.append("      <div class=\"hg-fac-table\">\n");
@@ -191,18 +190,13 @@ public class TableFlood
             s.append("            <tr>\n");
             s.append("              <td>" + house.getCode() + "</td>\n");
             s.append("              <td>" + house.getAvailableRound() + "</td>\n");
-            PlayerroundRecord playerRound = null;
             String playerCode = "--";
             if (houseGroup.getOwnerId() != null)
             {
-                playerRound = playerRoundMap.get(houseGroup.getOwnerId());
-                PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
+                PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, houseGroup.getOwnerId());
                 playerCode = player.getCode();
             }
-            if (playerRound != null)
-                s.append("              <td>" + playerCode + "</td>\n");
-            else
-                s.append("              <td>--</td>\n");
+            s.append("              <td>" + playerCode + "</td>\n");
             List<MeasureRecord> measureList =
                     dslContext.selectFrom(Tables.MEASURE).where(Tables.MEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch();
             s.append("              <td>");
