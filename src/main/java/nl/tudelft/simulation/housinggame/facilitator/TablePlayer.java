@@ -64,8 +64,7 @@ public class TablePlayer
         s.append("                </thead>\n");
         s.append("                <tbody>\n");
 
-        ScenarioparametersRecord spr =
-                SqlUtils.readRecordFromId(data, Tables.SCENARIOPARAMETERS, data.getScenario().getScenarioparametersId());
+        ScenarioparametersRecord spr = data.getScenarioParameters();
 
         for (PlayerRecord player : data.getPlayerList())
         {
