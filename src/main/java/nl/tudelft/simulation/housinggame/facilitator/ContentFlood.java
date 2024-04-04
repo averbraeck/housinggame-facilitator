@@ -15,6 +15,7 @@ import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 
 /**
@@ -96,17 +97,20 @@ public class ContentFlood
         for (var houseGroup : houseGroupList)
         {
             HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
-            int ppDelta = cumulativeNewsEffects.get(house.getCommunityId()).getPluvialProtectionDelta();
-            int pluvialCommunityProtection = houseGroup.getPluvialBaseProtection() + ppDelta;
-            int fpDelta = cumulativeNewsEffects.get(house.getCommunityId()).getFluvialProtectionDelta();
-            int fluvialCommunityProtection = houseGroup.getFluvialBaseProtection() + fpDelta;
-            int pluvialHouseProtection = pluvialCommunityProtection + houseGroup.getPluvialHouseProtection();
-            int fluvialHouseProtection = fluvialCommunityProtection + houseGroup.getFluvialHouseProtection();
+            int pCommDelta = cumulativeNewsEffects.get(house.getCommunityId()).getPluvialProtectionDelta();
+            int pluvialCommunityProtection = houseGroup.getPluvialBaseProtection() + pCommDelta;
+            int fCommDelta = cumulativeNewsEffects.get(house.getCommunityId()).getFluvialProtectionDelta();
+            int fluvialCommunityProtection = houseGroup.getFluvialBaseProtection() + fCommDelta;
+            var fpRecord = fpMeasureProtectionTillRound(data, data.getCurrentRoundNumber(), houseGroup);
+            int pHouseDelta = fpRecord.pluvial();
+            int fHouseDelta = fpRecord.fluvial();
+            int pluvialHouseProtection = pluvialCommunityProtection + pHouseDelta;
+            int fluvialHouseProtection = fluvialCommunityProtection + fHouseDelta;
 
-            int pluvialCommunityDamage = pluvialIntensity - pluvialCommunityProtection;
-            int fluvialCommunityDamage = fluvialIntensity - fluvialCommunityProtection;
-            int pluvialHouseDamage = pluvialIntensity - pluvialHouseProtection;
-            int fluvialHouseDamage = fluvialIntensity - fluvialHouseProtection;
+            int pluvialCommunityDamage = Math.max(0, pluvialIntensity - pluvialCommunityProtection);
+            int fluvialCommunityDamage = Math.max(0, fluvialIntensity - fluvialCommunityProtection);
+            int pluvialHouseDamage = Math.max(0, pluvialIntensity - pluvialHouseProtection);
+            int fluvialHouseDamage = Math.max(0, fluvialIntensity - fluvialHouseProtection);
 
             // set the last round where damage happened
             if (pluvialCommunityDamage > 0)
@@ -124,10 +128,10 @@ public class ContentFlood
                 var playerRound = playerRoundMap.get(houseGroup.getOwnerId());
                 playerRound.setPluvialBaseProtection(houseGroup.getPluvialBaseProtection());
                 playerRound.setFluvialBaseProtection(houseGroup.getFluvialBaseProtection());
-                playerRound.setPluvialCommunityDelta(ppDelta);
-                playerRound.setFluvialCommunityDelta(fpDelta);
-                playerRound.setPluvialHouseDelta(houseGroup.getPluvialHouseProtection());
-                playerRound.setFluvialHouseDelta(houseGroup.getFluvialHouseProtection());
+                playerRound.setPluvialCommunityDelta(pCommDelta);
+                playerRound.setFluvialCommunityDelta(fCommDelta);
+                playerRound.setPluvialHouseDelta(pHouseDelta);
+                playerRound.setFluvialHouseDelta(fHouseDelta);
 
                 // calculate the damage satisfaction penalties
                 if (pluvialCommunityDamage > 0 && params.getPluvialSatisfactionPenaltyIfAreaFlooded() != null)
@@ -244,6 +248,31 @@ public class ContentFlood
         // ok -- state changes to ROLLED_DICE
         data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
         data.getCurrentGroupRound().store();
+    }
+
+    record FPRecord(int fluvial, int pluvial)
+    {
+    }
+
+    private static FPRecord fpMeasureProtectionTillRound(final FacilitatorData data, final int round,
+            final HousegroupRecord houseGroup)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        List<MeasureRecord> measureList = dslContext.selectFrom(Tables.MEASURE)
+                .where(Tables.MEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch().sortAsc(Tables.MEASURE.ROUND_NUMBER);
+        int fluvial = 0;
+        int pluvial = 0;
+        for (var measure : measureList)
+        {
+            if (measure.getRoundNumber() <= round
+                    && (measure.getConsumedInRound() == null || measure.getConsumedInRound().intValue() == 0))
+            {
+                var mt = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
+                fluvial += mt.getFluvialProtectionDelta();
+                pluvial += mt.getPluvialProtectionDelta();
+            }
+        }
+        return new FPRecord(fluvial, pluvial);
     }
 
 }
