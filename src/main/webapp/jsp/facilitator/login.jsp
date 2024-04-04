@@ -166,7 +166,7 @@ html, body {
     <div class="hg-login-header">
       <div class="hg-login-header-right">
         <img src="images/tudelft.png" />
-        <span style="font-size: 12px; padding-left: 20px; position:relative; top:-4px; color:black;">v1.5.1</span>
+        <span style="font-size: 12px; padding-left: 20px; position:relative; top:-4px; color:black;">v1.5.1a</span>
       </div>
     </div>
   
