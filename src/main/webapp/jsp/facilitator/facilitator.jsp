@@ -397,19 +397,22 @@ body {
               <div class="panel-body">
                 <div class="hg-grid2-left-right">
                   <div>
-                    Roll the dice for pluvial<br /> and fluvial impacts, <br /> enter the data, and press <br /> the
-                    ROLL DICE button to show <br /> the players the effects of <br /> the rain/flood on their houses.
+                    Roll the dice for river<br /> and rain impacts, <br /> enter the data, and press <br /> the
+                    ROLL DICE button to show <br /> the players the effects of <br /> the flood/rain on their houses.
                   </div>
                   <form action="/housinggame-facilitator/facilitator" method="post">
                     <input type="hidden" name="button" value="roll-dice" /> 
-                    <label for="pluvial">
-                      Pluvial dice roll (1-${facilitatorData.getScenarioParameters().getHighestPluvialScore() }):
-                    </label><br> 
-                    <input type="number" id="pluvial" name="pluvial"><br> 
+
                     <label for="fluvial">
-                      Fluvial dice roll (1-${facilitatorData.getScenarioParameters().getHighestFluvialScore() }):
+                      River dice roll (1-${facilitatorData.getScenarioParameters().getHighestFluvialScore() }):
                     </label><br> 
                     <input type="number" id="fluvial" name="fluvial"><br>
+
+                    <label for="pluvial">
+                      Rain dice roll (1-${facilitatorData.getScenarioParameters().getHighestPluvialScore() }):
+                    </label><br> 
+                    <input type="number" id="pluvial" name="pluvial"><br> 
+
                     <div class="hg-button">
                       <input type="submit" value="ROLL DICE, SHOW DAMAGE"
                         class='${facilitatorData.getContentHtml("button/roll-dice") }' />

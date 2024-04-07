@@ -32,38 +32,38 @@ public class ContentFlood
     public static void handleDiceRoll(final FacilitatorData data, final HttpServletRequest request)
     {
         // read dice values; check if dice values are valid. Popup if incorrect -- ask to resubmit
-        String pluvialStr = request.getParameter("pluvial");
         String fluvialStr = request.getParameter("fluvial");
+        String pluvialStr = request.getParameter("pluvial");
         if (pluvialStr == null || fluvialStr == null || pluvialStr.length() == 0 || fluvialStr.length() == 0)
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values", "One or both of the dice values are blank");
             return;
         }
-        int pluvialIntensity = 0;
         int fluvialIntensity = 0;
+        int pluvialIntensity = 0;
         try
         {
-            pluvialIntensity = Integer.parseInt(pluvialStr);
             fluvialIntensity = Integer.parseInt(fluvialStr);
+            pluvialIntensity = Integer.parseInt(pluvialStr);
         }
         catch (Exception e)
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
-                    "One or both of the dice values are incorrecct: " + e.getMessage());
-            return;
-        }
-        if (pluvialIntensity < 1 || pluvialIntensity > data.getScenarioParameters().getHighestPluvialScore())
-        {
-            ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
-                    "The pluvial dice value is not within the range 1-"
-                            + data.getScenarioParameters().getHighestPluvialScore());
+                    "One or both of the dice values are incorrect: " + e.getMessage());
             return;
         }
         if (fluvialIntensity < 1 || fluvialIntensity > data.getScenarioParameters().getHighestFluvialScore())
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
-                    "The fluvial dice value is not within the range 1-"
+                    "The river dice value is not within the range 1-"
                             + data.getScenarioParameters().getHighestFluvialScore());
+            return;
+        }
+        if (pluvialIntensity < 1 || pluvialIntensity > data.getScenarioParameters().getHighestPluvialScore())
+        {
+            ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
+                    "The rain dice value is not within the range 1-"
+                            + data.getScenarioParameters().getHighestPluvialScore());
             return;
         }
 
