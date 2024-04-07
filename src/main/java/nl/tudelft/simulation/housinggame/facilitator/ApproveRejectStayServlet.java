@@ -11,6 +11,8 @@ import javax.servlet.http.HttpSession;
 
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
+import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 
@@ -52,6 +54,16 @@ public class ApproveRejectStayServlet extends HttpServlet
                     prr.setMortgagePayment((int) (prr.getMortgageHouseEnd() * data.getMortgagePercentage() / 100.0));
                     prr.setMortgageLeftEnd(prr.getMortgageLeftEnd() - prr.getMortgagePayment());
                     prr.setSpendableIncome(prr.getSpendableIncome() - prr.getMortgagePayment());
+                    if (data.getScenarioParameters().getSatisfactionHouseRatingPerRound() != 0)
+                    {
+                        HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+                        HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
+                        int phr = prr.getPreferredHouseRating();
+                        int hr = house.getRating();
+                        prr.setSatisfactionHouseRatingDelta(hr - phr);
+                        prr.setPersonalSatisfaction(prr.getPersonalSatisfaction() + hr - phr);
+                        prr.setFinalHousegroupId(hgr.getId());
+                    }
                     prr.store();
                 }
                 else
