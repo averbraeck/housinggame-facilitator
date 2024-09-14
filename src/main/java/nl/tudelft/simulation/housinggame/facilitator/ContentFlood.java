@@ -11,7 +11,6 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
 import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
-import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
@@ -29,7 +28,7 @@ import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 public class ContentFlood
 {
 
-    public static void handleDiceRoll(final FacilitatorData data, final HttpServletRequest request)
+    public static FPRecord handleDiceRoll(final FacilitatorData data, final HttpServletRequest request)
     {
         // read dice values; check if dice values are valid. Popup if incorrect -- ask to resubmit
         String fluvialStr = request.getParameter("fluvial");
@@ -37,7 +36,7 @@ public class ContentFlood
         if (pluvialStr == null || fluvialStr == null || pluvialStr.length() == 0 || fluvialStr.length() == 0)
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values", "One or both of the dice values are blank");
-            return;
+            return null;
         }
         int fluvialIntensity = 0;
         int pluvialIntensity = 0;
@@ -50,21 +49,21 @@ public class ContentFlood
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
                     "One or both of the dice values are incorrect: " + e.getMessage());
-            return;
+            return null;
         }
         if (fluvialIntensity < 1 || fluvialIntensity > data.getScenarioParameters().getHighestFluvialScore())
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
                     "The river dice value is not within the range 1-"
                             + data.getScenarioParameters().getHighestFluvialScore());
-            return;
+            return null;
         }
         if (pluvialIntensity < 1 || pluvialIntensity > data.getScenarioParameters().getHighestPluvialScore())
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
                     "The rain dice value is not within the range 1-"
                             + data.getScenarioParameters().getHighestPluvialScore());
-            return;
+            return null;
         }
 
         // store the dice rolls in the groupround
@@ -245,12 +244,10 @@ public class ContentFlood
 
         } // for (var houseGroup : houseGroupList)
 
-        // ok -- state changes to ROLLED_DICE
-        data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
-        data.getCurrentGroupRound().store();
+        return new FPRecord(fluvialIntensity, pluvialIntensity);
     }
 
-    record FPRecord(int fluvial, int pluvial)
+    public record FPRecord(int fluvial, int pluvial)
     {
     }
 

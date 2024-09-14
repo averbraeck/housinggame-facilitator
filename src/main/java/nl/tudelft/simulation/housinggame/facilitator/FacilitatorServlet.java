@@ -1,6 +1,7 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -10,10 +11,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
+
 import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.PlayerState;
+import nl.tudelft.simulation.housinggame.data.Tables;
+import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.GroupstateRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
+import nl.tudelft.simulation.housinggame.facilitator.ContentFlood.FPRecord;
 
 @WebServlet("/facilitator")
 public class FacilitatorServlet extends HttpServlet
@@ -116,20 +125,28 @@ public class FacilitatorServlet extends HttpServlet
             ContentNewRound.newRound(data);
             data.getCurrentGroupRound().setGroupState(GroupState.NEW_ROUND.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.NEW_ROUND, "Round=" + data.getCurrentRoundNumber());
             data.setMenuState("Player");
         }
         else if (button.equals("announce-news"))
         {
             data.getCurrentGroupRound().setGroupState(GroupState.ANNOUNCE_NEWS.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.ANNOUNCE_NEWS, "");
             data.setMenuState("News");
         }
         else if (button.equals("show-houses"))
         {
             if (data.getCurrentRoundNumber() == 1)
+            {
                 data.getCurrentGroupRound().setGroupState(GroupState.SHOW_HOUSES_BUY.toString());
+                storeGroupState(data, GroupState.SHOW_HOUSES_BUY, "");
+            }
             else
+            {
                 data.getCurrentGroupRound().setGroupState(GroupState.SHOW_HOUSES_SELL.toString());
+                storeGroupState(data, GroupState.SHOW_HOUSES_SELL, "");
+            }
             data.getCurrentGroupRound().store();
             data.setMenuState("House");
         }
@@ -137,6 +154,7 @@ public class FacilitatorServlet extends HttpServlet
         {
             data.getCurrentGroupRound().setGroupState(GroupState.ALLOW_SELLING.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.ALLOW_SELLING, "");
             data.setMenuState("House");
         }
         else if (button.equals("finish-selling"))
@@ -147,12 +165,14 @@ public class FacilitatorServlet extends HttpServlet
         {
             data.getCurrentGroupRound().setGroupState(GroupState.SHOW_HOUSES_BUY.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.SHOW_HOUSES_BUY, "");
             data.setMenuState("House");
         }
         else if (button.equals("allow-buying"))
         {
             data.getCurrentGroupRound().setGroupState(GroupState.ALLOW_BUYING.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.ALLOW_BUYING, "");
             data.setMenuState("House");
         }
         else if (button.equals("finish-buying"))
@@ -163,6 +183,7 @@ public class FacilitatorServlet extends HttpServlet
         {
             data.getCurrentGroupRound().setGroupState(GroupState.BUYING_FINISHED.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.BUYING_FINISHED, "");
             data.setMenuState("House");
         }
         else if (button.equals("show-taxes"))
@@ -170,16 +191,19 @@ public class FacilitatorServlet extends HttpServlet
             ContentTaxes.calculateTaxes(data);
             data.getCurrentGroupRound().setGroupState(GroupState.SHOW_TAXES.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.SHOW_TAXES, "");
         }
         else if (button.equals("allow-improvements"))
         {
             data.getCurrentGroupRound().setGroupState(GroupState.ALLOW_IMPROVEMENTS.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.ALLOW_IMPROVEMENTS, "");
         }
         else if (button.equals("show-survey"))
         {
             data.getCurrentGroupRound().setGroupState(GroupState.SHOW_SURVEY.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.SHOW_SURVEY, "");
             data.setMenuState("Player");
         }
         else if (button.equals("complete-survey"))
@@ -190,16 +214,24 @@ public class FacilitatorServlet extends HttpServlet
         {
             data.getCurrentGroupRound().setGroupState(GroupState.SURVEY_COMPLETED.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.SURVEY_COMPLETED, "");
         }
         else if (button.equals("roll-dice"))
         {
-            ContentFlood.handleDiceRoll(data, request);
-            data.setMenuState("Flood");
+            FPRecord fp = ContentFlood.handleDiceRoll(data, request);
+            if (fp != null)
+            {
+                data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
+                data.getCurrentGroupRound().store();
+                storeGroupState(data, GroupState.ROLLED_DICE, "Fluvial=" + fp.fluvial() + "\nPluvial=" + fp.pluvial());
+                data.setMenuState("Flood");
+            }
         }
         else if (button.equals("show-summary"))
         {
             data.getCurrentGroupRound().setGroupState(GroupState.SHOW_SUMMARY.toString());
             data.getCurrentGroupRound().store();
+            storeGroupState(data, GroupState.SHOW_SUMMARY, "");
             data.setMenuState("Player");
         }
     }
@@ -285,6 +317,24 @@ public class FacilitatorServlet extends HttpServlet
                 data.putContentHtml("button/start-new-round", "btn btn-primary btn-active");
                 data.putContentHtml("accordion/summary", "in");
             }
+        }
+    }
+
+    public void storeGroupState(final FacilitatorData data, final GroupState newState, final String content)
+    {
+        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
+        GrouproundRecord groupRound = data.getCurrentGroupRound();
+        GroupstateRecord groupState =
+                dslContext.selectFrom(Tables.GROUPSTATE).where(Tables.GROUPSTATE.GROUPROUND_ID.eq(groupRound.getId()))
+                        .and(Tables.GROUPSTATE.GROUP_STATE.eq(newState.toString())).fetchAny();
+        if (groupState == null)
+        {
+            groupState = dslContext.newRecord(Tables.GROUPSTATE);
+            groupState.setGroupState(newState.toString());
+            groupState.setGrouproundId(groupRound.getId());
+            groupState.setContent(content);
+            groupState.setTimestamp(LocalDateTime.now());
+            groupState.store();
         }
     }
 
