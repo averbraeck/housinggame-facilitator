@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
-                                
+                                    
     
     
     
     
     
     
-    <wb-module deploy-name="housinggame-facilitator-1.6.0">
-                                                                
+    
+    <wb-module deploy-name="housinggame-facilitator-1.7.0">
+                                                                        
+        
         
         
         
@@ -15,7 +17,8 @@
         
         
         <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
-                                                                
+                                                                        
+        
         
         
         
@@ -23,7 +26,8 @@
         
         
         <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
-                                                                
+                                                                        
+        
         
         
         
@@ -31,7 +35,8 @@
         
         
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
-                                                                
+                                                                        
+        
         
         
         
@@ -39,15 +44,17 @@
         
         
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
-                                        
+                                                
+        
         
         
         
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/.apt_generated"/>
-        <dependent-module archiveName="housinggame-common-1.6.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/housinggame-common/housinggame-common">
+        <dependent-module archiveName="housinggame-common-1.7.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/housinggame-common/housinggame-common">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-                                                                
+                                                                        
+        
         
         
         
@@ -55,7 +62,8 @@
         
         
         <property name="context-root" value="housinggame-facilitator"/>
-                                                                
+                                                                        
+        
         
         
         
@@ -63,7 +71,8 @@
         
         
         <property name="java-output-path" value="/housinggame-facilitator/target/classes"/>
-                                                            
+                                                                    
+    
     
     
     
@@ -71,7 +80,8 @@
     
     
     </wb-module>
-                            
+                                
+
 
 
 
