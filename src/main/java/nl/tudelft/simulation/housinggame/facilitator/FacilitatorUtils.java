@@ -1,59 +1,19 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
-import org.jooq.Table;
-import org.jooq.TableField;
 import org.jooq.impl.DSL;
 
+import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
 
-public final class FacilitatorUtils
+public final class FacilitatorUtils extends SqlUtils
 {
-
-    private FacilitatorUtils()
-    {
-        // utility class
-    }
-
-    public static Connection dbConnection() throws SQLException, ClassNotFoundException
-    {
-        String jdbcURL = "jdbc:mysql://localhost:3306/housinggame";
-        String dbUser = "housinggame";
-        String dbPassword = "tudHouse#4";
-
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        return DriverManager.getConnection(jdbcURL, dbUser, dbPassword);
-    }
-
-    public static UserRecord readUserFromUserId(final FacilitatorData data, final int userId)
-    {
-        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        return dslContext.selectFrom(Tables.USER).where(Tables.USER.ID.eq(userId)).fetchAny();
-    }
-
-    public static UserRecord readUserFromUsername(final FacilitatorData data, final String username)
-    {
-        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        return dslContext.selectFrom(Tables.USER).where(Tables.USER.USERNAME.eq(username)).fetchAny();
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <R extends org.jooq.UpdatableRecord<R>> R readRecordFromId(final FacilitatorData data, final Table<R> table,
-            final int recordId)
-    {
-        DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        return dslContext.selectFrom(table).where(((TableField<R, Integer>) table.field("id")).eq(recordId)).fetchOne();
-    }
 
     /**
      * This method always returns a list of length up to and including the current round number. Not played rounds are null.
