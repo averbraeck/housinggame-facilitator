@@ -37,8 +37,8 @@ public class ContentNewRound
         int nrActivePlayers = 0;
         for (PlayerRecord player : data.getPlayerList())
         {
-            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
-            PlayerroundRecord playerRound = SqlUtils.getCurrentPlayerRound(data, player.getId());
+            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = FacilitatorUtils.getCurrentPlayerRound(data, player.getId());
             if (!playerRoundList.isEmpty())
             {
                 if (playerRoundList.get(0) != null)
@@ -110,9 +110,9 @@ public class ContentNewRound
                 .and(Tables.HOUSE.AVAILABLE_ROUND.eq(groupRound.getRoundNumber())).fetch(Tables.HOUSE.ID);
         for (int houseId : houseIdList)
         {
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseId);
+            HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseId);
             HousegroupRecord houseGroup = dslContext.newRecord(Tables.HOUSEGROUP);
-            CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+            CommunityRecord community = FacilitatorUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
             houseGroup.setCode(house.getCode());
             houseGroup.setAddress(house.getAddress());
             houseGroup.setRating(house.getRating());
@@ -140,7 +140,7 @@ public class ContentNewRound
             {
                 if (initialMeasure.getRoundNumber() <= groupRound.getRoundNumber())
                 {
-                    var measureType = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, initialMeasure.getMeasuretypeId());
+                    var measureType = FacilitatorUtils.readRecordFromId(data, Tables.MEASURETYPE, initialMeasure.getMeasuretypeId());
                     createMeasureForHouse(data, houseGroup, measureType, groupRound.getRoundNumber());
                 }
             }
@@ -168,7 +168,7 @@ public class ContentNewRound
     public static void createMeasureForHouse(final FacilitatorData data, final HousegroupRecord houseGroup,
             final InitialhousemeasureRecord ihmr)
     {
-        MeasuretypeRecord measureType = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, ihmr.getMeasuretypeId());
+        MeasuretypeRecord measureType = FacilitatorUtils.readRecordFromId(data, Tables.MEASURETYPE, ihmr.getMeasuretypeId());
         createMeasureForHouse(data, houseGroup, measureType, ihmr.getRoundNumber());
     }
 

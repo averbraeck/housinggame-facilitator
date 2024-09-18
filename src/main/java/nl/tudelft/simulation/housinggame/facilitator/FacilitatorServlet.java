@@ -345,8 +345,8 @@ public class FacilitatorServlet extends HttpServlet
         int nrActivePlayers = 0;
         for (PlayerRecord player : data.getPlayerList())
         {
-            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
-            PlayerroundRecord playerRound = SqlUtils.getCurrentPlayerRound(data, player.getId());
+            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = FacilitatorUtils.getCurrentPlayerRound(data, player.getId());
             if (!playerRoundList.isEmpty())
             {
                 if (playerRoundList.get(0) != null)
@@ -382,8 +382,8 @@ public class FacilitatorServlet extends HttpServlet
         int nrActivePlayers = 0;
         for (PlayerRecord player : data.getPlayerList())
         {
-            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
-            PlayerroundRecord playerRound = SqlUtils.getCurrentPlayerRound(data, player.getId());
+            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = FacilitatorUtils.getCurrentPlayerRound(data, player.getId());
             if (!playerRoundList.isEmpty())
             {
                 if (playerRoundList.get(0) != null)
@@ -419,8 +419,8 @@ public class FacilitatorServlet extends HttpServlet
         int nrActivePlayers = 0;
         for (PlayerRecord player : data.getPlayerList())
         {
-            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
-            PlayerroundRecord playerRound = SqlUtils.getCurrentPlayerRound(data, player.getId());
+            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = FacilitatorUtils.getCurrentPlayerRound(data, player.getId());
             if (!playerRoundList.isEmpty())
             {
                 if (playerRoundList.get(0) != null)

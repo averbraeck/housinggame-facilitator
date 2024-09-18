@@ -43,21 +43,21 @@ public class ApproveRejectStayServlet extends HttpServlet
                 int transactionId = Integer.valueOf(transactionIdStr);
                 String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
                 String comment = SessionUtils.stripQuotes(request.getParameter("comment"));
-                HousetransactionRecord transaction = SqlUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
+                HousetransactionRecord transaction = FacilitatorUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
                 if (approve.equals("APPROVE"))
                 {
                     transaction.setComment(comment);
                     transaction.setTransactionStatus(TransactionStatus.APPROVED_STAY);
                     transaction.store();
 
-                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+                    PlayerroundRecord prr = FacilitatorUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
                     prr.setMortgagePayment((int) (prr.getMortgageHouseEnd() * data.getMortgagePercentage() / 100.0));
                     prr.setMortgageLeftEnd(prr.getMortgageLeftEnd() - prr.getMortgagePayment());
                     prr.setSpendableIncome(prr.getSpendableIncome() - prr.getMortgagePayment());
                     if (data.getScenarioParameters().getSatisfactionHouseRatingPerRound() != 0)
                     {
-                        HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-                        HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
+                        HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+                        HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
                         int phr = prr.getPreferredHouseRating();
                         int hr = house.getRating();
                         prr.setSatisfactionHouseRatingDelta(hr - phr);

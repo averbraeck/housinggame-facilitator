@@ -70,10 +70,10 @@ public class TablePlayer
         {
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
-            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
+            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
             if (playerRoundList.isEmpty() || playerRoundList.get(0) == null)
             {
-                WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
+                WelfaretypeRecord welfareType = FacilitatorUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
@@ -102,12 +102,12 @@ public class TablePlayer
                 int currentHouseSatisfaction = 0;
                 if (prr.getFinalHousegroupId() != null)
                 {
-                    HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+                    HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
                     currentHouseSatisfaction = hgr.getHouseSatisfaction();
                 }
                 else if (prr.getStartHousegroupId() != null)
                 {
-                    HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getStartHousegroupId());
+                    HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getStartHousegroupId());
                     currentHouseSatisfaction = hgr.getHouseSatisfaction();
                 }
 
@@ -170,8 +170,8 @@ public class TablePlayer
         {
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
-            List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, player.getId());
-            WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
+            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
+            WelfaretypeRecord welfareType = FacilitatorUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
             if (playerRoundList.isEmpty() || playerRoundList.get(0) == null)
             {
                 s.append("                    <td>" + data.k(welfareType.getRoundIncome()) + "</td>\n");

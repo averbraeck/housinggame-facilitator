@@ -44,12 +44,12 @@ public class PopupSellServlet extends HttpServlet
                 String transactionIdStr = SessionUtils.stripQuotes(request.getParameter("transactionId"));
                 int transactionId = Integer.valueOf(transactionIdStr);
                 String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
-                HousetransactionRecord transaction = SqlUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
-                HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
+                HousetransactionRecord transaction = FacilitatorUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
+                HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+                HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
                 PlayerroundRecord playerRound =
-                        SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
-                PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
+                        FacilitatorUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+                PlayerRecord player = FacilitatorUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
 
                 // check if there is anything wrong
                 String note = "";

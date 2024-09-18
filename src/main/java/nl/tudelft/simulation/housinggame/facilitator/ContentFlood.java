@@ -94,7 +94,7 @@ public class ContentFlood
         // check the protection of the communities and houses
         for (var houseGroup : houseGroupList)
         {
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+            HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
             int pCommDelta = cumulativeNewsEffects.get(house.getCommunityId()).getPluvialProtectionDelta();
             int pluvialCommunityProtection = houseGroup.getPluvialBaseProtection() + pCommDelta;
             int fCommDelta = cumulativeNewsEffects.get(house.getCommunityId()).getFluvialProtectionDelta();
@@ -261,7 +261,7 @@ public class ContentFlood
         int pluvial = 0;
         for (var measure : measureList)
         {
-            MeasuretypeRecord mt = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
+            MeasuretypeRecord mt = FacilitatorUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
             // only take records that are permanent, or for one round and this is the correct round.
             if ((measure.getRoundNumber() <= round && mt.getValidOneRound() != 0)
                     || (measure.getRoundNumber() == round && mt.getValidOneRound() == 0))

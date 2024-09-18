@@ -80,8 +80,8 @@ public class FacilitatorLoginServlet extends HttpServlet
         if (ok)
         {
             DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-            GamesessionRecord gs = SqlUtils.readRecordFromId(data, Tables.GAMESESSION, gameSessionId);
-            UserRecord user = SqlUtils.readUserFromUsername(data, username);
+            GamesessionRecord gs = FacilitatorUtils.readRecordFromId(data, Tables.GAMESESSION, gameSessionId);
+            UserRecord user = FacilitatorUtils.readUserFromUsername(data, username);
             String userPassword = user == null ? "" : user.getPassword() == null ? "" : user.getPassword();
             // TODO: hashedPassword
             if (user == null || !userPassword.equals(password))

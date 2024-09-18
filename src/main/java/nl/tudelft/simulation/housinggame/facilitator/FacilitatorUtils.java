@@ -17,10 +17,10 @@ import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
 
-public final class SqlUtils
+public final class FacilitatorUtils
 {
 
-    private SqlUtils()
+    private FacilitatorUtils()
     {
         // utility class
     }
@@ -92,7 +92,7 @@ public final class SqlUtils
 
     public static PlayerroundRecord getLastPlayerRound(final FacilitatorData data, final int playerId)
     {
-        List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, playerId);
+        List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, playerId);
         if (!playerRoundList.isEmpty())
         {
             PlayerroundRecord prr = playerRoundList.get(0);
@@ -108,7 +108,7 @@ public final class SqlUtils
 
     public static PlayerroundRecord getPrevPlayerRound(final FacilitatorData data, final int playerId)
     {
-        List<PlayerroundRecord> playerRoundList = SqlUtils.getPlayerRoundList(data, playerId);
+        List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, playerId);
         if (!playerRoundList.isEmpty())
         {
             PlayerroundRecord prr = playerRoundList.get(0);

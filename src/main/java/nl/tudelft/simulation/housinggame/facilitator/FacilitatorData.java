@@ -19,6 +19,7 @@ import org.jooq.impl.DSL;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import nl.tudelft.simulation.housinggame.common.CommonData;
 import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
@@ -35,17 +36,11 @@ import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.ScenarioparametersRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.UserRecord;
 
-public class FacilitatorData
+public class FacilitatorData extends CommonData
 {
 
-    /**
-     * the SQL datasource representing the database's connection pool.<br>
-     * the datasource is shared among the servlets and stored as a ServletContext attribute.
-     */
-    private DataSource dataSource;
-
-    /** the facilitator User record (static during session). */
-    private UserRecord user;
+    /** the User record (static during session). */
+    protected UserRecord user;
 
     /** The game version (static during session). */
     private GameversionRecord gameVersion;
@@ -176,13 +171,13 @@ public class FacilitatorData
         DSLContext dslContext = DSL.using(getDataSource(), SQLDialect.MYSQL);
         this.user = user;
         this.group = group;
-        this.gameSession = SqlUtils.readRecordFromId(this, Tables.GAMESESSION, group.getGamesessionId());
-        this.scenario = SqlUtils.readRecordFromId(this, Tables.SCENARIO, group.getScenarioId());
-        this.gameVersion = SqlUtils.readRecordFromId(this, Tables.GAMEVERSION, this.scenario.getGameversionId());
+        this.gameSession = FacilitatorUtils.readRecordFromId(this, Tables.GAMESESSION, group.getGamesessionId());
+        this.scenario = FacilitatorUtils.readRecordFromId(this, Tables.SCENARIO, group.getScenarioId());
+        this.gameVersion = FacilitatorUtils.readRecordFromId(this, Tables.GAMEVERSION, this.scenario.getGameversionId());
         this.playerList = dslContext.selectFrom(Tables.PLAYER).where(Tables.PLAYER.GROUP_ID.eq(group.getId())).fetch()
                 .sortAsc(Tables.PLAYER.CODE);
         this.scenarioParameters =
-                SqlUtils.readRecordFromId(this, Tables.SCENARIOPARAMETERS, this.scenario.getScenarioparametersId());
+                FacilitatorUtils.readRecordFromId(this, Tables.SCENARIOPARAMETERS, this.scenario.getScenarioparametersId());
         readDynamicData();
     }
 
@@ -383,14 +378,14 @@ public class FacilitatorData
     {
         if (playerRound.getFinalHousegroupId() != null)
         {
-            return SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+            return FacilitatorUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
         }
         if (playerRound.getActiveTransactionId() != null)
         {
             HousetransactionRecord transaction =
-                    SqlUtils.readRecordFromId(this, Tables.HOUSETRANSACTION, playerRound.getActiveTransactionId());
+                    FacilitatorUtils.readRecordFromId(this, Tables.HOUSETRANSACTION, playerRound.getActiveTransactionId());
             if (transaction.getTransactionStatus().equals(TransactionStatus.APPROVED_BUY))
-                return SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, transaction.getHousegroupId());
+                return FacilitatorUtils.readRecordFromId(this, Tables.HOUSEGROUP, transaction.getHousegroupId());
         }
         return null;
     }
@@ -399,7 +394,7 @@ public class FacilitatorData
     {
         HousegroupRecord hgr = getApprovedHouseGroupForPlayerRound(playerRound);
         if (hgr != null)
-            return SqlUtils.readRecordFromId(this, Tables.HOUSE, hgr.getHouseId());
+            return FacilitatorUtils.readRecordFromId(this, Tables.HOUSE, hgr.getHouseId());
         return null;
     }
 
@@ -414,13 +409,13 @@ public class FacilitatorData
         if (playerRound.getFinalHousegroupId() != null)
         {
             HousegroupRecord houseGroup =
-                    SqlUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+                    FacilitatorUtils.readRecordFromId(this, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
             return (int) (houseGroup.getLastSoldPrice() * getMortgagePercentage() / 100.0);
         }
         if (playerRound.getActiveTransactionId() != null)
         {
             HousetransactionRecord transaction =
-                    SqlUtils.readRecordFromId(this, Tables.HOUSETRANSACTION, playerRound.getActiveTransactionId());
+                    FacilitatorUtils.readRecordFromId(this, Tables.HOUSETRANSACTION, playerRound.getActiveTransactionId());
             if (TransactionStatus.isBuy(transaction.getTransactionStatus()))
                 return (int) (transaction.getPrice() * getMortgagePercentage() / 100.0);
         }

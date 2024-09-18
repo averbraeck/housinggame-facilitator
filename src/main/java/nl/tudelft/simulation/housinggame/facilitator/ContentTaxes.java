@@ -35,9 +35,9 @@ public class ContentTaxes
             if (playerRound.getFinalHousegroupId() != null)
             {
                 HousegroupRecord houseGroup =
-                        SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
-                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
-                CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+                        FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+                HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+                CommunityRecord community = FacilitatorUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
                 if (communityMap.containsKey(community))
                     communityMap.put(community, communityMap.get(community) + 1);
                 else
@@ -73,9 +73,9 @@ public class ContentTaxes
             if (playerRound.getFinalHousegroupId() != null)
             {
                 HousegroupRecord houseGroup =
-                        SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
-                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
-                CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+                        FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+                HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+                CommunityRecord community = FacilitatorUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
                 int taxCost = taxMap.get(community);
                 playerRound.setCostTaxes(taxCost);
                 playerRound.setSpendableIncome(playerRound.getSpendableIncome() - taxCost);

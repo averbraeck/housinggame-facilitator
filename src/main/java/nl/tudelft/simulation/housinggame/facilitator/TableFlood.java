@@ -213,14 +213,14 @@ public class TableFlood
                 data.getFloodInfoRoundNumber());
         for (var houseGroup : houseGroupList)
         {
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+            HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
             s.append("            <tr>\n");
             s.append("              <td>" + house.getCode() + "</td>\n");
             s.append("              <td>" + house.getAvailableRound() + "</td>\n");
             String playerCode = "--";
             if (houseGroup.getOwnerId() != null)
             {
-                PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, houseGroup.getOwnerId());
+                PlayerRecord player = FacilitatorUtils.readRecordFromId(data, Tables.PLAYER, houseGroup.getOwnerId());
                 playerCode = player.getCode();
             }
             s.append("              <td>" + playerCode + "</td>\n");
@@ -232,7 +232,7 @@ public class TableFlood
                 if (i > 0)
                     s.append("<br/>");
                 MeasuretypeRecord mt =
-                        SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measureList.get(i).getMeasuretypeId());
+                        FacilitatorUtils.readRecordFromId(data, Tables.MEASURETYPE, measureList.get(i).getMeasuretypeId());
                 s.append(mt.getShortAlias());
             }
             int fCommBaseProt = houseGroup.getFluvialBaseProtection();
@@ -330,7 +330,7 @@ public class TableFlood
         int pluvial = 0;
         for (var measure : measureList)
         {
-            MeasuretypeRecord mt = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
+            MeasuretypeRecord mt = FacilitatorUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
             // only take records that are permanent, or for one round and this is the correct round.
             if ((measure.getRoundNumber() <= round && mt.getValidOneRound() != 0)
                     || (measure.getRoundNumber() == round && mt.getValidOneRound() == 0))

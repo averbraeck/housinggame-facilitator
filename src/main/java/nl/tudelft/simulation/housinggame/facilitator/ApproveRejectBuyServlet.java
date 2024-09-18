@@ -54,16 +54,16 @@ public class ApproveRejectBuyServlet extends HttpServlet
                 int transactionId = Integer.valueOf(transactionIdStr);
                 String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
                 String comment = SessionUtils.stripQuotes(request.getParameter("comment"));
-                HousetransactionRecord transaction = SqlUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
-                HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
+                HousetransactionRecord transaction = FacilitatorUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
+                HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+                HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
                 if (approve.equals("APPROVE"))
                 {
                     transaction.setComment(comment);
                     transaction.setTransactionStatus(TransactionStatus.APPROVED_BUY);
                     transaction.store();
 
-                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+                    PlayerroundRecord prr = FacilitatorUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
 
                     hgr.setLastSoldPrice(transaction.getPrice());
                     hgr.setOwnerId(prr.getPlayerId());
@@ -136,9 +136,9 @@ public class ApproveRejectBuyServlet extends HttpServlet
             if (playerRound.getFinalHousegroupId() != null)
             {
                 HousegroupRecord houseGroup =
-                        SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
-                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
-                CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+                        FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+                HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+                CommunityRecord community = FacilitatorUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
                 if (communityMap.containsKey(community))
                     communityMap.put(community, communityMap.get(community) + 1);
                 else
@@ -164,9 +164,9 @@ public class ApproveRejectBuyServlet extends HttpServlet
 
         if (prr.getFinalHousegroupId() != null)
         {
-            HousegroupRecord houseGroup = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
-            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
-            CommunityRecord community = SqlUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
+            HousegroupRecord houseGroup = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+            HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+            CommunityRecord community = FacilitatorUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
             int taxCost = taxMap.get(community);
             prr.setCostTaxes(taxCost);
             prr.setSpendableIncome(prr.getSpendableIncome() - taxCost);
