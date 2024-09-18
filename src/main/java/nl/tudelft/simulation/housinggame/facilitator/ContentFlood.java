@@ -14,7 +14,8 @@ import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousemeasureRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 
 /**
@@ -54,15 +55,13 @@ public class ContentFlood
         if (fluvialIntensity < 1 || fluvialIntensity > data.getScenarioParameters().getHighestFluvialScore())
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
-                    "The river dice value is not within the range 1-"
-                            + data.getScenarioParameters().getHighestFluvialScore());
+                    "The river dice value is not within the range 1-" + data.getScenarioParameters().getHighestFluvialScore());
             return null;
         }
         if (pluvialIntensity < 1 || pluvialIntensity > data.getScenarioParameters().getHighestPluvialScore())
         {
             ModalWindowUtils.makeErrorModalWindow(data, "Incorrect dice values",
-                    "The rain dice value is not within the range 1-"
-                            + data.getScenarioParameters().getHighestPluvialScore());
+                    "The rain dice value is not within the range 1-" + data.getScenarioParameters().getHighestPluvialScore());
             return null;
         }
 
@@ -255,16 +254,18 @@ public class ContentFlood
             final HousegroupRecord houseGroup)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        List<MeasureRecord> measureList = dslContext.selectFrom(Tables.MEASURE)
-                .where(Tables.MEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch().sortAsc(Tables.MEASURE.ROUND_NUMBER);
+        List<HousemeasureRecord> measureList =
+                dslContext.selectFrom(Tables.HOUSEMEASURE).where(Tables.HOUSEMEASURE.HOUSEGROUP_ID.eq(houseGroup.getId()))
+                        .fetch().sortAsc(Tables.HOUSEMEASURE.ROUND_NUMBER);
         int fluvial = 0;
         int pluvial = 0;
         for (var measure : measureList)
         {
-            if (measure.getRoundNumber() <= round
-                    && (measure.getConsumedInRound() == null || measure.getConsumedInRound().intValue() == 0))
+            MeasuretypeRecord mt = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
+            // only take records that are permanent, or for one round and this is the correct round.
+            if ((measure.getRoundNumber() <= round && mt.getValidOneRound() != 0)
+                    || (measure.getRoundNumber() == round && mt.getValidOneRound() == 0))
             {
-                var mt = SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
                 fluvial += mt.getFluvialProtectionDelta();
                 pluvial += mt.getPluvialProtectionDelta();
             }

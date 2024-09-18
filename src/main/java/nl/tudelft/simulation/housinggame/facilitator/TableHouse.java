@@ -14,8 +14,8 @@ import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousemeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MovingreasonRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
@@ -59,8 +59,8 @@ public class TableHouse
             if (HouseGroupStatus.isAvailableOrOccupied(houseGroup.getStatus()))
             {
                 HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
-                List<MeasureRecord> measureList = dslContext.selectFrom(Tables.MEASURE)
-                        .where(Tables.MEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch();
+                List<HousemeasureRecord> measureList = dslContext.selectFrom(Tables.HOUSEMEASURE)
+                        .where(Tables.HOUSEMEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch();
                 s.append("                  <tr style=\"text-align:center;\">\n");
                 s.append("                    <td>" + house.getCode() + "</td>\n");
                 s.append("                    <td>" + house.getAvailableRound() + "</td>\n");
@@ -80,7 +80,7 @@ public class TableHouse
                 {
                     s.append("                    <td style=\"text-align:left;\">");
                     boolean first = true;
-                    for (MeasureRecord measure : measureList)
+                    for (HousemeasureRecord measure : measureList)
                     {
                         MeasuretypeRecord measureType =
                                 SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());

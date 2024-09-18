@@ -14,8 +14,8 @@ import nl.tudelft.simulation.housinggame.data.tables.records.CommunityRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.HousemeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.InitialhousemeasureRecord;
-import nl.tudelft.simulation.housinggame.data.tables.records.MeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
@@ -153,16 +153,15 @@ public class ContentNewRound
             final MeasuretypeRecord measureType, final int roundNumber)
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-        MeasureRecord measure = dslContext.newRecord(Tables.MEASURE);
+        HousemeasureRecord measure = dslContext.newRecord(Tables.HOUSEMEASURE);
         measure.setRoundNumber(roundNumber);
-        measure.setConsumedInRound(null);
         measure.setMeasuretypeId(measureType.getId());
         measure.setHousegroupId(houseGroup.getId());
         measure.store();
 
         houseGroup.setFluvialHouseProtection(houseGroup.getFluvialHouseProtection() + measureType.getFluvialProtectionDelta());
         houseGroup.setPluvialHouseProtection(houseGroup.getPluvialHouseProtection() + measureType.getPluvialProtectionDelta());
-        houseGroup.setHouseSatisfaction(houseGroup.getHouseSatisfaction() + measureType.getSatisfactionDelta());
+        houseGroup.setHouseSatisfaction(houseGroup.getHouseSatisfaction() + measureType.getSatisfactionDeltaPermanent());
         houseGroup.store();
     }
 
