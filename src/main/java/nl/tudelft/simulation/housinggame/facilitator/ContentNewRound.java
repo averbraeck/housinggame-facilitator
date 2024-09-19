@@ -154,7 +154,7 @@ public class ContentNewRound
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         HousemeasureRecord measure = dslContext.newRecord(Tables.HOUSEMEASURE);
-        measure.setRoundNumber(roundNumber);
+        measure.setBoughtInRound(roundNumber);
         measure.setMeasuretypeId(measureType.getId());
         measure.setHousegroupId(houseGroup.getId());
         measure.store();
