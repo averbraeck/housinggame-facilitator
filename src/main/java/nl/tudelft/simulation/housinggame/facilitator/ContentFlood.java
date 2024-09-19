@@ -11,7 +11,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
 import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
-import nl.tudelft.simulation.housinggame.common.FPRecord;
+import nl.tudelft.simulation.housinggame.common.FluvialPluvial;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
@@ -28,7 +28,7 @@ import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 public class ContentFlood
 {
 
-    public static FPRecord handleDiceRoll(final FacilitatorData data, final HttpServletRequest request)
+    public static FluvialPluvial handleDiceRoll(final FacilitatorData data, final HttpServletRequest request)
     {
         // read dice values; check if dice values are valid. Popup if incorrect -- ask to resubmit
         String fluvialStr = request.getParameter("fluvial");
@@ -98,7 +98,7 @@ public class ContentFlood
             int pluvialCommunityProtection = houseGroup.getPluvialBaseProtection() + pCommDelta;
             int fCommDelta = cumulativeNewsEffects.get(house.getCommunityId()).getFluvialProtectionDelta();
             int fluvialCommunityProtection = houseGroup.getFluvialBaseProtection() + fCommDelta;
-            var fpRecord = FPRecord.measureProtectionTillRound(data, data.getCurrentRoundNumber(), houseGroup);
+            var fpRecord = FluvialPluvial.measureProtectionTillRound(data, data.getCurrentRoundNumber(), houseGroup);
             int pHouseDelta = fpRecord.pluvial();
             int fHouseDelta = fpRecord.fluvial();
             int pluvialHouseProtection = pluvialCommunityProtection + pHouseDelta;
@@ -242,7 +242,7 @@ public class ContentFlood
 
         } // for (var houseGroup : houseGroupList)
 
-        return new FPRecord(fluvialIntensity, pluvialIntensity);
+        return new FluvialPluvial(fluvialIntensity, pluvialIntensity);
     }
 
 }

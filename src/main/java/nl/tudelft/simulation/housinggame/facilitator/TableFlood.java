@@ -10,7 +10,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
 import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
-import nl.tudelft.simulation.housinggame.common.FPRecord;
+import nl.tudelft.simulation.housinggame.common.FluvialPluvial;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.CommunityRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
@@ -236,7 +236,7 @@ public class TableFlood
             int pCommBaseProt = houseGroup.getPluvialBaseProtection();
             int fCommDelta = cumulativeNewsEffects.get(house.getCommunityId()).getFluvialProtectionDelta();
             int pCommDelta = cumulativeNewsEffects.get(house.getCommunityId()).getPluvialProtectionDelta();
-            var fpRecord = FPRecord.measureProtectionTillRound(data, data.getFloodInfoRoundNumber(), houseGroup);
+            var fpRecord = FluvialPluvial.measureProtectionTillRound(data, data.getFloodInfoRoundNumber(), houseGroup);
             int fHouseDelta = fpRecord.fluvial();
             int pHouseDelta = fpRecord.pluvial();
             s.append("</td>\n");

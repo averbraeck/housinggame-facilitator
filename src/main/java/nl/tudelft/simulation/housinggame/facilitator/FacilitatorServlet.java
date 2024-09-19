@@ -15,7 +15,7 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
-import nl.tudelft.simulation.housinggame.common.FPRecord;
+import nl.tudelft.simulation.housinggame.common.FluvialPluvial;
 import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.PlayerState;
 import nl.tudelft.simulation.housinggame.data.Tables;
@@ -218,7 +218,7 @@ public class FacilitatorServlet extends HttpServlet
         }
         else if (button.equals("roll-dice"))
         {
-            FPRecord fp = ContentFlood.handleDiceRoll(data, request);
+            FluvialPluvial fp = ContentFlood.handleDiceRoll(data, request);
             if (fp != null)
             {
                 data.getCurrentGroupRound().setGroupState(GroupState.ROLLED_DICE.toString());
