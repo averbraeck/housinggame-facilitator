@@ -91,7 +91,7 @@ public class ApproveRejectBuyServlet extends HttpServlet
                     int phr = prr.getPreferredHouseRating();
                     int hr = house.getRating();
                     prr.setSatisfactionHouseRatingDelta(hr - phr);
-                    prr.setPersonalSatisfaction(prr.getPersonalSatisfaction() + hr - phr);
+                    prr.setSatisfactionPersonalTotal(prr.getSatisfactionPersonalTotal() + hr - phr);
                     prr.setFinalHousegroupId(hgr.getId());
                     prr.store();
 

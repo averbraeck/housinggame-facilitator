@@ -77,7 +77,7 @@ public class ApproveRejectSellServlet extends HttpServlet
                     int movePenalty = data.getScenarioParameters().getSatisfactionMovePenalty()
                             + newsEffects.get(house.getCommunityId()).getSatisfactionMoveChange();
                     prr.setSatisfactionMovePenalty(movePenalty);
-                    prr.setPersonalSatisfaction(prr.getPersonalSatisfaction() - movePenalty);
+                    prr.setSatisfactionPersonalTotal(prr.getSatisfactionPersonalTotal() - movePenalty);
                     prr.store();
                 }
                 else
