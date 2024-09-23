@@ -132,7 +132,7 @@ public class TablePlayer
                     s.append("                    <td>" + data.k(prr.getCostTaxes()) + "</td>\n");
                 }
                 s.append("                    <td>" + data.k(prr.getSpendableIncome()) + "</td>\n");
-                s.append("                    <td>" + prr.getSatisfactionTotal() + "</td>\n");
+                s.append("                    <td>" + prrPrev.getSatisfactionTotal() + "</td>\n");
                 s.append("                    <td>" + prr.getSatisfactionPersonalMeasures() + "</td>\n");
                 if (house == null)
                 {
@@ -142,7 +142,7 @@ public class TablePlayer
                 else
                 {
                     s.append("                    <td>" + currentHouseSatisfaction + "</td>\n");
-                    s.append("                    <td>-" + prr.getSatisfactionHouseRatingDelta() + "</td>\n");
+                    s.append("                    <td>" + prr.getSatisfactionHouseRatingDelta() + "</td>\n");
                 }
                 if (prrPrev.getSpendableIncome() >= 0)
                     s.append("                    <td>--</td>\n");
