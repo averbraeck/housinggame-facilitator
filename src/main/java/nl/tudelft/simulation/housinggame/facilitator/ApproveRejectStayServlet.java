@@ -61,7 +61,7 @@ public class ApproveRejectStayServlet extends HttpServlet
                         int phr = prr.getPreferredHouseRating();
                         int hr = house.getRating();
                         prr.setSatisfactionHouseRatingDelta(hr - phr);
-                        prr.setSatisfactionPersonalTotal(prr.getSatisfactionPersonalTotal() + hr - phr);
+                        prr.setSatisfactionTotal(prr.getSatisfactionTotal() + hr - phr);
                         prr.setFinalHousegroupId(hgr.getId());
                     }
                     prr.store();

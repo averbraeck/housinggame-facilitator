@@ -55,9 +55,12 @@ public class TablePlayer
         s.append("                    <th>House</th>\n");
         s.append("                    <th>Taxes</th>\n");
         s.append("                    <th>Spendable<br/>income</th>\n");
-        s.append("                    <th>Player<br/>satisf</th>\n");
+        s.append("                    <th>Prev<br/>satisf</th>\n");
+        s.append("                    <th>Person<br/>satisf</th>\n");
         s.append("                    <th>House<br/>satisf</th>\n");
+        s.append("                    <th>Rating<br/>penalty</th>\n");
         s.append("                    <th>Debt<br/>penalty</th>\n");
+        s.append("                    <th>Move<br/>penalty</th>\n");
         s.append("                    <th>Flood<br/>penalty</th>\n");
         s.append("                    <th>Total<br/>satisf</th>\n");
         s.append("                  </tr>\n");
@@ -80,6 +83,9 @@ public class TablePlayer
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>" + data.k(welfareType.getInitialMoney()) + "</td>\n");
                 s.append("                    <td>" + welfareType.getInitialSatisfaction() + "</td>\n");
+                s.append("                    <td>--</td>\n");
+                s.append("                    <td>--</td>\n");
+                s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
@@ -126,23 +132,33 @@ public class TablePlayer
                     s.append("                    <td>" + data.k(prr.getCostTaxes()) + "</td>\n");
                 }
                 s.append("                    <td>" + data.k(prr.getSpendableIncome()) + "</td>\n");
-                int netSatisfaction = prr.getSatisfactionPersonalTotal() - prr.getSatisfactionFluvialPenalty()
-                        - prr.getSatisfactionPluvialPenalty() - prr.getSatisfactionDebtPenalty();
-                s.append("                    <td>" + netSatisfaction + "</td>\n");
+                s.append("                    <td>" + prr.getSatisfactionTotal() + "</td>\n");
+                s.append("                    <td>" + prr.getSatisfactionPersonalMeasures() + "</td>\n");
                 if (house == null)
+                {
+                    s.append("                    <td>--</td>\n");
+                    s.append("                    <td>--</td>\n");
+                }
+                else
+                {
+                    s.append("                    <td>" + currentHouseSatisfaction + "</td>\n");
+                    s.append("                    <td>-" + prr.getSatisfactionHouseRatingDelta() + "</td>\n");
+                }
+                if (prrPrev.getSpendableIncome() >= 0)
                     s.append("                    <td>--</td>\n");
                 else
-                    s.append("                    <td>" + currentHouseSatisfaction + "</td>\n");
-                if (prrPrev.getSpendableIncome() >= 0)
-                    s.append("                    <td>-</td>\n");
-                else
                     s.append("                    <td>-" + spr.getSatisfactionDebtPenalty() + "</td>\n");
+
+                if (prr.getSatisfactionMovePenalty() >= 0)
+                    s.append("                    <td>--</td>\n");
+                else
+                    s.append("                    <td>-" + prr.getSatisfactionMovePenalty() + "</td>\n");
                 if (prr.getSatisfactionFluvialPenalty() + prr.getSatisfactionPluvialPenalty() == 0)
                     s.append("                    <td>--</td>\n");
                 else
                     s.append("                    <td>"
                             + (prr.getSatisfactionFluvialPenalty() + prr.getSatisfactionPluvialPenalty()) + "</td>\n");
-                s.append("                    <td>" + (prr.getSatisfactionPersonalTotal() + currentHouseSatisfaction) + "</td>\n");
+                s.append("                    <td>" + prr.getSatisfactionTotal() + "</td>\n");
             }
             s.append("                  </tr>\n");
         }

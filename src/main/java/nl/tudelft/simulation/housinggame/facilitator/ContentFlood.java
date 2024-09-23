@@ -134,22 +134,22 @@ public class ContentFlood
                 if (pluvialCommunityDamage > 0 && params.getPluvialSatisfactionPenaltyIfAreaFlooded() != null)
                 {
                     playerRound.setSatisfactionPluvialPenalty(params.getPluvialSatisfactionPenaltyIfAreaFlooded());
-                    playerRound.setSatisfactionPersonalTotal(
-                            playerRound.getSatisfactionPersonalTotal() - params.getPluvialSatisfactionPenaltyIfAreaFlooded());
+                    playerRound.setSatisfactionTotal(
+                            playerRound.getSatisfactionTotal() - params.getPluvialSatisfactionPenaltyIfAreaFlooded());
                 }
 
                 if (fluvialCommunityDamage > 0 && params.getFluvialSatisfactionPenaltyIfAreaFlooded() != null)
                 {
                     playerRound.setSatisfactionFluvialPenalty(params.getFluvialSatisfactionPenaltyIfAreaFlooded());
-                    playerRound.setSatisfactionPersonalTotal(
-                            playerRound.getSatisfactionPersonalTotal() - params.getFluvialSatisfactionPenaltyIfAreaFlooded());
+                    playerRound.setSatisfactionTotal(
+                            playerRound.getSatisfactionTotal() - params.getFluvialSatisfactionPenaltyIfAreaFlooded());
                 }
 
                 if (pluvialHouseDamage > 0 && params.getPluvialSatisfactionPenaltyHouseFloodedFixed() != null)
                 {
                     playerRound.setSatisfactionPluvialPenalty(playerRound.getSatisfactionPluvialPenalty()
                             + params.getPluvialSatisfactionPenaltyHouseFloodedFixed());
-                    playerRound.setSatisfactionPersonalTotal(playerRound.getSatisfactionPersonalTotal()
+                    playerRound.setSatisfactionTotal(playerRound.getSatisfactionTotal()
                             - params.getPluvialSatisfactionPenaltyHouseFloodedFixed());
                 }
 
@@ -157,7 +157,7 @@ public class ContentFlood
                 {
                     playerRound.setSatisfactionFluvialPenalty(playerRound.getSatisfactionFluvialPenalty()
                             + params.getFluvialSatisfactionPenaltyHouseFloodedFixed());
-                    playerRound.setSatisfactionPersonalTotal(playerRound.getSatisfactionPersonalTotal()
+                    playerRound.setSatisfactionTotal(playerRound.getSatisfactionTotal()
                             - params.getFluvialSatisfactionPenaltyHouseFloodedFixed());
                 }
 
@@ -165,7 +165,7 @@ public class ContentFlood
                 {
                     playerRound.setSatisfactionPluvialPenalty(playerRound.getSatisfactionPluvialPenalty()
                             + pluvialHouseDamage * params.getPluvialSatisfactionPenaltyPerDamagePoint());
-                    playerRound.setSatisfactionPersonalTotal(playerRound.getSatisfactionPersonalTotal()
+                    playerRound.setSatisfactionTotal(playerRound.getSatisfactionTotal()
                             - pluvialHouseDamage * params.getPluvialSatisfactionPenaltyPerDamagePoint());
                 }
 
@@ -173,16 +173,16 @@ public class ContentFlood
                 {
                     playerRound.setSatisfactionFluvialPenalty(playerRound.getSatisfactionFluvialPenalty()
                             + fluvialHouseDamage * params.getFluvialSatisfactionPenaltyPerDamagePoint());
-                    playerRound.setSatisfactionPersonalTotal(playerRound.getSatisfactionPersonalTotal()
+                    playerRound.setSatisfactionTotal(playerRound.getSatisfactionTotal()
                             - fluvialHouseDamage * params.getFluvialSatisfactionPenaltyPerDamagePoint());
                 }
 
                 // normalize the satisfaction scores if so dictated by the parameters
                 if (params.getAllowPersonalSatisfactionNeg() == 0)
-                    playerRound.setSatisfactionPersonalTotal(Math.max(0, playerRound.getSatisfactionPersonalTotal()));
+                    playerRound.setSatisfactionTotal(Math.max(0, playerRound.getSatisfactionTotal()));
                 if (params.getAllowTotalSatisfactionNeg() == 0)
-                    playerRound.setSatisfactionPersonalTotal(
-                            Math.max(-houseGroup.getHouseSatisfaction(), playerRound.getSatisfactionPersonalTotal()));
+                    playerRound.setSatisfactionTotal(
+                            Math.max(-houseGroup.getHouseSatisfaction(), playerRound.getSatisfactionTotal()));
 
                 // calculate the damage cost
                 if (pluvialHouseDamage > 0 && params.getPluvialRepairCostsFixed() != null)
