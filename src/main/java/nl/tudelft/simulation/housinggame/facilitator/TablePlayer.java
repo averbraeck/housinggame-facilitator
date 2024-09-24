@@ -177,7 +177,6 @@ public class TablePlayer
         s.append("                    <th>Maximun<br/>mortgage</th>\n");
         s.append("                    <th>Start<br/>savings</th>\n");
         s.append("                    <th>Start<br/>debt</th>\n");
-        s.append("                    <th>Increase<br/>satisf</th>\n");
         s.append("                    <th>Preferred<br/>rating</th>\n");
         s.append("                  </tr>\n");
         s.append("                </thead>\n");
@@ -195,7 +194,6 @@ public class TablePlayer
                 s.append("                    <td>" + data.k(welfareType.getMaximumMortgage()) + "</td>\n");
                 s.append("                    <td>" + data.k(welfareType.getInitialMoney()) + "</td>\n");
                 s.append("                    <td>" + data.k(0) + "</td>\n");
-                s.append("                    <td>" + data.k(welfareType.getSatisfactionCostPerPoint()) + "</td>\n");
                 s.append("                    <td>" + welfareType.getPreferredHouseRating() + "</td>\n");
             }
             else
@@ -217,7 +215,6 @@ public class TablePlayer
                         + data.k(prrPrev.getSpendableIncome() > 0 ? prrPrev.getSpendableIncome() : 0) + "</td>\n");
                 s.append("                    <td>"
                         + data.k(prrPrev.getSpendableIncome() < 0 ? -prrPrev.getSpendableIncome() : 0) + "</td>\n");
-                s.append("                    <td>" + data.k(welfareType.getSatisfactionCostPerPoint()) + "</td>\n");
                 s.append("                    <td>" + prr.getPreferredHouseRating() + "</td>\n");
             }
             s.append("                  </tr>\n");
