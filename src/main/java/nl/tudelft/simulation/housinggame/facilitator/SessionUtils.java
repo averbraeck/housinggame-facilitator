@@ -1,6 +1,6 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 public final class SessionUtils
 {

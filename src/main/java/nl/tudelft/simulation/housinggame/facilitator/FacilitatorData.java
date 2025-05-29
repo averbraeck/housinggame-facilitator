@@ -9,7 +9,6 @@ import java.util.Map;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.servlet.ServletException;
 import javax.sql.DataSource;
 
 import org.jooq.DSLContext;
@@ -19,6 +18,7 @@ import org.jooq.impl.DSL;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import jakarta.servlet.ServletException;
 import nl.tudelft.simulation.housinggame.common.CommonData;
 import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
