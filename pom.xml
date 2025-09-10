@@ -3,7 +3,7 @@
   
   <groupId>nl.tudelft.simulation</groupId>
   <artifactId>housinggame-facilitator</artifactId>
-  <version>1.7.1</version>
+  <version>1.7.2</version>
   <packaging>war</packaging>
   
   <name>Housinggame facilitator application</name>
@@ -105,7 +105,7 @@
     <dependency>
       <groupId>nl.tudelft.simulation</groupId>
       <artifactId>housinggame-common</artifactId>
-      <version>1.7.1</version>
+      <version>1.7.2</version>
     </dependency>
   </dependencies>
 
