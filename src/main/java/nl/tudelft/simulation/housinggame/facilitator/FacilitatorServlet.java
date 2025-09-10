@@ -240,7 +240,10 @@ public class FacilitatorServlet extends HttpServlet
         for (String b : new String[] {"start-new-round", "announce-news", "show-houses", "allow-selling", "finish-selling",
                 "allow-buying", "finish-buying", "show-taxes", "allow-improvements", "show-survey", "complete-survey",
                 "roll-dice", "show-summary"})
+        {
             data.putContentHtml("button/" + b, "btn btn-inactive");
+            data.putContentHtml("disabled/" + b, "disabled");
+        }
         for (String a : new String[] {"round", "news", "houses", "improvements", "survey", "dice", "summary"})
             data.putContentHtml("accordion/" + a, "");
 
@@ -248,66 +251,79 @@ public class FacilitatorServlet extends HttpServlet
         {
             data.putContentHtml("button/start-new-round", "btn btn-primary btn-active");
             data.putContentHtml("accordion/round", "in");
+            data.putContentHtml("disabled/start-new-round", "");
         }
         else if (data.getGroupState().eq(GroupState.NEW_ROUND))
         {
             data.putContentHtml("button/announce-news", "btn btn-primary btn-active");
             data.putContentHtml("accordion/round", "in");
+            data.putContentHtml("disabled/announce-news", "");
         }
         else if (data.getGroupState().eq(GroupState.ANNOUNCE_NEWS))
         {
             data.putContentHtml("button/show-houses", "btn btn-primary btn-active");
             data.putContentHtml("accordion/news", "in");
+            data.putContentHtml("disabled/show-houses", "");
         }
         else if (data.getGroupState().eq(GroupState.SHOW_HOUSES_SELL))
         {
             data.putContentHtml("button/allow-selling", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
+            data.putContentHtml("disabled/allow-selling", "");
         }
         else if (data.getGroupState().eq(GroupState.ALLOW_SELLING))
         {
             data.putContentHtml("button/finish-selling", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
+            data.putContentHtml("disabled/finish-selling", "");
         }
         else if (data.getGroupState().eq(GroupState.SHOW_HOUSES_BUY))
         {
             data.putContentHtml("button/allow-buying", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
+            data.putContentHtml("disabled/allow-buying", "");
         }
         else if (data.getGroupState().eq(GroupState.ALLOW_BUYING))
         {
             data.putContentHtml("button/finish-buying", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
+            data.putContentHtml("disabled/finish-buying", "");
         }
         else if (data.getGroupState().eq(GroupState.BUYING_FINISHED))
         {
             data.putContentHtml("button/show-taxes", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
+            data.putContentHtml("disabled/show-taxes", "");
         }
         else if (data.getGroupState().eq(GroupState.SHOW_TAXES))
         {
             data.putContentHtml("button/allow-improvements", "btn btn-primary btn-active");
             data.putContentHtml("accordion/houses", "in");
+            data.putContentHtml("disabled/allow-improvements", "");
         }
         else if (data.getGroupState().eq(GroupState.ALLOW_IMPROVEMENTS))
         {
             data.putContentHtml("button/show-survey", "btn btn-primary btn-active");
             data.putContentHtml("accordion/improvements", "in");
+            data.putContentHtml("disabled/show-survey", "");
         }
         else if (data.getGroupState().eq(GroupState.SHOW_SURVEY))
         {
             data.putContentHtml("button/complete-survey", "btn btn-primary btn-active");
             data.putContentHtml("accordion/survey", "in");
+            data.putContentHtml("disabled/complete-survey", "");
         }
         else if (data.getGroupState().eq(GroupState.SURVEY_COMPLETED))
         {
             data.putContentHtml("button/roll-dice", "btn btn-primary btn-active");
             data.putContentHtml("accordion/survey", "in");
+            data.putContentHtml("disabled/roll-dice", "");
         }
         else if (data.getGroupState().eq(GroupState.ROLLED_DICE))
         {
             data.putContentHtml("button/show-summary", "btn btn-primary btn-active");
             data.putContentHtml("accordion/dice", "in");
+            data.putContentHtml("disabled/show-summary", "");
         }
         else if (data.getGroupState().eq(GroupState.SHOW_SUMMARY))
         {
@@ -315,6 +331,7 @@ public class FacilitatorServlet extends HttpServlet
             {
                 data.putContentHtml("button/start-new-round", "btn btn-primary btn-active");
                 data.putContentHtml("accordion/summary", "in");
+                data.putContentHtml("disabled/start-new-round", "");
             }
         }
     }

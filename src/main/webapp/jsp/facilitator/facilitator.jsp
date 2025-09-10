@@ -111,6 +111,7 @@ body {
 .btn-inactive {
   disabled: true !important;
   cursor: not-allowed !important;
+  background-color: #ccc !important;
 }
 
 .hg-fac-table thead th {
@@ -194,7 +195,8 @@ body {
                       <input type="hidden" name="button" value="start-new-round" />
                       <div class="hg-button">
                         <input type="submit" value="START NEW ROUND"
-                          class='${facilitatorData.getContentHtml("button/start-new-round") }' />
+                          class='${facilitatorData.getContentHtml("button/start-new-round") }' 
+                          ${facilitatorData.getContentHtml("disabled/start-new-round")} />
                       </div>
                     </form>
                   </div>
@@ -225,7 +227,8 @@ body {
                     <input type="hidden" name="button" value="announce-news" />
                     <div class="hg-button">
                       <input type="submit" value="ANNOUNCE NEWS"
-                        class='${facilitatorData.getContentHtml("button/announce-news") }' />
+                        class='${facilitatorData.getContentHtml("button/announce-news") }'
+                        ${facilitatorData.getContentHtml("disabled/announce-news")} />
                     </div>
                   </form>
                 </div>
@@ -261,7 +264,8 @@ body {
                       <input type="hidden" name="button" value="show-houses" />
                       <div class="hg-button">
                         <input type="submit" value="SHOW HOUSES"
-                          class='${facilitatorData.getContentHtml("button/show-houses") }' />
+                          class='${facilitatorData.getContentHtml("button/show-houses") }
+                          ${facilitatorData.getContentHtml("disabled/show-houses")}' />
                       </div>
                     </form>
                     <form action="/housinggame-facilitator/facilitator" method="post"
@@ -269,7 +273,8 @@ body {
                       <input type="hidden" name="button" value="allow-selling" />
                       <div class="hg-button">
                         <input type="submit" value="ALLOW SELLING"
-                          class='${facilitatorData.getContentHtml("button/allow-selling") }' />
+                          class='${facilitatorData.getContentHtml("button/allow-selling") }'
+                          ${facilitatorData.getContentHtml("disabled/allow-selling")} />
                       </div>
                     </form>
                     <form action="/housinggame-facilitator/facilitator" method="post"
@@ -277,7 +282,8 @@ body {
                       <input type="hidden" name="button" value="finish-selling" />
                       <div class="hg-button">
                         <input type="submit" value="FINISH SELLING"
-                          class='${facilitatorData.getContentHtml("button/finish-selling") }' />
+                          class='${facilitatorData.getContentHtml("button/finish-selling") }'
+                          ${facilitatorData.getContentHtml("disabled/finish-selling")} />
                       </div>
                     </form>
                     <form action="/housinggame-facilitator/facilitator" method="post"
@@ -285,7 +291,8 @@ body {
                       <input type="hidden" name="button" value="allow-buying" />
                       <div class="hg-button">
                         <input type="submit" value="ALLOW BUYING"
-                          class='${facilitatorData.getContentHtml("button/allow-buying") }' />
+                          class='${facilitatorData.getContentHtml("button/allow-buying") }'
+                          ${facilitatorData.getContentHtml("disabled/allow-buying")} />
                       </div>
                     </form>
                     <form action="/housinggame-facilitator/facilitator" method="post"
@@ -293,7 +300,8 @@ body {
                       <input type="hidden" name="button" value="finish-buying" />
                       <div class="hg-button">
                         <input type="submit" value="FINISH BUYING"
-                          class='${facilitatorData.getContentHtml("button/finish-buying") }' />
+                          class='${facilitatorData.getContentHtml("button/finish-buying") }'
+                          ${facilitatorData.getContentHtml("disabled/finish-buying")} />
                       </div>
                     </form>
                     <form action="/housinggame-facilitator/facilitator" method="post"
@@ -301,7 +309,8 @@ body {
                       <input type="hidden" name="button" value="show-taxes" />
                       <div class="hg-button">
                         <input type="submit" value="CALCULATE TAXES"
-                          class='${facilitatorData.getContentHtml("button/show-taxes") }' />
+                          class='${facilitatorData.getContentHtml("button/show-taxes") }'
+                          ${facilitatorData.getContentHtml("disabled/show-taxes")} />
                       </div>
                     </form>
                   </div>
@@ -333,7 +342,8 @@ body {
                     <input type="hidden" name="button" value="allow-improvements" />
                     <div class="hg-button">
                       <input type="submit" value="ALLOW IMPROVEMENTS"
-                        class='${facilitatorData.getContentHtml("button/allow-improvements") }' />
+                        class='${facilitatorData.getContentHtml("button/allow-improvements") }'
+                        ${facilitatorData.getContentHtml("disabled/allow-improvements")} />
                     </div>
                   </form>
                 </div>
@@ -365,7 +375,8 @@ body {
                       <input type="hidden" name="button" value="show-survey" />
                       <div class="hg-button">
                         <input type="submit" value="SHOW SURVEY"
-                          class='${facilitatorData.getContentHtml("button/show-survey") }' />
+                          class='${facilitatorData.getContentHtml("button/show-survey") }'
+                          ${facilitatorData.getContentHtml("disabled/show-survey")} />
                       </div>
                     </form>
                     <form action="/housinggame-facilitator/facilitator" method="post"
@@ -373,7 +384,8 @@ body {
                       <input type="hidden" name="button" value="complete-survey" />
                       <div class="hg-button">
                         <input type="submit" value="COMPLETE SURVEY"
-                          class='${facilitatorData.getContentHtml("button/complete-survey") }' />
+                          class='${facilitatorData.getContentHtml("button/complete-survey") }'
+                          ${facilitatorData.getContentHtml("disabled/complete-survey")} />
                       </div>
                     </form>
                   </div>
@@ -415,7 +427,8 @@ body {
 
                     <div class="hg-button">
                       <input type="submit" value="ROLL DICE, SHOW DAMAGE"
-                        class='${facilitatorData.getContentHtml("button/roll-dice") }' />
+                        class='${facilitatorData.getContentHtml("button/roll-dice") }'
+                        ${facilitatorData.getContentHtml("disabled/roll-dice")} />
                     </div>
                   </form>
                 </div>
@@ -445,7 +458,8 @@ body {
                     <input type="hidden" name="button" value="show-summary" />
                     <div class="hg-button">
                       <input type="submit" value="SHOW SUMMARY"
-                        class='${facilitatorData.getContentHtml("button/show-summary") }' />
+                        class='${facilitatorData.getContentHtml("button/show-summary") }'
+                        ${facilitatorData.getContentHtml("disabled/show-summary")} />
                     </div>
                   </form>
                 </div>
