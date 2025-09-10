@@ -86,4 +86,39 @@ public final class FacilitatorUtils extends SqlUtils
         return null;
     }
 
+    public static void normalizeSatisfaction(final FacilitatorData data, final PlayerroundRecord playerRound)
+    {
+        var params = data.getScenarioParameters();
+        int hgSatisfaction = 0;
+        if (playerRound.getFinalHousegroupId() != null)
+        {
+            var houseGroup = readRecordFromId(data, Tables.HOUSEGROUP, playerRound.getFinalHousegroupId());
+            hgSatisfaction = houseGroup.getHouseSatisfaction();
+        }
+        // normalize the satisfaction scores if so dictated by the parameters
+        if (params.getAllowPersonalSatisfactionNeg() == 0)
+            playerRound.setSatisfactionTotal(Math.max(0, playerRound.getSatisfactionTotal()));
+        if (params.getAllowTotalSatisfactionNeg() == 0)
+            playerRound.setSatisfactionTotal(Math.max(-hgSatisfaction, playerRound.getSatisfactionTotal()));
+    }
+
+    public static void calculatePlayerRoundTotals(final FacilitatorData data, final PlayerroundRecord pr)
+    {
+        PlayerroundRecord prPrev = getPrevPlayerRound(data, pr.getPlayerId());
+        int incPrevRound = prPrev.getSpendableIncome();
+        int satPrevRound = prPrev.getSatisfactionTotal();
+        int newIncome =
+                incPrevRound + pr.getRoundIncome() - pr.getLivingCosts() - pr.getMortgagePayment() + pr.getProfitSoldHouse()
+                        - pr.getSpentSavingsForBuyingHouse() - pr.getCostTaxes() - pr.getCostHouseMeasuresBought()
+                        - pr.getCostPersonalMeasuresBought() - pr.getCostPluvialDamage() - pr.getCostFluvialDamage();
+        int newSatisfaction = satPrevRound - pr.getSatisfactionDebtPenalty() + pr.getSatisfactionHouseRatingDelta()
+                - pr.getSatisfactionMovePenalty() + pr.getSatisfactionHouseMeasures() + pr.getSatisfactionPersonalMeasures()
+                - pr.getSatisfactionPluvialPenalty() - pr.getSatisfactionFluvialPenalty();
+        pr.setSpendableIncome(newIncome);
+        pr.setSatisfactionTotal(newSatisfaction);
+        if (pr.getMortgagePayment() != null && pr.getMortgagePayment() != 0)
+            pr.setMortgageHouseEnd(pr.getMortgageHouseStart()- pr.getMortgagePayment());
+        normalizeSatisfaction(data, pr);
+    }
+
 }

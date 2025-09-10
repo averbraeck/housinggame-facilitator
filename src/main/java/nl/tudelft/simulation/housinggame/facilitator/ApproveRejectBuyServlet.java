@@ -76,7 +76,6 @@ public class ApproveRejectBuyServlet extends HttpServlet
                         prr.setMortgageHouseEnd(prr.getMaximumMortgage());
                         prr.setMortgageLeftEnd(prr.getMaximumMortgage());
                         prr.setSpentSavingsForBuyingHouse(price - prr.getMaximumMortgage());
-                        prr.setSpendableIncome(prr.getSpendableIncome() - prr.getSpentSavingsForBuyingHouse());
                     }
                     else
                     {
@@ -86,11 +85,11 @@ public class ApproveRejectBuyServlet extends HttpServlet
                     }
                     prr.setMortgagePayment((int) (prr.getMortgageLeftEnd() * data.getMortgagePercentage() / 100.0));
                     prr.setMortgageLeftEnd(prr.getMortgageLeftEnd() - prr.getMortgagePayment());
-                    prr.setSpendableIncome(prr.getSpendableIncome() - prr.getMortgagePayment());
                     int phr = prr.getPreferredHouseRating();
                     int hr = house.getRating();
                     prr.setSatisfactionHouseRatingDelta(hr - phr);
-                    prr.setSatisfactionTotal(prr.getSatisfactionTotal() + hr - phr);
+                    // recalculate player satisfaction and income
+                    FacilitatorUtils.calculatePlayerRoundTotals(data, prr);
                     prr.setFinalHousegroupId(hgr.getId());
                     prr.store();
 
@@ -168,7 +167,8 @@ public class ApproveRejectBuyServlet extends HttpServlet
             CommunityRecord community = FacilitatorUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
             int taxCost = taxMap.get(community);
             prr.setCostTaxes(taxCost);
-            prr.setSpendableIncome(prr.getSpendableIncome() - taxCost);
+            // recalculate player satisfaction and income
+            FacilitatorUtils.calculatePlayerRoundTotals(data, prr);
             prr.store();
         }
     }

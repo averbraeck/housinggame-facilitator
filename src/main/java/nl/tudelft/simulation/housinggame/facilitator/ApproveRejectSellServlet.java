@@ -67,7 +67,6 @@ public class ApproveRejectSellServlet extends HttpServlet
                     int mortgageBank = prr.getMortgageLeftStart();
                     int profitOrLoss = price - mortgageBank;
                     prr.setProfitSoldHouse(profitOrLoss);
-                    prr.setSpendableIncome(prr.getSpendableIncome() + profitOrLoss);
                     prr.setMortgageHouseEnd(0);
                     prr.setMortgageLeftEnd(0);
                     prr.setFinalHousegroupId(null);
@@ -76,7 +75,8 @@ public class ApproveRejectSellServlet extends HttpServlet
                     int movePenalty = data.getScenarioParameters().getSatisfactionMovePenalty()
                             + newsEffects.get(house.getCommunityId()).getSatisfactionMoveChange();
                     prr.setSatisfactionMovePenalty(movePenalty);
-                    prr.setSatisfactionTotal(prr.getSatisfactionTotal() - movePenalty);
+                    // recalculate player satisfaction and income
+                    FacilitatorUtils.calculatePlayerRoundTotals(data, prr);
                     prr.store();
                 }
                 else

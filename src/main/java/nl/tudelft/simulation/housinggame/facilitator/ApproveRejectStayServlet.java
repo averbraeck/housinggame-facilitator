@@ -52,7 +52,6 @@ public class ApproveRejectStayServlet extends HttpServlet
                     PlayerroundRecord prr = FacilitatorUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
                     prr.setMortgagePayment((int) (prr.getMortgageHouseEnd() * data.getMortgagePercentage() / 100.0));
                     prr.setMortgageLeftEnd(prr.getMortgageLeftEnd() - prr.getMortgagePayment());
-                    prr.setSpendableIncome(prr.getSpendableIncome() - prr.getMortgagePayment());
                     if (data.getScenarioParameters().getSatisfactionHouseRatingPerRound() != 0)
                     {
                         HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
@@ -60,9 +59,10 @@ public class ApproveRejectStayServlet extends HttpServlet
                         int phr = prr.getPreferredHouseRating();
                         int hr = house.getRating();
                         prr.setSatisfactionHouseRatingDelta(hr - phr);
-                        prr.setSatisfactionTotal(prr.getSatisfactionTotal() + hr - phr);
                         prr.setFinalHousegroupId(hgr.getId());
                     }
+                    // recalculate player satisfaction and income
+                    FacilitatorUtils.calculatePlayerRoundTotals(data, prr);
                     prr.store();
                 }
                 else

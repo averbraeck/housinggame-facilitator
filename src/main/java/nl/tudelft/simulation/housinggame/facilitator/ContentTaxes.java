@@ -78,7 +78,8 @@ public class ContentTaxes
                 CommunityRecord community = FacilitatorUtils.readRecordFromId(data, Tables.COMMUNITY, house.getCommunityId());
                 int taxCost = taxMap.get(community);
                 playerRound.setCostTaxes(taxCost);
-                playerRound.setSpendableIncome(playerRound.getSpendableIncome() - taxCost);
+                // recalculate player satisfaction and income
+                FacilitatorUtils.calculatePlayerRoundTotals(data, playerRound);
                 playerRound.store();
             }
         }
