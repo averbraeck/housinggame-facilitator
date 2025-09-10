@@ -280,7 +280,7 @@ public class TableHouse
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         return dslContext.selectFrom(Tables.HOUSETRANSACTION)
-                .where(Tables.HOUSETRANSACTION.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())
+                .where(Tables.HOUSETRANSACTION.GROUPROUND_ID.le(data.getCurrentGroupRound().getId())
                         .and(Tables.HOUSETRANSACTION.TRANSACTION_STATUS.eq(TransactionStatus.UNAPPROVED_BUY)))
                 .fetch();
     }
@@ -289,11 +289,11 @@ public class TableHouse
     {
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         var sellList = dslContext.selectFrom(Tables.HOUSETRANSACTION)
-                .where(Tables.HOUSETRANSACTION.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())
+                .where(Tables.HOUSETRANSACTION.GROUPROUND_ID.le(data.getCurrentGroupRound().getId())
                         .and(Tables.HOUSETRANSACTION.TRANSACTION_STATUS.eq(TransactionStatus.UNAPPROVED_SELL)))
                 .fetch();
         var stayList = dslContext.selectFrom(Tables.HOUSETRANSACTION)
-                .where(Tables.HOUSETRANSACTION.GROUPROUND_ID.eq(data.getCurrentGroupRound().getId())
+                .where(Tables.HOUSETRANSACTION.GROUPROUND_ID.le(data.getCurrentGroupRound().getId())
                         .and(Tables.HOUSETRANSACTION.TRANSACTION_STATUS.eq(TransactionStatus.UNAPPROVED_STAY)))
                 .fetch();
         List<HousetransactionRecord> sellStayList = new ArrayList<>();
