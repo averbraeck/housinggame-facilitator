@@ -30,7 +30,6 @@ public class ReloadTablesServlet extends HttpServlet
 
         if (request.getParameter("reloadTables") != null)
         {
-            data.readDynamicData();
             response.setContentType("text/plain");
             if (data.getMenuState().equals("Player"))
                 TablePlayer.makePlayerTables(data);
