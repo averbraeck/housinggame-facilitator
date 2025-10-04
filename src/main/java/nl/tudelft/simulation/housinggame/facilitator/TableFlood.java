@@ -223,14 +223,14 @@ public class TableFlood
             s.append("              <td>" + playerCode + "</td>\n");
             List<HousemeasureRecord> measureList = dslContext.selectFrom(Tables.HOUSEMEASURE)
                     .where(Tables.HOUSEMEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch();
-            s.append("              <td>");
+            s.append("              <td style=\"text-align:left;\">");
             for (int i = 0; i < measureList.size(); i++)
             {
                 if (i > 0)
                     s.append("<br/>");
                 MeasuretypeRecord mt =
                         FacilitatorUtils.readRecordFromId(data, Tables.MEASURETYPE, measureList.get(i).getMeasuretypeId());
-                s.append(mt.getShortAlias());
+                s.append(mt.getShortAlias() + " (R" + measureList.get(i).getBoughtInRound() + ")");
             }
             int fCommBaseProt = houseGroup.getFluvialBaseProtection();
             int pCommBaseProt = houseGroup.getPluvialBaseProtection();
