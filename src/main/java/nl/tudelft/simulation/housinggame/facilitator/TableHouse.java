@@ -9,7 +9,9 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
+import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
 import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
+import nl.tudelft.simulation.housinggame.common.MeasureTypeList;
 import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
@@ -81,14 +83,36 @@ public class TableHouse
                 {
                     s.append("                    <td style=\"text-align:left;\">");
                     boolean first = true;
-                    for (HousemeasureRecord measure : measureList)
+                    if (houseGroup.getOwnerId() == null)
                     {
-                        MeasuretypeRecord measureType =
-                                SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
-                        if (!first)
-                            s.append("<br />");
-                        first = false;
-                        s.append(measureType.getShortAlias() + " (R" + measure.getBoughtInRound() + ")");
+                        for (HousemeasureRecord measure : measureList)
+                        {
+                            MeasuretypeRecord measureType =
+                                    SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
+                            if (!first)
+                                s.append("<br />");
+                            first = false;
+                            s.append(measureType.getShortAlias() + " (R" + measure.getBoughtInRound() + ")");
+                        }
+                    }
+                    else
+                    {
+                        PlayerroundRecord prr = CalcPlayerState.getCurrentPlayerRound(data, houseGroup.getOwnerId());
+                        if (prr != null)
+                        {
+                            var activeMT = MeasureTypeList.getActiveMeasureListRecords(data, data.getScenario().getId(), prr);
+                            for (MeasuretypeRecord mt : activeMT.keySet())
+                            {
+                                if (mt.getHouseMeasure() > 0 || mt.getPluvialProtectionDelta() > 0
+                                        || mt.getFluvialProtectionDelta() > 0)
+                                {
+                                    if (!first)
+                                        s.append("<br />");
+                                    first = false;
+                                    s.append(mt.getShortAlias() + " (R" + activeMT.get(mt) + ")");
+                                }
+                            }
+                        }
                     }
                     s.append("</td>\n");
                 }
