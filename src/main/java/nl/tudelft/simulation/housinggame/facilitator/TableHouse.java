@@ -87,7 +87,7 @@ public class TableHouse
                         if (!first)
                             s.append("<br />");
                         first = false;
-                        s.append(measureType.getName());
+                        s.append(measureType.getShortAlias() + " (R" + measure.getBoughtInRound() + ")");
                     }
                     s.append("</td>\n");
                 }
