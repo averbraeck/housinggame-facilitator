@@ -9,8 +9,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
+import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
 import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
 import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
+import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
@@ -45,12 +48,12 @@ public class ApproveRejectSellServlet extends HttpServlet
                 int transactionId = Integer.valueOf(transactionIdStr);
                 String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
                 String comment = SessionUtils.stripQuotes(request.getParameter("comment"));
-                HousetransactionRecord transaction = FacilitatorUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
+                HousetransactionRecord transaction = SqlUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
                 if (approve.equals("APPROVE"))
                 {
-                    HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-                    HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
-                    PlayerroundRecord prr = FacilitatorUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+                    HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+                    HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
+                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
                     Map<Integer, CumulativeNewsEffects> newsEffects = CumulativeNewsEffects
                             .readCumulativeNewsEffects(data.getDataSource(), data.getScenario(), data.getCurrentRoundNumber());
 
@@ -76,7 +79,7 @@ public class ApproveRejectSellServlet extends HttpServlet
                             + newsEffects.get(house.getCommunityId()).getSatisfactionMoveChange();
                     prr.setSatisfactionMovePenalty(movePenalty);
                     // recalculate player satisfaction and income
-                    FacilitatorUtils.calculatePlayerRoundTotals(data, prr);
+                    CalcPlayerState.calculatePlayerRoundTotals(data, prr);
                     prr.store();
                 }
                 else

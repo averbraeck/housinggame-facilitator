@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
+import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
@@ -42,27 +44,27 @@ public class ApproveRejectStayServlet extends HttpServlet
                 int transactionId = Integer.valueOf(transactionIdStr);
                 String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
                 String comment = SessionUtils.stripQuotes(request.getParameter("comment"));
-                HousetransactionRecord transaction = FacilitatorUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
+                HousetransactionRecord transaction = SqlUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
                 if (approve.equals("APPROVE"))
                 {
                     transaction.setComment(comment);
                     transaction.setTransactionStatus(TransactionStatus.APPROVED_STAY);
                     transaction.store();
 
-                    PlayerroundRecord prr = FacilitatorUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+                    PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
                     prr.setMortgagePayment((int) (prr.getMortgageHouseEnd() * data.getMortgagePercentage() / 100.0));
                     prr.setMortgageLeftEnd(prr.getMortgageLeftEnd() - prr.getMortgagePayment());
                     if (data.getScenarioParameters().getSatisfactionHouseRatingPerRound() != 0)
                     {
-                        HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-                        HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
+                        HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+                        HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
                         int phr = prr.getPreferredHouseRating();
                         int hr = house.getRating();
                         prr.setSatisfactionHouseRatingDelta(hr - phr);
                         prr.setFinalHousegroupId(hgr.getId());
                     }
                     // recalculate player satisfaction and income
-                    FacilitatorUtils.calculatePlayerRoundTotals(data, prr);
+                    CalcPlayerState.calculatePlayerRoundTotals(data, prr);
                     prr.store();
                 }
                 else

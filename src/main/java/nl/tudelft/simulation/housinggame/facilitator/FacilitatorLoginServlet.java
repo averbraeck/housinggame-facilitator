@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nl.tudelft.simulation.housinggame.common.GroupState;
+import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.GamesessionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GroupRecord;
@@ -79,8 +80,8 @@ public class FacilitatorLoginServlet extends HttpServlet
         if (ok)
         {
             DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
-            GamesessionRecord gs = FacilitatorUtils.readRecordFromId(data, Tables.GAMESESSION, gameSessionId);
-            UserRecord user = FacilitatorUtils.readUserFromUsername(data, username);
+            GamesessionRecord gs = SqlUtils.readRecordFromId(data, Tables.GAMESESSION, gameSessionId);
+            UserRecord user = SqlUtils.readUserFromUsername(data, username);
             String userPassword = user == null ? "" : user.getPassword() == null ? "" : user.getPassword();
             // TODO: hashedPassword
             if (user == null || !userPassword.equals(password))

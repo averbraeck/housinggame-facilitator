@@ -11,6 +11,7 @@ import org.jooq.impl.DSL;
 
 import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
 import nl.tudelft.simulation.housinggame.common.FluvialPluvial;
+import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.CommunityRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.GrouproundRecord;
@@ -210,14 +211,14 @@ public class TableFlood
                 data.getFloodInfoRoundNumber());
         for (var houseGroup : houseGroupList)
         {
-            HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
             s.append("            <tr>\n");
             s.append("              <td>" + house.getCode() + "</td>\n");
             s.append("              <td>" + house.getAvailableRound() + "</td>\n");
             String playerCode = "--";
             if (houseGroup.getOwnerId() != null)
             {
-                PlayerRecord player = FacilitatorUtils.readRecordFromId(data, Tables.PLAYER, houseGroup.getOwnerId());
+                PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, houseGroup.getOwnerId());
                 playerCode = player.getCode();
             }
             s.append("              <td>" + playerCode + "</td>\n");
@@ -229,7 +230,7 @@ public class TableFlood
                 if (i > 0)
                     s.append("<br/>");
                 MeasuretypeRecord mt =
-                        FacilitatorUtils.readRecordFromId(data, Tables.MEASURETYPE, measureList.get(i).getMeasuretypeId());
+                        SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measureList.get(i).getMeasuretypeId());
                 s.append(mt.getShortAlias() + " (R" + measureList.get(i).getBoughtInRound() + ")");
             }
             int fCommBaseProt = houseGroup.getFluvialBaseProtection();

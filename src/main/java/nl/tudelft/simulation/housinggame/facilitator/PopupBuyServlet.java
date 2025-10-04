@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
+import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
@@ -47,7 +48,7 @@ public class PopupBuyServlet extends HttpServlet
                 Set<String> doubleHouseCodes = new HashSet<>();
                 for (HousetransactionRecord transaction : unapprovedBuyTransactions)
                 {
-                    HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+                    HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
                     if (houseCodes.contains(hgr.getCode()))
                         doubleHouseCodes.add(hgr.getCode());
                     else
@@ -58,12 +59,12 @@ public class PopupBuyServlet extends HttpServlet
                 String transactionIdStr = SessionUtils.stripQuotes(request.getParameter("transactionId"));
                 int transactionId = Integer.valueOf(transactionIdStr);
                 String approve = SessionUtils.stripQuotes(request.getParameter("approve"));
-                HousetransactionRecord transaction = FacilitatorUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
-                HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-                HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
+                HousetransactionRecord transaction = SqlUtils.readRecordFromId(data, Tables.HOUSETRANSACTION, transactionId);
+                HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
                 PlayerroundRecord playerRound =
-                        FacilitatorUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
-                PlayerRecord player = FacilitatorUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
+                        SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+                PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
 
                 // check if there is anything wrong
                 String note = "";

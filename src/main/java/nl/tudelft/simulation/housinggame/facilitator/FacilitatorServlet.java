@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
 import nl.tudelft.simulation.housinggame.common.FluvialPluvial;
 import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.PlayerState;
@@ -361,8 +362,8 @@ public class FacilitatorServlet extends HttpServlet
         int nrActivePlayers = 0;
         for (PlayerRecord player : data.getPlayerList())
         {
-            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
-            PlayerroundRecord playerRound = FacilitatorUtils.getCurrentPlayerRound(data, player.getId());
+            List<PlayerroundRecord> playerRoundList = CalcPlayerState.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = CalcPlayerState.getCurrentPlayerRound(data, player.getId());
             if (!playerRoundList.isEmpty())
             {
                 if (playerRoundList.get(0) != null)
@@ -398,8 +399,8 @@ public class FacilitatorServlet extends HttpServlet
         int nrActivePlayers = 0;
         for (PlayerRecord player : data.getPlayerList())
         {
-            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
-            PlayerroundRecord playerRound = FacilitatorUtils.getCurrentPlayerRound(data, player.getId());
+            List<PlayerroundRecord> playerRoundList = CalcPlayerState.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = CalcPlayerState.getCurrentPlayerRound(data, player.getId());
             if (!playerRoundList.isEmpty())
             {
                 if (playerRoundList.get(0) != null)
@@ -435,8 +436,8 @@ public class FacilitatorServlet extends HttpServlet
         int nrActivePlayers = 0;
         for (PlayerRecord player : data.getPlayerList())
         {
-            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
-            PlayerroundRecord playerRound = FacilitatorUtils.getCurrentPlayerRound(data, player.getId());
+            List<PlayerroundRecord> playerRoundList = CalcPlayerState.getPlayerRoundList(data, player.getId());
+            PlayerroundRecord playerRound = CalcPlayerState.getCurrentPlayerRound(data, player.getId());
             if (!playerRoundList.isEmpty())
             {
                 if (playerRoundList.get(0) != null)

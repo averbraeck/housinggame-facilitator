@@ -9,8 +9,10 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
 import jakarta.servlet.http.HttpServletRequest;
+import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
 import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
 import nl.tudelft.simulation.housinggame.common.FluvialPluvial;
+import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
@@ -92,7 +94,7 @@ public class ContentFlood
         // check the protection of the communities and houses
         for (var houseGroup : houseGroupList)
         {
-            HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+            HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
             int pCommDelta = cumulativeNewsEffects.get(house.getCommunityId()).getPluvialProtectionDelta();
             int pluvialCommunityProtection = houseGroup.getPluvialBaseProtection() + pCommDelta;
             int fCommDelta = cumulativeNewsEffects.get(house.getCommunityId()).getFluvialProtectionDelta();
@@ -188,13 +190,14 @@ public class ContentFlood
                 }
 
                 // re-calculate satisfaction and spendable income
-                FacilitatorUtils.calculatePlayerRoundTotals(data, playerRound);
+                CalcPlayerState.calculatePlayerRoundTotals(data, playerRound);
                 playerRound.store();
 
             } // if (houseGroup.getOwnerId() != null)
 
             // see if there are one-time measures that have been consumed, and adapt the protection and house satisfaction
-            // TODO one-time measures
+            // TODO: List<MeasuretypeRecord> activeMT =
+            // MeasureTypeList.getActiveMeasureListRecords(data, data.getScenario().getId(), data.getPlayerRound());
 
             // update the market value of (all) houses, also based if an area was flooded (fluvial) in previous rounds
             if (houseGroup.getLastRoundCommFluvial() != null && houseGroup.getLastRoundCommFluvial().intValue() != 0

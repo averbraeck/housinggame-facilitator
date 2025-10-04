@@ -2,6 +2,8 @@ package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.util.List;
 
+import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
+import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
@@ -73,10 +75,10 @@ public class TablePlayer
         {
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
-            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
+            List<PlayerroundRecord> playerRoundList = CalcPlayerState.getPlayerRoundList(data, player.getId());
             if (playerRoundList.isEmpty() || playerRoundList.get(0) == null)
             {
-                WelfaretypeRecord welfareType = FacilitatorUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
+                WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
                 s.append("                    <td>--</td>\n");
@@ -108,12 +110,12 @@ public class TablePlayer
                 int currentHouseSatisfaction = 0;
                 if (prr.getFinalHousegroupId() != null)
                 {
-                    HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
+                    HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getFinalHousegroupId());
                     currentHouseSatisfaction = hgr.getHouseSatisfaction();
                 }
                 else if (prr.getStartHousegroupId() != null)
                 {
-                    HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getStartHousegroupId());
+                    HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, prr.getStartHousegroupId());
                     currentHouseSatisfaction = hgr.getHouseSatisfaction();
                 }
 
@@ -185,8 +187,8 @@ public class TablePlayer
         {
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
-            List<PlayerroundRecord> playerRoundList = FacilitatorUtils.getPlayerRoundList(data, player.getId());
-            WelfaretypeRecord welfareType = FacilitatorUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
+            List<PlayerroundRecord> playerRoundList = CalcPlayerState.getPlayerRoundList(data, player.getId());
+            WelfaretypeRecord welfareType = SqlUtils.readRecordFromId(data, Tables.WELFARETYPE, player.getWelfaretypeId());
             if (playerRoundList.isEmpty() || playerRoundList.get(0) == null)
             {
                 s.append("                    <td>" + data.k(welfareType.getRoundIncome()) + "</td>\n");

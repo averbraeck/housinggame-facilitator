@@ -10,6 +10,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
 import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
+import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
@@ -58,7 +59,7 @@ public class TableHouse
         {
             if (HouseGroupStatus.isAvailableOrOccupied(houseGroup.getStatus()))
             {
-                HouseRecord house = FacilitatorUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
+                HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, houseGroup.getHouseId());
                 List<HousemeasureRecord> measureList = dslContext.selectFrom(Tables.HOUSEMEASURE)
                         .where(Tables.HOUSEMEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch();
                 s.append("                  <tr style=\"text-align:center;\">\n");
@@ -83,7 +84,7 @@ public class TableHouse
                     for (HousemeasureRecord measure : measureList)
                     {
                         MeasuretypeRecord measureType =
-                                FacilitatorUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
+                                SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measure.getMeasuretypeId());
                         if (!first)
                             s.append("<br />");
                         first = false;
@@ -93,7 +94,7 @@ public class TableHouse
                 }
                 if (houseGroup.getOwnerId() != null)
                 {
-                    PlayerRecord player = FacilitatorUtils.readRecordFromId(data, Tables.PLAYER, houseGroup.getOwnerId());
+                    PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, houseGroup.getOwnerId());
                     s.append("                    <td>" + player.getCode() + "</td>\n");
                 }
                 else
@@ -143,7 +144,7 @@ public class TableHouse
         Set<String> doubleHouseCodes = new HashSet<>();
         for (HousetransactionRecord transaction : unapprovedBuyTransactions)
         {
-            HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
             if (houseCodes.contains(hgr.getCode()))
                 doubleHouseCodes.add(hgr.getCode());
             else
@@ -152,9 +153,9 @@ public class TableHouse
 
         for (HousetransactionRecord transaction : unapprovedBuyTransactions)
         {
-            HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-            PlayerroundRecord playerRound = FacilitatorUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
-            PlayerRecord player = FacilitatorUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+            PlayerroundRecord playerRound = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+            PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
 
             // check if there is anything wrong
             String note = "";
@@ -235,9 +236,9 @@ public class TableHouse
 
         for (HousetransactionRecord transaction : unapprovedSellStayTransactions)
         {
-            HousegroupRecord hgr = FacilitatorUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-            PlayerroundRecord playerRound = FacilitatorUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
-            PlayerRecord player = FacilitatorUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
+            HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
+            PlayerroundRecord playerRound = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
+            PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, playerRound.getPlayerId());
             s.append("                  <tr>\n");
             s.append("                    <td>" + player.getCode() + "</td>\n");
             s.append("                    <td>" + hgr.getCode() + "</td>\n");
@@ -247,7 +248,7 @@ public class TableHouse
             s.append("                    <td>" + data.k(hgr.getLastSoldPrice()) + "</td>\n");
             s.append("                    <td>" + data.k(transaction.getPrice()) + "</td>\n");
             MovingreasonRecord movingReason = playerRound.getMovingreasonId() == null ? null
-                    : FacilitatorUtils.readRecordFromId(data, Tables.MOVINGREASON, playerRound.getMovingreasonId());
+                    : SqlUtils.readRecordFromId(data, Tables.MOVINGREASON, playerRound.getMovingreasonId());
             String mrString = movingReason == null ? "--" : movingReason.getKey();
             s.append("                    <td>" + mrString + "</td>\n");
             if (decision.equals("STAY"))
