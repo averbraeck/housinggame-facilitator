@@ -9,8 +9,10 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
+import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
 import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
 import nl.tudelft.simulation.housinggame.common.FluvialPluvial;
+import nl.tudelft.simulation.housinggame.common.MeasureTypeList;
 import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.CommunityRecord;
@@ -20,6 +22,7 @@ import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousemeasureRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.MeasuretypeRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerRecord;
+import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
 
 /**
  * TableFlood makes and fills the flood information tables.
@@ -169,11 +172,12 @@ public class TableFlood
         DSLContext dslContext = DSL.using(data.getDataSource(), SQLDialect.MYSQL);
         List<HousegroupRecord> houseGroupList = dslContext.selectFrom(Tables.HOUSEGROUP)
                 .where(Tables.HOUSEGROUP.GROUP_ID.eq(data.getCurrentGroupRound().getGroupId())).fetch();
-        Map<Integer, HousegroupRecord> playerHouseGroupMap = new HashMap<>();
+        Map<HousegroupRecord, PlayerroundRecord> ownerMap = new HashMap<>();
         for (var houseGroup : houseGroupList)
         {
-            if (houseGroup.getOwnerId() != null)
-                playerHouseGroupMap.put(houseGroup.getOwnerId(), houseGroup);
+            PlayerroundRecord prr = CalcPlayerState.getHouseOwnerInRound(data, houseGroup, data.getFloodInfoRoundNumber());
+            if (prr != null)
+                ownerMap.put(houseGroup, prr);
         }
         s.append("    <div>\n");
         s.append("      <h3>Selected data for round " + data.getFloodInfoRoundNumber() + "</h3>\n");
@@ -216,22 +220,44 @@ public class TableFlood
             s.append("              <td>" + house.getCode() + "</td>\n");
             s.append("              <td>" + house.getAvailableRound() + "</td>\n");
             String playerCode = "--";
-            if (houseGroup.getOwnerId() != null)
+            if (ownerMap.containsKey(houseGroup))
             {
-                PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, houseGroup.getOwnerId());
+                PlayerRecord player = SqlUtils.readRecordFromId(data, Tables.PLAYER, ownerMap.get(houseGroup).getPlayerId());
                 playerCode = player.getCode();
             }
             s.append("              <td>" + playerCode + "</td>\n");
-            List<HousemeasureRecord> measureList = dslContext.selectFrom(Tables.HOUSEMEASURE)
-                    .where(Tables.HOUSEMEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch();
+
             s.append("              <td style=\"text-align:left;\">");
-            for (int i = 0; i < measureList.size(); i++)
+            if (ownerMap.containsKey(houseGroup))
             {
-                if (i > 0)
-                    s.append("<br/>");
-                MeasuretypeRecord mt =
-                        SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measureList.get(i).getMeasuretypeId());
-                s.append(mt.getShortAlias() + " (R" + measureList.get(i).getBoughtInRound() + ")");
+                // owner -- via player (THIS round) because of insurance
+                var prr = ownerMap.get(houseGroup);
+                var activeMT = MeasureTypeList.getActiveMeasureListRecords(data, data.getScenario().getId(), prr);
+                int i = 0;
+                for (MeasuretypeRecord mt : activeMT.keySet())
+                {
+                    if (mt.getHouseMeasure() > 0 || mt.getPluvialProtectionDelta() > 0 || mt.getFluvialProtectionDelta() > 0)
+                    {
+                        if (i > 0)
+                            s.append("<br/>");
+                        s.append(mt.getShortAlias() + " (R" + activeMT.get(mt) + ")");
+                        i++;
+                    }
+                }
+            }
+            else
+            {
+                // not owned -- via houseRecord
+                List<HousemeasureRecord> measureList = dslContext.selectFrom(Tables.HOUSEMEASURE)
+                        .where(Tables.HOUSEMEASURE.HOUSEGROUP_ID.eq(houseGroup.getId())).fetch();
+                for (int i = 0; i < measureList.size(); i++)
+                {
+                    if (i > 0)
+                        s.append("<br/>");
+                    MeasuretypeRecord mt =
+                            SqlUtils.readRecordFromId(data, Tables.MEASURETYPE, measureList.get(i).getMeasuretypeId());
+                    s.append(mt.getShortAlias() + " (R" + measureList.get(i).getBoughtInRound() + ")");
+                }
             }
             int fCommBaseProt = houseGroup.getFluvialBaseProtection();
             int pCommBaseProt = houseGroup.getPluvialBaseProtection();
