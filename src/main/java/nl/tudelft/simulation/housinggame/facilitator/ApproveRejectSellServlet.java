@@ -1,7 +1,6 @@
 package nl.tudelft.simulation.housinggame.facilitator;
 
 import java.io.IOException;
-import java.util.Map;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,12 +9,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
-import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
 import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
 import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
 import nl.tudelft.simulation.housinggame.data.Tables;
-import nl.tudelft.simulation.housinggame.data.tables.records.HouseRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousetransactionRecord;
 import nl.tudelft.simulation.housinggame.data.tables.records.PlayerroundRecord;
@@ -51,9 +48,7 @@ public class ApproveRejectSellServlet extends HttpServlet
                 if (approve.equals("APPROVE"))
                 {
                     HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
-                    HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
                     PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
-                    Map<Integer, CumulativeNewsEffects> newsEffects = data.getCumulativeNewsEffects();
 
                     transaction.setComment(comment);
                     transaction.setTransactionStatus(TransactionStatus.APPROVED_SELL);
@@ -73,8 +68,7 @@ public class ApproveRejectSellServlet extends HttpServlet
                     prr.setFinalHousegroupId(null);
                     prr.setHousePriceSold(price);
                     prr.setSatisfactionHouseMeasures(0);
-                    int movePenalty = data.getScenarioParameters().getSatisfactionMovePenalty()
-                            + newsEffects.get(house.getCommunityId()).getSatisfactionMoveChange();
+                    int movePenalty = data.getScenarioParameters().getSatisfactionMovePenalty();
                     prr.setSatisfactionMovePenalty(movePenalty);
                     // recalculate player satisfaction and income
                     CalcPlayerState.calculatePlayerRoundTotals(data, prr);
