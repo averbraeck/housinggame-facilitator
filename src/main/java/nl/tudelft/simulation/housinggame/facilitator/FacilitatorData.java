@@ -220,13 +220,14 @@ public class FacilitatorData extends CommonData
                 this.floodInfoRoundNumber = this.currentRoundNumber;
             else if (!this.menuState.equals("Flood"))
                 this.floodInfoRoundNumber = this.currentRoundNumber;
-            this.cumulativeNewsEffects =
-                    CumulativeNewsEffects.readCumulativeNewsEffects(this.dataSource, this.scenario, this.currentRoundNumber);
         }
         finally
         {
             dslContext.execute("UNLOCK TABLES;");
         }
+
+        this.cumulativeNewsEffects =
+                CumulativeNewsEffects.readCumulativeNewsEffects(this.dataSource, this.scenario, this.currentRoundNumber);
     }
 
     public String getUsername()
