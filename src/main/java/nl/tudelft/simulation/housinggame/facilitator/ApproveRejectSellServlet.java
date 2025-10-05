@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
-import nl.tudelft.simulation.housinggame.common.CalcPlayerState;
 import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
 import nl.tudelft.simulation.housinggame.common.HouseGroupStatus;
 import nl.tudelft.simulation.housinggame.common.SqlUtils;
@@ -54,8 +53,7 @@ public class ApproveRejectSellServlet extends HttpServlet
                     HousegroupRecord hgr = SqlUtils.readRecordFromId(data, Tables.HOUSEGROUP, transaction.getHousegroupId());
                     HouseRecord house = SqlUtils.readRecordFromId(data, Tables.HOUSE, hgr.getHouseId());
                     PlayerroundRecord prr = SqlUtils.readRecordFromId(data, Tables.PLAYERROUND, transaction.getPlayerroundId());
-                    Map<Integer, CumulativeNewsEffects> newsEffects = CumulativeNewsEffects
-                            .readCumulativeNewsEffects(data.getDataSource(), data.getScenario(), data.getCurrentRoundNumber());
+                    Map<Integer, CumulativeNewsEffects> newsEffects = data.getCumulativeNewsEffects();
 
                     transaction.setComment(comment);
                     transaction.setTransactionStatus(TransactionStatus.APPROVED_SELL);

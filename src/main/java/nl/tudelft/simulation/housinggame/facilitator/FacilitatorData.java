@@ -20,6 +20,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import jakarta.servlet.ServletException;
 import nl.tudelft.simulation.housinggame.common.CommonData;
+import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
 import nl.tudelft.simulation.housinggame.common.GroupState;
 import nl.tudelft.simulation.housinggame.common.SqlUtils;
 import nl.tudelft.simulation.housinggame.common.TransactionStatus;
@@ -66,6 +67,9 @@ public class FacilitatorData extends CommonData
 
     /** The list of GroupRounds until now. This is DYNAMIC. */
     private List<GrouproundRecord> groupRoundList = new ArrayList<>();
+
+    /** the news effects till the current facilitator round. */
+    private Map<Integer, CumulativeNewsEffects> cumulativeNewsEffects;
 
     /* ================================= */
     /* FULLY DYNAMIC INFO IN THE SESSION */
@@ -216,6 +220,8 @@ public class FacilitatorData extends CommonData
                 this.floodInfoRoundNumber = this.currentRoundNumber;
             else if (!this.menuState.equals("Flood"))
                 this.floodInfoRoundNumber = this.currentRoundNumber;
+            this.cumulativeNewsEffects =
+                    CumulativeNewsEffects.readCumulativeNewsEffects(this.dataSource, this.scenario, this.currentRoundNumber);
         }
         finally
         {
@@ -441,4 +447,14 @@ public class FacilitatorData extends CommonData
         DSLContext dslContext = DSL.using(getDataSource(), SQLDialect.MYSQL);
         return dslContext.selectFrom(Tables.HOUSEGROUP).where(Tables.HOUSEGROUP.GROUP_ID.eq(this.group.getId())).fetch();
     }
+
+    /**
+     * @return newsEffects
+     */
+    public Map<Integer, CumulativeNewsEffects> getCumulativeNewsEffects()
+    {
+        return this.cumulativeNewsEffects;
+    }
+
+
 }

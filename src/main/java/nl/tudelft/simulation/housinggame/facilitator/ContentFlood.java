@@ -8,7 +8,6 @@ import org.jooq.impl.DSL;
 
 import jakarta.servlet.http.HttpServletRequest;
 import nl.tudelft.simulation.housinggame.common.CalcHouseGroup;
-import nl.tudelft.simulation.housinggame.common.CumulativeNewsEffects;
 import nl.tudelft.simulation.housinggame.common.FluvialPluvial;
 import nl.tudelft.simulation.housinggame.data.Tables;
 import nl.tudelft.simulation.housinggame.data.tables.records.HousegroupRecord;
@@ -70,14 +69,10 @@ public class ContentFlood
         List<HousegroupRecord> houseGroupList = dslContext.selectFrom(Tables.HOUSEGROUP)
                 .where(Tables.HOUSEGROUP.GROUP_ID.eq(data.getCurrentGroupRound().getGroupId())).fetch();
 
-        // get the NewsEffects per community
-        var cumulativeNewsEffects = CumulativeNewsEffects.readCumulativeNewsEffects(data.getDataSource(), data.getScenario(),
-                data.getCurrentRoundNumber());
-
         // check the protection of the communities and houses
         for (var houseGroup : houseGroupList)
         {
-            CalcHouseGroup.calcFloodHousePlayer(data, houseGroup, data.getCurrentRoundNumber(), cumulativeNewsEffects,
+            CalcHouseGroup.calcFloodHousePlayer(data, houseGroup, data.getCurrentRoundNumber(), data.getCumulativeNewsEffects(),
                     pluvialIntensity, fluvialIntensity);
         }
 
